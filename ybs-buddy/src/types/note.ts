@@ -5,9 +5,9 @@ export interface Note {
   id: string
   title: string
   content: string
-  class: ClassType
+  class: number
   semester: SemesterType
-  course: string
+  courseId: string
   author: string
   createdAt: Date
   updatedAt: Date
@@ -30,7 +30,7 @@ export interface PersonalNote {
 
 export interface NoteFilter {
   searchTerm: string
-  class: ClassType
+  class: number
   semester: SemesterType
-  course: string
+  courseId: string
 } 

@@ -130,6 +130,7 @@ class ApiClient {
     difficulty?: 'easy' | 'medium' | 'hard';
     questionCount: number;
     timeLimit?: number;
+    examFormat?: 'test' | 'classic' | 'mixed';
   }) {
     return this.request('/quiz/generate', {
       method: 'POST',
@@ -137,12 +138,32 @@ class ApiClient {
     });
   }
 
+  // Quiz sonucu kaydet
+  async submitQuiz(resultData: any) {
+    return this.request('/quiz/submit', {
+      method: 'POST',
+      body: JSON.stringify(resultData),
+    });
+  }
+
   // Note Summarization
-  async summarizeNote(content: string) {
+  async summarizeNote(noteId: string, category: string) {
     return this.request('/notes/summarize', {
       method: 'POST',
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ noteId, category }),
     });
+  }
+
+  // Summarized Notes
+  async saveSummarizedNote(noteId: string, summarizedContent: string, category: string) {
+    return this.request('/profile/summarized-notes', {
+      method: 'POST',
+      body: JSON.stringify({ noteId, summarizedContent, category }),
+    });
+  }
+
+  async getSummarizedNotes() {
+    return this.request('/profile/summarized-notes');
   }
 }
 

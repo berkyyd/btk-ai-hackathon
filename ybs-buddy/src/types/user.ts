@@ -8,6 +8,15 @@ export interface User {
   class?: ClassType
   createdAt: Date
   lastLoginAt?: Date
+  summarizedNotes?: SummarizedNote[];
+}
+
+export interface SummarizedNote {
+  noteId: string;
+  title: string;
+  summarizedContent: string;
+  category: string;
+  createdAt: Date;
 }
 
 export interface UserMistake {
