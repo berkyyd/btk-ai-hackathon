@@ -32,6 +32,7 @@ export interface QuizResult {
   answers: Answer[]
   completedAt: Date
   timeSpent: number
+  questions: Question[];
 }
 
 export interface Answer {

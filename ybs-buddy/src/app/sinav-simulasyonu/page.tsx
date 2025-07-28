@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import { apiClient } from '../../utils/apiClient'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface Question {
   id: string
@@ -64,7 +65,8 @@ export default function SinavSimulasyonuPage() {
     courseId: '',
     difficulty: 'medium' as 'easy' | 'medium' | 'hard',
     questionCount: 10,
-    timeLimit: 30
+    timeLimit: 30,
+    examFormat: 'mixed' as 'test' | 'classic' | 'mixed'
   })
 
   // Aktif sınav
@@ -73,6 +75,8 @@ export default function SinavSimulasyonuPage() {
   const [userAnswers, setUserAnswers] = useState<{[key: string]: string | boolean}>({})
   const [quizStartTime, setQuizStartTime] = useState<Date | null>(null)
   const [quizResults, setQuizResults] = useState<QuizResult | null>(null)
+  const [elapsedTime, setElapsedTime] = useState(0)
+  const { user, role, loading: authLoading } = useAuth();
 
   // Quiz oluştur
   const handleCreateQuiz = async (e: React.FormEvent) => {
@@ -85,7 +89,8 @@ export default function SinavSimulasyonuPage() {
         courseId: newQuiz.courseId,
         difficulty: newQuiz.difficulty,
         questionCount: newQuiz.questionCount,
-        timeLimit: newQuiz.timeLimit
+        timeLimit: newQuiz.timeLimit,
+        examFormat: newQuiz.examFormat
       })
       
       if (response.success && response.data) {
@@ -110,7 +115,8 @@ export default function SinavSimulasyonuPage() {
           courseId: '',
           difficulty: 'medium',
           questionCount: 10,
-          timeLimit: 30
+          timeLimit: 30,
+          examFormat: 'mixed'
         })
       } else {
         setError(response.error || 'Quiz oluşturulurken bir hata oluştu')
@@ -129,6 +135,7 @@ export default function SinavSimulasyonuPage() {
     setUserAnswers({})
     setQuizStartTime(new Date())
     setQuizResults(null)
+    setElapsedTime(0)
   }
 
   // Cevap kaydet
@@ -154,7 +161,7 @@ export default function SinavSimulasyonuPage() {
   }
 
   // Sınavı bitir
-  const finishQuiz = () => {
+  const finishQuiz = async () => {
     if (!activeQuiz || !quizStartTime) return
 
     const endTime = new Date()
@@ -163,7 +170,18 @@ export default function SinavSimulasyonuPage() {
     let correctAnswers = 0
     const answers = activeQuiz.questions.map(question => {
       const userAnswer = userAnswers[question.id]
-      const isCorrect = userAnswer === question.correctAnswer
+      const isCorrect = (() => {
+        if (question.type === 'true_false') {
+          console.log(`Question ID: ${question.id}, Type: ${question.type}, User Answer: ${userAnswer}, Correct Answer: ${question.correctAnswer}`);
+          return userAnswer === question.correctAnswer;
+        } else if (question.type === 'multiple_choice' || question.type === 'open_ended') {
+          const userAnsTrimmed = String(userAnswer).toLowerCase().trim();
+          const correctAnsTrimmed = String(question.correctAnswer).toLowerCase().trim();
+          console.log(`Question ID: ${question.id}, Type: ${question.type}, User Answer (trimmed): '${userAnsTrimmed}', Correct Answer (trimmed): '${correctAnsTrimmed}'`);
+          return userAnsTrimmed === correctAnsTrimmed;
+        }
+        return false; // Bilinmeyen soru tipi
+      })();
       if (isCorrect) correctAnswers++
       
       return {
@@ -186,6 +204,20 @@ export default function SinavSimulasyonuPage() {
 
     setQuizResults(result)
     setActiveQuiz(null)
+
+    // Quiz sonucunu sunucuya kaydet
+    if (user) {
+      await apiClient.submitQuiz({
+        userId: user.uid,
+        quizId: result.quizId,
+        score: result.score,
+        totalPoints: result.totalQuestions,
+        answers: result.answers,
+        completedAt: result.completedAt,
+        timeSpent: result.timeSpent,
+        questions: activeQuiz.questions // yeni eklendi
+      })
+    }
   }
 
   // Sınavı iptal et
@@ -223,6 +255,7 @@ export default function SinavSimulasyonuPage() {
     const timer = setInterval(() => {
       const now = new Date()
       const timeSpent = Math.floor((now.getTime() - quizStartTime.getTime()) / 1000)
+      setElapsedTime(timeSpent)
       const timeLimit = activeQuiz.timeLimit ? activeQuiz.timeLimit * 60 : 0
       
       if (timeLimit && timeSpent >= timeLimit) {
@@ -250,6 +283,9 @@ export default function SinavSimulasyonuPage() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
+  if (authLoading) return <div>Yükleniyor...</div>;
+  if (!user) return <div>Lütfen giriş yapınız.</div>;
+
   return (
     <div className='py-8'>
       <section className='text-center mb-16 animate-fadeIn'>
@@ -262,18 +298,19 @@ export default function SinavSimulasyonuPage() {
       </section>
 
       {/* Quiz Oluşturma Formu */}
-      <Card className='mb-8'>
-        <div className='flex justify-between items-center mb-4'>
-          <h3 className='text-xl font-bold text-text'>Quiz Oluştur</h3>
-          <button
-            onClick={() => setShowCreateForm(!showCreateForm)}
-            className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors'
-          >
-            {showCreateForm ? 'İptal' : 'Yeni Quiz'}
-          </button>
-        </div>
+      {user && (
+        <Card className='mb-8'>
+          <div className='flex justify-between items-center mb-4'>
+            <h3 className='text-xl font-bold text-text'>Quiz Oluştur</h3>
+            <button
+              onClick={() => setShowCreateForm(!showCreateForm)}
+              className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors'
+            >
+              {showCreateForm ? 'İptal' : 'Yeni Quiz'}
+            </button>
+          </div>
 
-        {showCreateForm && (
+          {showCreateForm && (
           <form onSubmit={handleCreateQuiz} className='space-y-4'>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div>
@@ -343,6 +380,20 @@ export default function SinavSimulasyonuPage() {
                   required
                 />
               </div>
+
+              <div>
+                <label className='block text-sm font-medium text-text mb-2'>Sınav Türü</label>
+                <select
+                  value={newQuiz.examFormat}
+                  onChange={(e) => setNewQuiz(prev => ({ ...prev, examFormat: e.target.value as any }))}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  required
+                >
+                  <option value='test'>Test (Çoktan Seçmeli)</option>
+                  <option value='classic'>Klasik (Açık Uçlu)</option>
+                  <option value='mixed'>Karışık (Test, Klasik, D/Y, Boşluk Doldurma)</option>
+                </select>
+              </div>
             </div>
             
             <div>
@@ -375,8 +426,9 @@ export default function SinavSimulasyonuPage() {
           </form>
         )}
       </Card>
+    )}
 
-      {/* Hata Mesajı */}
+      
       {error && (
         <div className='mb-8 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded'>
           {error}
@@ -394,7 +446,7 @@ export default function SinavSimulasyonuPage() {
               </span>
               {quizStartTime && (
                 <span className='text-sm text-gray-600'>
-                  Süre: {formatTime(Math.floor((new Date().getTime() - quizStartTime.getTime()) / 1000))}
+                  Süre: {formatTime(elapsedTime)}
                 </span>
               )}
             </div>
@@ -590,4 +642,4 @@ export default function SinavSimulasyonuPage() {
       </Card>
     </div>
   )
-} 
+}

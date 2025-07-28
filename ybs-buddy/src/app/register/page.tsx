@@ -3,9 +3,9 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { apiClient } from '../../utils/apiClient';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
-import { auth } from '../../config/firebase';
+import { auth, db } from '../../config/firebase';
+import { doc, setDoc } from "firebase/firestore";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -30,7 +30,6 @@ export default function RegisterPage() {
     setLoading(true);
     setError('');
 
-    // Validation
     if (formData.password !== formData.confirmPassword) {
       setError('Şifreler eşleşmiyor');
       setLoading(false);
@@ -44,33 +43,35 @@ export default function RegisterPage() {
     }
 
     try {
-      // Önce Firebase Auth ile kullanıcı oluştur
+      // 1. Firebase Auth ile kullanıcı oluştur
       const userCredential = await createUserWithEmailAndPassword(
         auth,
         formData.email,
         formData.password
       );
+      const user = userCredential.user;
       
-      // Display name güncelle
+      // 2. Display name güncelle
       if (formData.displayName) {
-        await updateProfile(userCredential.user, { displayName: formData.displayName });
+        await updateProfile(user, { displayName: formData.displayName });
       }
       
-      console.log('Firebase register successful:', userCredential.user);
+      console.log('Firebase register successful:', user);
+
+      // 3. Firestore'a kullanıcı dökümanı oluştur
+      await setDoc(doc(db, "users", user.uid), {
+        uid: user.uid,
+        displayName: formData.displayName,
+        email: formData.email,
+        role: 'student', // Varsayılan rol
+        createdAt: new Date().toISOString(),
+        bio: "",
+        avatarUrl: ""
+      });
       
-      // Sonra API'yi çağır
-      const response = await apiClient.register(
-        formData.email,
-        formData.password,
-        formData.displayName
-      );
-      
-      if (response.success) {
-        // Başarılı kayıt - ana sayfaya yönlendir
-        router.push('/');
-      } else {
-        setError(response.error || 'Kayıt olurken bir hata oluştu');
-      }
+      // 4. Başarılı kayıt - ana sayfaya yönlendir
+      router.push('/');
+
     } catch (err: any) {
       console.error('Register error:', err);
       if (err.code === 'auth/email-already-in-use') {

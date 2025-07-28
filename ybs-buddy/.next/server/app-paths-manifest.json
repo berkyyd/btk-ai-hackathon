@@ -1,7 +1,9 @@
 {
-  "/register/page": "app/register/page.js",
-  "/login/page": "app/login/page.js",
-  "/mufredat/page": "app/mufredat/page.js",
-  "/page": "app/page.js",
-  "/sinav-simulasyonu/page": "app/sinav-simulasyonu/page.js"
+  "/api/quiz/generate/route": "app/api/quiz/generate/route.js",
+  "/api/quiz/submit/route": "app/api/quiz/submit/route.js",
+  "/api/courses/route": "app/api/courses/route.js",
+  "/profile/page": "app/profile/page.js",
+  "/sinav-simulasyonu/page": "app/sinav-simulasyonu/page.js",
+  "/ders-notlari/page": "app/ders-notlari/page.js",
+  "/mufredat/page": "app/mufredat/page.js"
 }

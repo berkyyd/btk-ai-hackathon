@@ -1,5 +1,6 @@
 'use client'
 
+import { useAuth } from '../../contexts/AuthContext';
 import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import { apiClient } from '../../utils/apiClient'
@@ -16,6 +17,7 @@ interface Course {
 }
 
 export default function MufredatPage() {
+  const { user, role, loading: authLoading } = useAuth();
   const [allCourses, setAllCourses] = useState<Course[]>([])
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
@@ -193,14 +195,16 @@ export default function MufredatPage() {
             </select>
           </div>
           
-          <div className='flex items-end'>
-            <button
-              onClick={() => setShowAddForm(!showAddForm)}
-              className='w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors'
-            >
-              {showAddForm ? 'İptal' : 'Yeni Ders Ekle'}
-            </button>
-          </div>
+          {user && role === 'admin' && (
+            <div className='flex items-end'>
+              <button
+                onClick={() => setShowAddForm(!showAddForm)}
+                className='w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors'
+              >
+                {showAddForm ? 'İptal' : 'Yeni Ders Ekle'}
+              </button>
+            </div>
+          )}
         </div>
       </Card>
 

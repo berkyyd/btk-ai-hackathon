@@ -1,4 +1,4 @@
-// File: C:\BTK-H\ybs-buddy\src\app\ders-notlari\page.tsx
+// File: C:\Users\Berkay\Desktop\btk-vsc\btk-ai-hackathon\ybs-buddy\src\app\ders-notlari\page.tsx
 import * as entry from '../../../../src/app/ders-notlari/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
