@@ -173,7 +173,7 @@ export default function SinavSimulasyonuPage() {
       const isCorrect = (() => {
         if (question.type === 'true_false') {
           console.log(`Question ID: ${question.id}, Type: ${question.type}, User Answer: ${userAnswer}, Correct Answer: ${question.correctAnswer}`);
-          return userAnswer === question.correctAnswer;
+          return String(userAnswer) === String(question.correctAnswer);
         } else if (question.type === 'multiple_choice' || question.type === 'open_ended') {
           const userAnsTrimmed = String(userAnswer).toLowerCase().trim();
           const correctAnsTrimmed = String(question.correctAnswer).toLowerCase().trim();

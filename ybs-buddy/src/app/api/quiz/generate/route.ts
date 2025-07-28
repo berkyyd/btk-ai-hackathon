@@ -110,7 +110,7 @@ function generateMockQuestions(courseId: string, difficulty: string = 'medium', 
         'C) Üçüncü seçenek',
         'D) Dördüncü seçenek'
       ];
-      question.correctAnswer = 'A';
+      question.correctAnswer = question.options[0]; // İlk seçeneği doğru kabul et
     } else if (questionType === 'true_false') {
       question.correctAnswer = Math.random() > 0.5;
     } else {
