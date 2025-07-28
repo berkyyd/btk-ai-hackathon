@@ -24,10 +24,12 @@ export async function GET(request: NextRequest) {
       notes.push({
         id: doc.id,
         ...doc.data(),
+        class: doc.data().classYear, // classYear'ı class olarak eşle
       });
     });
 
     console.log('Found notes:', notes.length);
+    console.log('Notes data sent to frontend:', notes);
 
     return NextResponse.json({
       success: true,
@@ -47,7 +49,9 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { title, content, courseId, classYear, semester, tags, isPublic } = await request.json();
+    const requestBody = await request.json();
+    console.log('Received raw request body for new note:', requestBody);
+    const { title, content, courseId, classYear, semester, tags, isPublic, fileUrl } = requestBody;
 
     // Validation
     if (!title || !content || !courseId) {
@@ -72,6 +76,7 @@ export async function POST(request: NextRequest) {
       updatedAt: new Date().toISOString(),
       // TODO: Kullanıcı ID'si eklenecek (auth sistemi tamamlandığında)
       userId: 'anonymous',
+      fileUrl: fileUrl || null, // Yeni eklendi
     });
 
     return NextResponse.json({

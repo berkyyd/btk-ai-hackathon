@@ -18,7 +18,7 @@ interface GeminiResponse {
 
 class GeminiService {
   private apiKey: string;
-  private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+  private baseUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent';
 
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY || '';
@@ -71,30 +71,26 @@ class GeminiService {
   }
 
   // Quiz soruları oluştur
-  async generateQuizQuestions(courseName: string, difficulty: string, questionCount: number): Promise<any[]> {
-    const prompt = `
-    ${courseName} dersi için ${difficulty} zorlukta ${questionCount} adet sınav sorusu oluştur.
-    
-    Sorular şu formatlarda olmalı:
-    1. Çoktan seçmeli (multiple_choice): 4 seçenekli
-    2. Doğru/Yanlış (true_false): true/false cevap
-    3. Açık uçlu (open_ended): kısa cevap
-    
-    Her soru için şu bilgileri ver:
-    - id: benzersiz ID
-    - question: soru metni
-    - type: "multiple_choice", "true_false", veya "open_ended"
-    - options: çoktan seçmeli için ["A) ...", "B) ...", "C) ...", "D) ..."]
-    - correctAnswer: doğru cevap
-    - explanation: açıklama
-    - difficulty: "${difficulty}"
-    
-    JSON formatında döndür, sadece soru array'ini ver.
-    `;
+  async generateQuizQuestions(courseName: string, difficulty: string, questionCount: number, notesContent?: string, examFormat?: 'test' | 'classic' | 'mixed'): Promise<any[]> {
+    let prompt = '';
+    if (notesContent && notesContent.trim().length > 0) {
+      prompt += `Aşağıda ilgili dersin notları verilmiştir. Sadece bu notlardan sınav sorusu üret.\n\nNOTLAR:\n${notesContent}\n\n`;
+    }
+    let formatDesc = '';
+    if (examFormat === 'test') {
+      formatDesc = 'Sadece çoktan seçmeli (multiple_choice) sorular üret.';
+    } else if (examFormat === 'classic') {
+      formatDesc = 'Sadece açık uçlu (open_ended) sorular üret.';
+    } else {
+      formatDesc = 'Sorular şu formatlarda olmalı: 1. Çoktan seçmeli (multiple_choice): 4 seçenekli, 2. Doğru/Yanlış (true_false): true/false cevap, 3. Açık uçlu (open_ended): kısa cevap, 4. Boşluk doldurma (fill_blank): kısa cevap.';
+    }
+    prompt += `\n${courseName} dersi için ${difficulty} zorlukta ${questionCount} adet sınav sorusu oluştur.\n${formatDesc}\n\nHer soru için şu bilgileri ver:\n- id: benzersiz ID\n- question: soru metni\n- type: 'multiple_choice', 'true_false', 'open_ended', 'fill_blank'\n- options: çoktan seçmeli için ['A) ...', 'B) ...', 'C) ...', 'D) ...']\n- correctAnswer: doğru cevap\n- explanation: açıklama\n- difficulty: '${difficulty}'\n\nJSON formatında döndür, sadece soru array'ini ver. Her sorunun cevabını ve açıklamasını mutlaka ekle. Açıklamalar 2-3 cümle uzunluğunda, doğru cevabı ve neden doğru olduğunu net bir şekilde anlatan, öğrencinin yanlış anlamalarını gidermeye yönelik olsun.`;
 
     try {
       const response = await this.makeRequest(prompt);
-      return JSON.parse(response);
+      // Kod bloğu varsa temizle
+      const cleanResponse = response.replace(/```json|```/g, '').trim();
+      return JSON.parse(cleanResponse);
     } catch (error) {
       console.error('Quiz generation failed:', error);
       // Fallback: Mock sorular döndür
@@ -103,18 +99,19 @@ class GeminiService {
   }
 
   // Not özetle
-  async summarizeNote(content: string): Promise<string> {
-    const prompt = `
-    Aşağıdaki notu özetle ve ana noktaları çıkar:
-    
-    ${content}
-    
-    Özet şu formatta olsun:
-    - Ana konular
-    - Önemli noktalar
-    - Anahtar terimler
-    - Özet (2-3 cümle)
-    `;
+  async summarizeNote(content: string, category: string): Promise<string> {
+    let prompt = '';
+    switch (category) {
+      case 'academic':
+        prompt = `Aşağıdaki notu akademik bir dille özetle:\n\n${content}\n\nÖzet şu formatta olsun:\n- Ana konular\n- Önemli noktalar\n- Anahtar terimler\n- Özet (2-3 cümle)`;
+        break;
+      case 'entertaining':
+        prompt = `Aşağıdaki notu eğlenceli ve akılda kalıcı bir şekilde özetle:\n\n${content}\n\nÖzet şu formatta olsun:\n- İlginç bilgiler\n- Mizahi yaklaşımlar (varsa)\n- Akılda kalıcı ana fikirler\n- Özet (2-3 cümle)`;
+        break;
+      default:
+        prompt = `Aşağıdaki notu özetle ve ana noktaları çıkar:\n\n${content}\n\nÖzet şu formatta olsun:\n- Ana konular\n- Önemli noktalar\n- Anahtar terimler\n- Özet (2-3 cümle)`;
+        break;
+    }
 
     try {
       return await this.makeRequest(prompt);
@@ -143,6 +140,24 @@ class GeminiService {
     } catch (error) {
       console.error('Academic guidance generation failed:', error);
       return 'Yönlendirme oluşturulamadı.';
+    }
+  }
+
+  // Yanlış cevaplanan sorular için açıklama üret
+  async explainAnswer(question: string, correctAnswer: string, userAnswer: string): Promise<string> {
+    const prompt = `Aşağıdaki soruya verilen yanlış cevabı değerlendir. Doğru cevabın ne olduğunu ve neden doğru olduğunu açıkla. Öğrencinin cevabının neden yanlış olduğunu kısaca belirt.
+
+Soru: ${question}
+Doğru Cevap: ${correctAnswer}
+Öğrencinin Cevabı: ${userAnswer}
+
+Yanıtı 2-3 cümleyle, açıklayıcı ve anlaşılır bir dille yaz.`;
+    try {
+      const response = await this.makeRequest(prompt);
+      return response.trim();
+    } catch (error) {
+      console.error('Gemini açıklama üretimi başarısız:', error);
+      return 'Açıklama üretilemedi.';
     }
   }
 

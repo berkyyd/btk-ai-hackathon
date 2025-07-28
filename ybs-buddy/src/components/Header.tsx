@@ -55,6 +55,16 @@ function Header() {
                 Sınav Simülasyonu
               </Link>
             </li>
+            {user && (
+              <li>
+                <Link
+                  href="/profile"
+                  className='text-text-light hover:text-primary transition-colors duration-300 font-medium'
+                >
+                  Profilim
+                </Link>
+              </li>
+            )}
           </ul>
         </nav>
         <div className='flex items-center space-x-4'>

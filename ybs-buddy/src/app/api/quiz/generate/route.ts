@@ -1,9 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { geminiService } from '../../../../utils/geminiService';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../../../../config/firebase';
 
 export async function POST(request: NextRequest) {
   try {
-    const { courseId, difficulty, questionCount, timeLimit } = await request.json();
+    const { courseId, difficulty, questionCount, timeLimit, examFormat } = await request.json();
 
     // Validation
     if (!courseId || !questionCount) {
@@ -21,12 +23,28 @@ export async function POST(request: NextRequest) {
     };
     const courseName = courseNames[courseId] || 'Bilinmeyen Ders';
 
+    // Seçilen dersin notlarını Firestore'dan çek
+    let notesContent = '';
+    try {
+      const notesRef = collection(db, 'notes');
+      const notesQuery = query(notesRef, where('courseId', '==', courseId));
+      const notesSnapshot = await getDocs(notesQuery);
+      const notes = notesSnapshot.docs.map(doc => doc.data().content).filter(Boolean);
+      if (notes.length > 0) {
+        notesContent = notes.join('\n\n');
+      }
+    } catch (err) {
+      console.error('Notlar çekilemedi:', err);
+    }
+
     try {
       // Gemini API ile sorular oluştur
       const questions = await geminiService.generateQuizQuestions(
-        courseName, 
-        difficulty || 'medium', 
-        questionCount
+        courseName,
+        difficulty || 'medium',
+        questionCount,
+        notesContent,
+        examFormat // yeni parametre
       );
 
       return NextResponse.json({
