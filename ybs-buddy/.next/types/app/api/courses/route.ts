@@ -1,4 +1,4 @@
-// File: C:\BTK-H\ybs-buddy\src\app\api\courses\route.ts
+// File: C:\Users\Berkay\Desktop\btk-vsc\btk-ai-hackathon\ybs-buddy\src\app\api\courses\route.ts
 import * as entry from '../../../../../src/app/api/courses/route.js'
 import type { NextRequest } from 'next/server.js'
 

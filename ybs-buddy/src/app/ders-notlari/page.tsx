@@ -1,38 +1,22 @@
 'use client'
 
+import { useAuth } from '../../contexts/AuthContext';
 import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import { apiClient } from '../../utils/apiClient'
-
-interface Note {
-  id: string
-  title: string
-  content: string
-  courseId: string
-  courseName?: string
-  classYear: number
-  semester: string
-  tags: string[]
-  isPublic: boolean
-  likes: number
-  favorites: number
-  createdAt: string
-  userId: string
-}
-
-interface Course {
-  id: string
-  name: string
-  code: string
-}
+import { Note } from '../../types/note'
+import { Course } from '../../types/course'
 
 export default function DersNotlariPage() {
+  const { user, role, loading: authLoading } = useAuth();
   const [allNotes, setAllNotes] = useState<Note[]>([])
   const [notes, setNotes] = useState<Note[]>([])
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  
+
+
+
   // Filtreler
   const [filters, setFilters] = useState({
     classYear: '',
@@ -47,11 +31,13 @@ export default function DersNotlariPage() {
     title: '',
     content: '',
     courseId: '',
-    classYear: 1,
+    class: 1,
     semester: 'Güz',
     tags: [] as string[],
     isPublic: true
   })
+
+
 
   // Notları yükle
   const loadNotes = async () => {
@@ -115,13 +101,13 @@ export default function DersNotlariPage() {
     let filtered = notesToFilter
 
     if (filters.classYear) {
-      filtered = filtered.filter(note => note.classYear === parseInt(filters.classYear))
+      filtered = filtered.filter(note => note.class === parseInt(filters.classYear))
     }
     if (filters.semester) {
       filtered = filtered.filter(note => note.semester === filters.semester)
     }
     if (filters.courseId) {
-      filtered = filtered.filter(note => note.courseId === filters.courseId)
+      filtered = filtered.filter(note => note.course === filters.courseId)
     }
     if (filters.search) {
       const searchLower = filters.search.toLowerCase()
@@ -143,10 +129,13 @@ export default function DersNotlariPage() {
 
   // Yeni not ekleme
   const handleAddNote = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+    setError('');
+
     try {
-      const response = await apiClient.addNote(newNote)
+      const response = await apiClient.addNote({
+        ...newNote
+      });
       
       if (response.success) {
         setShowAddForm(false)
@@ -191,6 +180,11 @@ export default function DersNotlariPage() {
       day: 'numeric'
     })
   }
+
+  
+
+  if (authLoading) return <div>Yükleniyor...</div>;
+  if (!user) return <div>Lütfen giriş yapınız.</div>;
 
   return (
     <div className='py-8'>
@@ -262,14 +256,16 @@ export default function DersNotlariPage() {
             />
           </div>
           
-          <div className='flex items-end'>
-            <button
-              onClick={() => setShowAddForm(!showAddForm)}
-              className='w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors'
-            >
-              {showAddForm ? 'İptal' : 'Yeni Not Ekle'}
-            </button>
-          </div>
+          {user && (
+            <div className='flex items-end'>
+              <button
+                onClick={() => setShowAddForm(!showAddForm)}
+                className='w-full px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors'
+              >
+                {showAddForm ? 'İptal' : 'Yeni Not Ekle'}
+              </button>
+            </div>
+          )}
         </div>
       </Card>
 
@@ -310,8 +306,8 @@ export default function DersNotlariPage() {
               <div>
                 <label className='block text-sm font-medium text-text mb-2'>Sınıf</label>
                 <select
-                  value={newNote.classYear}
-                  onChange={(e) => setNewNote(prev => ({ ...prev, classYear: parseInt(e.target.value) }))}
+                  value={newNote.class}
+                  onChange={(e) => setNewNote(prev => ({ ...prev, class: parseInt(e.target.value) }))}
                   className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                 >
                   <option value={1}>1. Sınıf</option>
@@ -342,7 +338,6 @@ export default function DersNotlariPage() {
                 className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                 rows={6}
                 placeholder='Notunuzu buraya yazın...'
-                required
               />
             </div>
             
@@ -443,7 +438,8 @@ export default function DersNotlariPage() {
                 </p>
                 
                 <div className='flex justify-between text-sm text-gray-500 mb-3'>
-                  <span>{note.classYear}. Sınıf</span>
+                  <span>{note.class}. Sınıf</span>
+                  {console.log('Note class value:', note.class)}
                   <span>{note.semester}</span>
                   <span>{formatDate(note.createdAt)}</span>
                 </div>
@@ -463,15 +459,19 @@ export default function DersNotlariPage() {
                     <span>❤️ {note.likes}</span>
                     <span>⭐ {note.favorites}</span>
                   </div>
+                  
                   <button className='text-blue-500 hover:text-blue-700'>
                     Detaylar
                   </button>
+                  
                 </div>
               </div>
             ))}
           </div>
         )}
       </Card>
-    </div>
+
+      
+     </div>
   )
-} 
+}
