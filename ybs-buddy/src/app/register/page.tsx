@@ -5,7 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '../../config/firebase';
-import { doc, setDoc } from "firebase/firestore";
+import { doc, setDoc, getDoc, updateDoc, DocumentReference } from "firebase/firestore";
+import { validateInvitationCode, markInvitationCodeAsUsed } from '../../utils/invitationCodeService';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ export default function RegisterPage() {
     password: '',
     confirmPassword: '',
     displayName: '',
+    invitationCode: '',
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -58,16 +60,36 @@ export default function RegisterPage() {
       
       console.log('Firebase register successful:', user);
 
+      let userRole = 'student'; // Varsayılan rol
+      let invitationCodeDocRef = null;
+
+      // Davet kodu kontrolü
+      if (formData.invitationCode) {
+        const validationResult = await validateInvitationCode(formData.invitationCode);
+        if (validationResult.success && validationResult.docRef) {
+          userRole = 'academician';
+          invitationCodeDocRef = validationResult.docRef;
+        } else {
+          console.warn('Davet kodu geçersiz veya kullanılmış: ', validationResult.error);
+          // Davet kodu geçersiz olsa bile kayıt işlemine devam et, rol varsayılan olarak kalır.
+        }
+      }
+
       // 3. Firestore'a kullanıcı dökümanı oluştur
       await setDoc(doc(db, "users", user.uid), {
         uid: user.uid,
         displayName: formData.displayName,
         email: formData.email,
-        role: 'student', // Varsayılan rol
+        role: userRole, 
         createdAt: new Date().toISOString(),
         bio: "",
         avatarUrl: ""
       });
+
+      // Davet kodu kullanıldı olarak işaretle (Firestore kaydı başarılı olduktan sonra)
+      if (invitationCodeDocRef && user.uid) {
+        await markInvitationCodeAsUsed(invitationCodeDocRef, user.uid);
+      }
       
       // 4. Başarılı kayıt - ana sayfaya yönlendir
       router.push('/');
@@ -172,6 +194,21 @@ export default function RegisterPage() {
                 className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
                 placeholder="Şifre Tekrar"
                 value={formData.confirmPassword}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="invitationCode" className="sr-only">
+                Davet Kodu (isteğe bağlı)
+              </label>
+              <input
+                id="invitationCode"
+                name="invitationCode"
+                type="text"
+                autoComplete="off"
+                className="appearance-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm"
+                placeholder="Davet Kodu (isteğe bağlı)"
+                value={formData.invitationCode}
                 onChange={handleChange}
               />
             </div>

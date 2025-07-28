@@ -84,7 +84,7 @@ class GeminiService {
     } else {
       formatDesc = 'Sorular şu formatlarda olmalı: 1. Çoktan seçmeli (multiple_choice): 4 seçenekli, 2. Doğru/Yanlış (true_false): true/false cevap, 3. Açık uçlu (open_ended): kısa cevap, 4. Boşluk doldurma (fill_blank): kısa cevap.';
     }
-    prompt += `\n${courseName} dersi için ${difficulty} zorlukta ${questionCount} adet sınav sorusu oluştur.\n${formatDesc}\n\nHer soru için şu bilgileri ver:\n- id: benzersiz ID\n- question: soru metni\n- type: 'multiple_choice', 'true_false', 'open_ended', 'fill_blank'\n- options: çoktan seçmeli için ['A) ...', 'B) ...', 'C) ...', 'D) ...']\n- correctAnswer: doğru cevap\n- explanation: açıklama\n- difficulty: '${difficulty}'\n\nJSON formatında döndür, sadece soru array'ini ver. Her sorunun cevabını ve açıklamasını mutlaka ekle. Açıklamalar 2-3 cümle uzunluğunda, doğru cevabı ve neden doğru olduğunu net bir şekilde anlatan, öğrencinin yanlış anlamalarını gidermeye yönelik olsun.`;
+    prompt += `\n${courseName} dersi için ${difficulty} zorlukta ${questionCount} adet sınav sorusu oluştur.\n${formatDesc}\n\nHer soru için şu bilgileri ver:\n- id: benzersiz ID\n- question: soru metni\n- type: 'multiple_choice', 'true_false', 'open_ended', 'fill_blank'\n- options: çoktan seçmeli için ['A) ...', 'B) ...', 'C) ...', 'D) ...']\n- correctAnswer: doğru şıkkın tam metni (örn: "A) Seçenek Metni")\n- explanation: açıklama\n- difficulty: '${difficulty}'\n\nJSON formatında döndür, sadece soru array'ini ver. Her sorunun cevabını ve açıklamasını mutlaka ekle. Açıklamalar 2-3 cümle uzunluğunda, doğru cevabı ve neden doğru olduğunu net bir şekilde anlatan, öğrencinin yanlış anlamalarını gidermeye yönelik olsun.`;
 
     try {
       const response = await this.makeRequest(prompt);

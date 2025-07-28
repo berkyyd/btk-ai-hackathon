@@ -26,11 +26,6 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/notes/route.js"
     ],
-    "/mufredat/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/mufredat/page.js"
-    ],
     "/profile/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
@@ -50,6 +45,21 @@
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/api/quiz/submit/route.js"
+    ],
+    "/mufredat/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/mufredat/page.js"
+    ],
+    "/login/page": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/login/page.js"
+    ],
+    "/api/auth/login/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/auth/login/route.js"
     ]
   }
 }

@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth, db } from '../config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
-type Role = 'student' | 'teacher' | 'admin';
+type Role = 'student' | 'academician' | 'admin';
 
 interface AuthContextType {
   user: User | null;

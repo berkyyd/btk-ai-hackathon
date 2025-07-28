@@ -1,16 +1,18 @@
 'use client';
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { collection, getDocs, query, where, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, updateDoc, setDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { QuizResult, Answer } from "../../types/quiz";
 import { geminiService } from '../../utils/geminiService';
 import Card from '../../components/Card';
 import { apiClient } from '../../utils/apiClient';
+import { createInvitationCode } from '../../utils/invitationCodeService';
 
 const ProfilePage = () => {
   const { user, role, loading } = useAuth();
   const [allUsers, setAllUsers] = useState<any[]>([]);
+  const [newInvitationCode, setNewInvitationCode] = useState<string>('');
 
   useEffect(() => {
     if (role === 'admin') {
@@ -26,6 +28,16 @@ const ProfilePage = () => {
     const userDoc = doc(db, 'users', userId);
     await updateDoc(userDoc, { role: newRole });
     setAllUsers(allUsers.map(u => u.id === userId ? { ...u, role: newRole } : u));
+  };
+
+  const generateInvitationCode = async () => {
+    const result = await createInvitationCode();
+    if (result.success && result.code) {
+      setNewInvitationCode(result.code);
+      alert(`Yeni davet kodu oluşturuldu: ${result.code}`);
+    } else {
+      alert(`Davet kodu oluşturulamadı: ${result.error}`);
+    }
   };
   const [quizResults, setQuizResults] = useState<QuizResult[]>([]);
   const [loadingResults, setLoadingResults] = useState(true);
@@ -100,6 +112,27 @@ const ProfilePage = () => {
           <p><strong>Rol:</strong> {role}</p>
         </div>
       </Card>
+
+      {role === 'admin' && (
+        <Card className="mt-8">
+          <h2 className="text-3xl font-bold text-text mb-6 text-center border-b-2 border-primary pb-3">
+            Davet Kodu Yönetimi
+          </h2>
+          <div className="text-center">
+            <button
+              onClick={generateInvitationCode}
+              className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded"
+            >
+              Yeni Davet Kodu Oluştur
+            </button>
+            {newInvitationCode && (
+              <p className="mt-4 text-lg font-semibold text-green-600">
+                Oluşturulan Davet Kodu: {newInvitationCode}
+              </p>
+            )}
+          </div>
+        </Card>
+      )}
 
       <Card className="mt-8">
         <h2 className="text-3xl font-bold text-text mb-6 text-center border-b-2 border-primary pb-3">
