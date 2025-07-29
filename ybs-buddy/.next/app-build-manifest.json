@@ -11,30 +11,20 @@
       "static/chunks/main-app.js",
       "static/chunks/app/page.js"
     ],
-    "/ders-notlari/page": [
+    "/api/chatbot/route": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/ders-notlari/page.js"
-    ],
-    "/api/courses/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/courses/route.js"
-    ],
-    "/api/notes/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/notes/route.js"
-    ],
-    "/profile/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/profile/page.js"
+      "static/chunks/app/api/chatbot/route.js"
     ],
     "/sinav-simulasyonu/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
       "static/chunks/app/sinav-simulasyonu/page.js"
+    ],
+    "/api/courses/route": [
+      "static/chunks/webpack.js",
+      "static/chunks/main-app.js",
+      "static/chunks/app/api/courses/route.js"
     ],
     "/api/quiz/generate/route": [
       "static/chunks/webpack.js",
@@ -46,20 +36,10 @@
       "static/chunks/main-app.js",
       "static/chunks/app/api/quiz/submit/route.js"
     ],
-    "/mufredat/page": [
+    "/profile/page": [
       "static/chunks/webpack.js",
       "static/chunks/main-app.js",
-      "static/chunks/app/mufredat/page.js"
-    ],
-    "/login/page": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/login/page.js"
-    ],
-    "/api/auth/login/route": [
-      "static/chunks/webpack.js",
-      "static/chunks/main-app.js",
-      "static/chunks/app/api/auth/login/route.js"
+      "static/chunks/app/profile/page.js"
     ]
   }
 }
