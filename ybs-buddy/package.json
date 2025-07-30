@@ -29,12 +29,28 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+<<<<<<< HEAD
     "next": "15.2.4",
     "react": "^18",
     "react-dom": "^18",
     "firebase": "^11.0.0",
     "@google/generative-ai": "^0.25.0",
     "pdf-parse": "^1.1.1"
+=======
+    "@langchain/core": "^0.3.66",
+    "@langchain/google-genai": "^0.2.16",
+    "@types/node": "^24.1.0",
+    "cheerio": "^1.1.2",
+    "eslint-config-next": "^15.4.4",
+    "firebase": "^12.0.0",
+    "firebase-admin": "^13.4.0",
+    "langchain": "^0.3.30",
+    "next": "^15.4.4",
+    "pdfjs-dist": "^2.5.207",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tailwindcss": "^3.4.17"
+>>>>>>> 6a3dc9a29efac6230c979ba4642734c8a27c828a
   },
   "devDependencies": {
     "typescript": "^5",
