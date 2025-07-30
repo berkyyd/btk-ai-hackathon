@@ -38,6 +38,11 @@ export default function Header() {
             <Link href="/sinav-simulasyonu" className="text-text-light hover:text-primary transition-colors duration-300 font-medium">
               Sınav Simülasyonu
             </Link>
+            {user && (
+              <Link href="/profile" className="text-text-light hover:text-primary transition-colors duration-300 font-medium">
+                Profilim
+              </Link>
+            )}
           </nav>
 
           <div className="flex items-center space-x-4">
@@ -47,9 +52,11 @@ export default function Header() {
               <div className="flex items-center space-x-4">
                 <div className="flex items-center space-x-2">
                   <div className="p-2 rounded-full bg-gray-100 text-text text-sm font-medium hover:bg-gray-200 transition-colors duration-300">
-                    {user.email?.charAt(0).toUpperCase()}
+                    {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
-                  <span className="text-sm text-text-light">{user.email}</span>
+                  <span className="text-sm text-text-light">
+                    Merhaba, {user.displayName || user.email || 'Kullanıcı'}
+                  </span>
                 </div>
                 
                 {role === 'admin' && (
@@ -61,9 +68,6 @@ export default function Header() {
                 )}
                 
                 <div className="flex space-x-2">
-                  <Link href="/profile" className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-300">
-                    Profil
-                  </Link>
                   <button 
                     onClick={handleLogout}
                     className="px-3 py-1 text-sm bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-300"

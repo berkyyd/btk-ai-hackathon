@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '../../../../config/firebase';
-import { collection, getDocs, addDoc, query, where, Timestamp } from 'firebase/firestore';
+import { collection, getDocs, addDoc, query, where, Timestamp, doc, updateDoc } from 'firebase/firestore';
 
 // GET: Kullanıcının özetlenmiş notlarını getir
 export async function GET(request: NextRequest) {
@@ -36,5 +36,29 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, id: docRef.id });
   } catch (error) {
     return NextResponse.json({ error: 'Özet kaydedilemedi' }, { status: 500 });
+  }
+}
+
+// PUT: Özet güncelle
+export async function PUT(request: NextRequest) {
+  try {
+    const { summaryId, summary } = await request.json();
+    
+    if (!summaryId || !summary) {
+      return NextResponse.json({ error: 'Eksik veri' }, { status: 400 });
+    }
+
+    const summaryRef = doc(db, 'summarizedNotes', summaryId);
+    await updateDoc(summaryRef, {
+      summary,
+      updatedAt: Timestamp.now(),
+    });
+
+    return NextResponse.json({ success: true, message: 'Özet başarıyla güncellendi' });
+  } catch (error: any) {
+    console.error('Update summary error:', error);
+    return NextResponse.json({ 
+      error: 'Özet güncellenirken hata oluştu: ' + error.message 
+    }, { status: 500 });
   }
 } 

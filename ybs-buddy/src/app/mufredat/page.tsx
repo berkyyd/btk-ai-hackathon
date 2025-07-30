@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import { apiClient } from '../../utils/apiClient'
+import LoginPrompt from '../../components/LoginPrompt'
 
 interface Course {
   id: string
@@ -137,6 +138,34 @@ export default function MufredatPage() {
     } catch (err) {
       setError('Bağlantı hatası')
     }
+  }
+
+  // Giriş kontrolü
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
+          <p className="text-gray-600">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <LoginPrompt
+        title="Müfredat Sayfasına Erişim"
+        description="YBS bölümü müfredatını incelemek ve ders bilgilerini görmek için giriş yapmanız gerekiyor."
+        features={[
+          "Tüm derslerin detaylı bilgileri",
+          "Sınıf ve dönem bazında filtreleme",
+          "Zorunlu ve seçmeli ders ayrımı",
+          "AKTS kredi bilgileri",
+          "Ders açıklamaları ve kodları"
+        ]}
+      />
+    );
   }
 
   return (

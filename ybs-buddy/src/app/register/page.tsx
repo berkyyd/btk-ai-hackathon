@@ -67,8 +67,10 @@ export default function RegisterPage() {
       if (formData.invitationCode) {
         const validationResult = await validateInvitationCode(formData.invitationCode);
         if (validationResult.success && validationResult.docRef) {
-          userRole = 'academician';
+          // Davet kodundan gelen role'ü kullan
+          userRole = validationResult.targetRole || 'student';
           invitationCodeDocRef = validationResult.docRef;
+          console.log('Davet kodu ile kayıt - Role:', userRole);
         } else {
           console.warn('Davet kodu geçersiz veya kullanılmış: ', validationResult.error);
           // Davet kodu geçersiz olsa bile kayıt işlemine devam et, rol varsayılan olarak kalır.

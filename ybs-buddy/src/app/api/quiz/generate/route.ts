@@ -5,7 +5,7 @@ import { db } from '../../../../config/firebase';
 
 export async function POST(request: NextRequest) {
   try {
-    const { courseId, difficulty, questionCount, timeLimit, examFormat } = await request.json();
+    const { courseId, difficulty, questionCount, timeLimit, examFormat, selectedNotes } = await request.json();
 
     // Validation
     if (!courseId || !questionCount) {
@@ -23,29 +23,42 @@ export async function POST(request: NextRequest) {
     };
     const courseName = courseNames[courseId] || 'Bilinmeyen Ders';
 
-    // Seçilen dersin notlarını Firestore'dan çek
+    // Seçilen notları kullan veya dersin tüm notlarını çek
     let notesContent = '';
-    try {
-      const notesRef = collection(db, 'notes');
-      const notesQuery = query(notesRef, where('courseId', '==', courseId));
-      const notesSnapshot = await getDocs(notesQuery);
-      const notes = notesSnapshot.docs.map(doc => doc.data().content).filter(Boolean);
-      if (notes.length > 0) {
-        notesContent = notes.join('\n\n');
+    
+    if (selectedNotes && selectedNotes.length > 0) {
+      // Seçilen notları kullan
+      notesContent = selectedNotes
+        .map((note: any) => `${note.title}\n\n${note.content}`)
+        .join('\n\n---\n\n');
+      console.log('Seçilen notlar kullanılıyor:', selectedNotes.length);
+    } else {
+      // Seçilen dersin notlarını Firestore'dan çek
+      try {
+        const notesRef = collection(db, 'notes');
+        const notesQuery = query(notesRef, where('courseId', '==', courseId));
+        const notesSnapshot = await getDocs(notesQuery);
+        const notes = notesSnapshot.docs.map(doc => doc.data().content).filter(Boolean);
+        if (notes.length > 0) {
+          notesContent = notes.join('\n\n');
+        }
+      } catch (err) {
+        console.error('Notlar çekilemedi:', err);
       }
-    } catch (err) {
-      console.error('Notlar çekilemedi:', err);
     }
 
     try {
       // Gemini API ile sorular oluştur
-      const questions = await geminiService.generateQuizQuestions(
-        courseName,
-        difficulty || 'medium',
-        questionCount,
-        notesContent,
-        examFormat // yeni parametre
-      );
+      const quizRequest = {
+        courseId: courseName,
+        difficulty: difficulty || 'medium',
+        questionCount: questionCount,
+        timeLimit: timeLimit || 30,
+        examFormat: examFormat || 'mixed',
+        notesContent: notesContent // Not içeriğini de gönder
+      };
+      
+      const questions = await geminiService.generateQuiz(quizRequest);
 
       return NextResponse.json({
         success: true,
@@ -59,7 +72,7 @@ export async function POST(request: NextRequest) {
       console.error('Gemini API error:', geminiError);
       
       // Fallback: Mock sorular döndür
-      const mockQuestions = generateMockQuestions(courseId, difficulty, questionCount);
+      const mockQuestions = generateMockQuestions(courseId, difficulty, questionCount, examFormat);
 
       return NextResponse.json({
         success: true,
@@ -81,10 +94,24 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function generateMockQuestions(courseId: string, difficulty: string = 'medium', count: number) {
+function generateMockQuestions(courseId: string, difficulty: string = 'medium', count: number, examFormat: string = 'mixed') {
   const questions: any[] = [];
   
-  const questionTypes = ['multiple_choice', 'true_false', 'open_ended'];
+  // Sınav türüne göre soru tiplerini belirle
+  let questionTypes = [];
+  switch (examFormat) {
+    case 'test':
+      questionTypes = ['multiple_choice'];
+      break;
+    case 'classic':
+      questionTypes = ['open_ended'];
+      break;
+    case 'mixed':
+    default:
+      questionTypes = ['multiple_choice', 'true_false', 'open_ended'];
+      break;
+  }
+  
   const courseNames: { [key: string]: string } = {
     'course1': 'Veri Tabanı Yönetimi',
     'course2': 'Programlama',
