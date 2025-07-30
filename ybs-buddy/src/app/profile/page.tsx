@@ -8,6 +8,7 @@ import { geminiService } from '../../utils/geminiService';
 import Card from '../../components/Card';
 import { apiClient } from '../../utils/apiClient';
 import { createInvitationCode } from '../../utils/invitationCodeService';
+import SummarizedNotesList from '../../components/SummarizedNotesList';
 
 const ProfilePage = () => {
   const { user, role, loading } = useAuth();
@@ -192,6 +193,13 @@ const ProfilePage = () => {
             ))}
           </div>
         )}
+      </Card>
+
+      <Card className="mt-8">
+        <h2 className="text-3xl font-bold text-text mb-6 text-center border-b-2 border-primary pb-3">
+          Özetlenmiş Notlarım
+        </h2>
+        {user && <SummarizedNotesList userId={user.uid} />}
       </Card>
     </div>
   );
