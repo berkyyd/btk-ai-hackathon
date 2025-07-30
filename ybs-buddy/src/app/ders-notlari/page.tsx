@@ -492,19 +492,12 @@ export default function DersNotlariPage() {
                 <div className='flex justify-between text-sm text-gray-500 mb-3'>
                   <span>{note.class}. Sınıf</span>
                   <span>{note.semester}</span>
-<<<<<<< HEAD
-                  <span>{formatDate(note.createdAt.toString())}</span>
-                </div>
-                
-                {note.tags && note.tags.length > 0 && (
-=======
                   <span>{formatDate((note.createdAt instanceof Date ? note.createdAt.toISOString() : note.createdAt))}</span>
                 </div>
                 
-                {note.tags?.length > 0 && (
->>>>>>> 6a3dc9a29efac6230c979ba4642734c8a27c828a
+                {note.tags && note.tags.length > 0 && (
                   <div className='flex flex-wrap gap-1 mb-3'>
-                    {(note.tags || []).map(tag => (
+                    {note.tags.map(tag => (
                       <span key={tag} className='px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded'>
                         {tag}
                       </span>
