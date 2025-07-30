@@ -49,7 +49,7 @@ export const createInvitationCode = async (): Promise<{ success: boolean; code?:
       code: newCode,
       createdAt: new Date(),
       createdBy: user.uid,
-      usedBy: null, // Yeni eklenen satır
+      usedBy: undefined, // Yeni eklenen satır
     };
 
     await addDoc(collection(db, 'invitationCodes'), invitationCode);

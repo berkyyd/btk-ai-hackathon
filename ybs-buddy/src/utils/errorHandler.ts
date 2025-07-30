@@ -1,4 +1,4 @@
-import { ERROR_MESSAGES } from '../constants.ts'
+import { ERROR_MESSAGES } from '../constants'
 
 // Error types
 export class ApiError extends Error {
@@ -158,7 +158,7 @@ export const validateRegisterForm = (form: {
 
 // Error logging (for development)
 export const logError = (error: unknown, context?: string): void => {
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === 'development') {
     console.error(`[${context || 'Error'}]:`, error)
   }
   // In production, you might want to send this to a logging service

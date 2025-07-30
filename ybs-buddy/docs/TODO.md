@@ -65,7 +65,68 @@ Bu belge, projenin geliştirme adımlarını ve ilerlemesini takip etmek için k
 
 ---
 
-### Faz 4: Kişisel Not Alma Sistemi (PRD Uyumlu)
+### Faz 4: PDF Yükleme Özelliği (YENİ FAZ - Gemini API ile)
+
+- [ ] **Temel Altyapı Hazırlığı**
+  - [ ] Gerekli paketlerin kontrolü (`firebase`, `@google/generative-ai`)
+  - [ ] Gemini API key konfigürasyonu (`.env.local`)
+  - [ ] Firebase Storage kurallarının güncellenmesi
+  - [ ] Environment variables kontrolü
+
+- [ ] **Tip Tanımlarının Güncellenmesi**
+  - [ ] `src/types/note.ts` dosyasını güncelle
+  - [ ] PDF özelliklerini Note interface'ine ekle
+  - [ ] ExtractedTextResult interface'ini oluştur
+
+- [ ] **Gemini API ile PDF Çıkarma**
+  - [ ] `src/app/api/pdf-extract/route.ts` dosyasını oluştur
+  - [ ] Gemini API ile PDF çıkarma endpoint'ini implement et
+  - [ ] Base64 encoding ve PDF işleme
+  - [ ] Error handling ve validation
+
+- [ ] **Gemini Service Güncellemesi**
+  - [ ] `src/utils/geminiService.ts` dosyasını güncelle
+  - [ ] extractTextFromPDF metodunu ekle
+  - [ ] Validation metodlarını ekle (isValidPDF, isValidFileSize)
+
+- [ ] **Dosya Yükleme Komponenti**
+  - [ ] `src/components/FileUpload.tsx` dosyasını oluştur
+  - [ ] FileUpload komponentini implement et
+  - [ ] Progress tracking ekle
+  - [ ] Error handling ekle
+  - [ ] Gemini API entegrasyonu ekle
+
+- [ ] **Upload API Endpoint'i**
+  - [ ] `src/app/api/upload/route.ts` dosyasını güncelle
+  - [ ] Dosya boyutu kontrolü ekle (10MB limit)
+  - [ ] Dosya türü kontrolü ekle
+  - [ ] Firebase Storage'a yükleme işlemini implement et
+  - [ ] Error handling ekle
+
+- [ ] **Ders Notları Sayfasını Güncelleme**
+  - [ ] `src/app/ders-notlari/page.tsx` dosyasını güncelle
+  - [ ] FileUpload komponentini import et
+  - [ ] Upload state'ini ekle
+  - [ ] handleFileUpload fonksiyonunu yaz
+  - [ ] Form içine dosya yükleme alanı ekle
+  - [ ] Not kaydetme işlemini güncelle
+
+- [ ] **Notes API Güncellemesi**
+  - [ ] `src/app/api/notes/route.ts` dosyasını güncelle
+  - [ ] PDF özelliklerini POST endpoint'ine ekle
+  - [ ] extractedText ve isPDF alanlarını ekle
+  - [ ] Validation kurallarını güncelle
+
+- [ ] **Test ve Optimizasyon**
+  - [ ] Küçük PDF ile test (1-2 sayfa)
+  - [ ] Büyük PDF ile test (10+ sayfa)
+  - [ ] Farklı dosya türleri ile test
+  - [ ] Gemini API hata senaryolarını test et
+  - [ ] Performans optimizasyonu yap
+
+---
+
+### Faz 5: Kişisel Not Alma Sistemi (PRD Uyumlu)
 
 - [ ] **Notetaking Service (Kişisel Not Alma Servisi)**
   - [ ] `/api/notes/personal` - Kişisel notlar CRUD işlemleri
@@ -77,7 +138,7 @@ Bu belge, projenin geliştirme adımlarını ve ilerlemesini takip etmek için k
 
 ---
 
-### Faz 5: Akıllı Sınav ve Analiz Sistemi (PRD Uyumlu)
+### Faz 6: Akıllı Sınav ve Analiz Sistemi (PRD Uyumlu)
 
 - [x] **Quiz & Analytics Service (Sınav ve Analiz Servisi)**
   - [x] `/api/quiz/generate` - Gemini API ile dinamik sınav üretimi (Mock)
@@ -90,7 +151,7 @@ Bu belge, projenin geliştirme adımlarını ve ilerlemesini takip etmek için k
 
 ---
 
-### Faz 6: Frontend-Backend Entegrasyonu
+### Faz 7: Frontend-Backend Entegrasyonu
 
 - [x] **API Entegrasyonu**
   - [x] Frontend'de API client kurulumu (Axios/Fetch)
@@ -109,7 +170,7 @@ Bu belge, projenin geliştirme adımlarını ve ilerlemesini takip etmek için k
 
 ---
 
-### Faz 7: Test ve Optimizasyon
+### Faz 8: Test ve Optimizasyon
 
 - [ ] **Test Süreçleri**
   - [ ] Unit testlerin yazılması (Jest/Vitest)
@@ -126,7 +187,7 @@ Bu belge, projenin geliştirme adımlarını ve ilerlemesini takip etmek için k
 
 ---
 
-### Faz 8: Deployment ve Production
+### Faz 9: Deployment ve Production
 
 ## bu kısımlar çok önemli değil çünkü projeyi yayına almayacağız. vercel vb. platform kullanacağız.
 

@@ -1,57 +1,75 @@
-'use client'
+'use client';
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged, signOut } from 'firebase/auth';
-import { auth, db } from '../config/firebase';
-import { doc, getDoc } from 'firebase/firestore';
-type Role = 'student' | 'academician' | 'admin';
+import { 
+  User, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged
+} from 'firebase/auth';
+import { auth } from '../config/firebase';
 
 interface AuthContextType {
   user: User | null;
-  role: Role | null;
   loading: boolean;
-  signOut: () => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
+  logout: () => Promise<void>;
+  role: string;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<Role | null>(null);
   const [loading, setLoading] = useState(true);
+  const [role, setRole] = useState('user');
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      console.log('Auth state changed:', user);
-      if (user) {
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          setRole(userDoc.data().role);
-        }
-      } else {
-        setRole(null);
-      }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user);
-setLoading(false);
+      setLoading(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  const handleSignOut = async () => {
+  const login = async (email: string, password: string) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      setUser(userCredential.user);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const register = async (email: string, password: string) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      setUser(userCredential.user);
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  const logout = async () => {
     try {
       await signOut(auth);
-      setRole(null);
+      setUser(null);
     } catch (error) {
       console.error('Sign out error:', error);
+      throw error;
     }
   };
 
   const value = {
     user,
-    role,
     loading,
-    signOut: handleSignOut,
+    login,
+    register,
+    logout,
+    role
   };
 
   return (

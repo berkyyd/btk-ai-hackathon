@@ -113,4 +113,34 @@ export const DEFAULTS = {
   SELECT_COURSE_TYPE: 'Tümü',
   SELECT_EXAM_TYPE: '',
   SELECT_EXAM_FORMAT: ''
+} as const
+
+// File size limits (in bytes)
+export const FILE_SIZE_LIMITS = {
+  PDF_MAX_SIZE: 10 * 1024 * 1024, // 10MB
+  PDF_MAX_SIZE_GEMINI: 5 * 1024 * 1024, // 5MB for Gemini API
+  PDF_HEADER_CHECK_SIZE: 1024 // PDF header check size
+} as const
+
+// Quiz defaults
+export const QUIZ_DEFAULTS = {
+  DEFAULT_QUESTION_COUNT: 10,
+  DEFAULT_TIME_LIMIT: 30, // minutes
+  MIN_QUESTION_COUNT: 5,
+  MAX_QUESTION_COUNT: 50,
+  MIN_TIME_LIMIT: 5,
+  MAX_TIME_LIMIT: 120
+} as const
+
+// Progress percentages
+export const PROGRESS_PERCENTAGES = {
+  UPLOAD_START: 0,
+  UPLOAD_MIDDLE: 50,
+  UPLOAD_COMPLETE: 100
+} as const
+
+// Time intervals (in milliseconds)
+export const TIME_INTERVALS = {
+  QUIZ_TIMER_UPDATE: 1000, // 1 second
+  ERROR_DISPLAY_DELAY: 1000 // 1 second
 } as const 

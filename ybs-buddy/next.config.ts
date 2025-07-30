@@ -4,6 +4,24 @@ const nextConfig: NextConfig = {
   images: {
     domains: ['firebasestorage.googleapis.com'],
   },
+  webpack: (config, { isServer }) => {
+    // PDF.js için Node.js modüllerini browser'da devre dışı bırak
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        canvas: false,
+        fs: false,
+        path: false,
+        crypto: false,
+        stream: false,
+        util: false,
+        buffer: false,
+        process: false,
+      };
+    }
+    
+    return config;
+  },
   async headers() {
     return [
       {

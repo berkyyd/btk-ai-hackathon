@@ -1,31 +1,67 @@
 {
   "name": "ybs-buddy",
-  "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "YBS Buddy - Yönetim Bilişim Sistemleri öğrencileri için akıllı çalışma asistanı",
+  "author": "YBS Buddy Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ybs-buddy/ybs-buddy.git"
+  },
+  "keywords": [
+    "ybs",
+    "yönetim-bilişim-sistemleri",
+    "öğrenci-asistanı",
+    "quiz",
+    "not-alma",
+    "pdf-işleme",
+    "ai",
+    "gemini"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "lint:fix": "next lint --fix",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
-    "@types/node": "^24.1.0",
-    "eslint-config-next": "^15.4.4",
-    "firebase": "^12.0.0",
-    "firebase-admin": "^13.4.0",
-    "next": "^15.4.4",
-    "pdfjs-dist": "^2.5.207",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "tailwindcss": "^3.4.17"
+    "next": "15.2.4",
+    "react": "^18",
+    "react-dom": "^18",
+    "firebase": "^11.0.0",
+    "@google/generative-ai": "^0.25.0",
+    "pdf-parse": "^1.1.1"
   },
   "devDependencies": {
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "autoprefixer": "^10.4.21",
-    "eslint": "^9.30.1",
-    "postcss": "^8.5.6",
-    "prettier": "^3.6.2",
-    "typescript": "~5.8.3"
+    "typescript": "^5",
+    "@types/node": "^20",
+    "@types/react": "^18",
+    "@types/react-dom": "^18",
+    "eslint": "^8",
+    "eslint-config-next": "15.2.4",
+    "tailwindcss": "^3.4.1",
+    "autoprefixer": "^10.4.18",
+    "postcss": "^8.4.35",
+    "prettier": "^3.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   }
 }

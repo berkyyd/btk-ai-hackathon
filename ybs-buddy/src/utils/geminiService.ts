@@ -1,200 +1,191 @@
-interface GeminiRequest {
-  contents: {
-    parts: {
-      text: string;
-    }[];
-  }[];
+import { GoogleGenerativeAI } from '@google/generative-ai';
+
+export interface QuizGenerationRequest {
+  courseId: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  questionCount: number;
+  timeLimit: number;
+  examFormat: string;
 }
 
-interface GeminiResponse {
-  candidates: {
-    content: {
-      parts: {
-        text: string;
-      }[];
-    };
-  }[];
+export interface NoteSummarizationRequest {
+  content: string;
+  summaryType: 'brief' | 'detailed' | 'bullet_points';
 }
 
-class GeminiService {
+export interface AcademicGuidanceRequest {
+  userProfile: {
+    classYear: number;
+    interests: string[];
+    goals: string[];
+    weaknesses: string[];
+  };
+  courseContext?: string;
+}
+
+export class GeminiService {
   private apiKey: string;
-  private baseUrl = 'https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent';
+  private summaryApiKey: string;
+  private genAI: GoogleGenerativeAI;
 
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY || '';
+    this.summaryApiKey = process.env.GEMINI_SUMMARY_API_KEY || '';
+    
     if (!this.apiKey) {
       console.warn('GEMINI_API_KEY environment variable is not set');
     }
-  }
-
-  private async makeRequest(prompt: string): Promise<string> {
-    if (!this.apiKey) {
-      throw new Error('Gemini API key is not configured');
+    
+    if (!this.summaryApiKey) {
+      console.warn('GEMINI_SUMMARY_API_KEY environment variable is not set');
     }
 
-    const requestBody: GeminiRequest = {
-      contents: [
-        {
-          parts: [
-            {
-              text: prompt
-            }
-          ]
-        }
-      ]
-    };
+    this.genAI = new GoogleGenerativeAI(this.apiKey);
+  }
 
+  private async makeGeminiRequest(prompt: string, apiKey?: string): Promise<string> {
     try {
-      const response = await fetch(`${this.baseUrl}?key=${this.apiKey}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Gemini API error: ${response.status} ${response.statusText}`);
+      const key = apiKey || this.apiKey;
+      if (!key) {
+        throw new Error('API key is required');
       }
 
-      const data: GeminiResponse = await response.json();
-      
-      if (data.candidates && data.candidates.length > 0) {
-        return data.candidates[0].content.parts[0].text;
-      } else {
-        throw new Error('No response from Gemini API');
-      }
+      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      const result = await model.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
     } catch (error) {
       console.error('Gemini API request failed:', error);
       throw error;
     }
   }
 
-  // Quiz soruları oluştur
-  async generateQuizQuestions(courseName: string, difficulty: string, questionCount: number, notesContent?: string, examFormat?: 'test' | 'classic' | 'mixed'): Promise<any[]> {
-    let prompt = '';
-    if (notesContent && notesContent.trim().length > 0) {
-      prompt += `Aşağıda ilgili dersin notları verilmiştir. Sadece bu notlardan sınav sorusu üret.\n\nNOTLAR:\n${notesContent}\n\n`;
-    }
-    let formatDesc = '';
-    if (examFormat === 'test') {
-      formatDesc = 'Sadece çoktan seçmeli (multiple_choice) sorular üret.';
-    } else if (examFormat === 'classic') {
-      formatDesc = 'Sadece açık uçlu (open_ended) sorular üret.';
-    } else {
-      formatDesc = 'Sorular şu formatlarda olmalı: 1. Çoktan seçmeli (multiple_choice): 4 seçenekli, 2. Doğru/Yanlış (true_false): true/false cevap, 3. Açık uçlu (open_ended): kısa cevap, 4. Boşluk doldurma (fill_blank): kısa cevap.';
-    }
-    prompt += `\n${courseName} dersi için ${difficulty} zorlukta ${questionCount} adet sınav sorusu oluştur.\n${formatDesc}\n\nHer soru için şu bilgileri ver:\n- id: benzersiz ID\n- question: soru metni\n- type: 'multiple_choice', 'true_false', 'open_ended', 'fill_blank'\n- options: çoktan seçmeli için ['A) ...', 'B) ...', 'C) ...', 'D) ...']\n- correctAnswer: doğru şıkkın tam metni (örn: "A) Seçenek Metni")\n- explanation: açıklama\n- difficulty: '${difficulty}'\n\nJSON formatında döndür, sadece soru array'ini ver. Her sorunun cevabını ve açıklamasını mutlaka ekle. Açıklamalar 2-3 cümle uzunluğunda, doğru cevabı ve neden doğru olduğunu net bir şekilde anlatan, öğrencinin yanlış anlamalarını gidermeye yönelik olsun.`;
-
+  async generateQuiz(request: QuizGenerationRequest): Promise<any> {
     try {
-      const response = await this.makeRequest(prompt);
-      // Kod bloğu varsa temizle
-      const cleanResponse = response.replace(/```json|```/g, '').trim();
-      return JSON.parse(cleanResponse);
+      const prompt = `
+        YBS (Yönetim Bilişim Sistemleri) bölümü için ${request.questionCount} adet ${request.difficulty} zorlukta soru oluştur.
+        
+        Sınav Formatı: ${request.examFormat}
+        Süre: ${request.timeLimit} dakika
+        Ders: ${request.courseId}
+        
+        Sorular şu formatta olmalı:
+        - Çoktan seçmeli sorular (A, B, C, D seçenekleri)
+        - Doğru/Yanlış soruları
+        - Açık uçlu sorular
+        
+        Her soru için:
+        - Soru metni
+        - Seçenekler (çoktan seçmeli için)
+        - Doğru cevap
+        - Açıklama
+        
+        JSON formatında döndür.
+      `;
+
+      const response = await this.makeGeminiRequest(prompt);
+      return JSON.parse(response);
     } catch (error) {
       console.error('Quiz generation failed:', error);
-      // Fallback: Mock sorular döndür
-      return this.generateMockQuestions(courseName, difficulty, questionCount);
+      throw error;
     }
   }
 
-  // Not özetle
-  async summarizeNote(content: string, category: string): Promise<string> {
-    let prompt = '';
-    switch (category) {
-      case 'academic':
-        prompt = `Aşağıdaki notu akademik bir dille özetle:\n\n${content}\n\nÖzet şu formatta olsun:\n- Ana konular\n- Önemli noktalar\n- Anahtar terimler\n- Özet (2-3 cümle)`;
-        break;
-      case 'entertaining':
-        prompt = `Aşağıdaki notu eğlenceli ve akılda kalıcı bir şekilde özetle:\n\n${content}\n\nÖzet şu formatta olsun:\n- İlginç bilgiler\n- Mizahi yaklaşımlar (varsa)\n- Akılda kalıcı ana fikirler\n- Özet (2-3 cümle)`;
-        break;
-      default:
-        prompt = `Aşağıdaki notu özetle ve ana noktaları çıkar:\n\n${content}\n\nÖzet şu formatta olsun:\n- Ana konular\n- Önemli noktalar\n- Anahtar terimler\n- Özet (2-3 cümle)`;
-        break;
-    }
-
+  async summarizeNote(request: NoteSummarizationRequest): Promise<string> {
     try {
-      return await this.makeRequest(prompt);
+      const prompt = `
+        Aşağıdaki notu ${request.summaryType} şekilde özetle:
+        
+        ${request.content}
+        
+        Özet türü: ${request.summaryType}
+        - brief: Kısa özet (2-3 cümle)
+        - detailed: Detaylı özet (5-7 cümle)
+        - bullet_points: Madde halinde özet
+      `;
+
+      return await this.makeGeminiRequest(prompt);
     } catch (error) {
       console.error('Note summarization failed:', error);
-      return 'Özet oluşturulamadı.';
+      throw error;
     }
   }
 
-  // Akademik yönlendirme
-  async generateAcademicGuidance(userPerformance: any): Promise<string> {
-    const prompt = `
-    Kullanıcının performansına göre akademik yönlendirme önerisi ver:
-    
-    Performans: ${JSON.stringify(userPerformance)}
-    
-    Şu konularda öneri ver:
-    - Hangi konulara odaklanmalı
-    - Çalışma stratejileri
-    - Kaynak önerileri
-    - Zaman yönetimi
-    `;
-
+  async generateAcademicGuidance(request: AcademicGuidanceRequest): Promise<string> {
     try {
-      return await this.makeRequest(prompt);
+      const prompt = `
+        YBS ${request.userProfile.classYear}. sınıf öğrencisi için akademik rehberlik oluştur.
+        
+        Öğrenci Profili:
+        - Sınıf: ${request.userProfile.classYear}
+        - İlgi Alanları: ${request.userProfile.interests.join(', ')}
+        - Hedefler: ${request.userProfile.goals.join(', ')}
+        - Zayıf Yönler: ${request.userProfile.weaknesses.join(', ')}
+        
+        Ders Bağlamı: ${request.courseContext || 'Genel'}
+        
+        Öneriler:
+        - Çalışma stratejileri
+        - Kaynak önerileri
+        - Kariyer tavsiyeleri
+        - Zaman yönetimi
+      `;
+
+      return await this.makeGeminiRequest(prompt);
     } catch (error) {
       console.error('Academic guidance generation failed:', error);
-      return 'Yönlendirme oluşturulamadı.';
+      throw error;
     }
   }
 
-  // Yanlış cevaplanan sorular için açıklama üret
-  async explainAnswer(question: string, correctAnswer: string, userAnswer: string): Promise<string> {
-    const prompt = `Aşağıdaki soruya verilen yanlış cevabı değerlendir. Doğru cevabın ne olduğunu ve neden doğru olduğunu açıkla. Öğrencinin cevabının neden yanlış olduğunu kısaca belirt.
-
-Soru: ${question}
-Doğru Cevap: ${correctAnswer}
-Öğrencinin Cevabı: ${userAnswer}
-
-Yanıtı 2-3 cümleyle, açıklayıcı ve anlaşılır bir dille yaz.`;
+  async generateExplanation(question: string, userAnswer: string, correctAnswer: string): Promise<string> {
     try {
-      const response = await this.makeRequest(prompt);
-      return response.trim();
+      const prompt = `
+        Soru: ${question}
+        Kullanıcının Cevabı: ${userAnswer}
+        Doğru Cevap: ${correctAnswer}
+        
+        Bu soru için detaylı açıklama oluştur:
+        - Neden bu cevap doğru/yanlış?
+        - Konuyla ilgili önemli noktalar
+        - Benzer sorular için ipuçları
+      `;
+
+      return await this.makeGeminiRequest(prompt);
     } catch (error) {
       console.error('Gemini açıklama üretimi başarısız:', error);
-      return 'Açıklama üretilemedi.';
+      throw error;
     }
   }
 
-  // Mock sorular (fallback)
-  private generateMockQuestions(courseName: string, difficulty: string, count: number): any[] {
-    const questions: any[] = [];
-    const questionTypes = ['multiple_choice', 'true_false', 'open_ended'];
-    
-    for (let i = 1; i <= count; i++) {
-      const questionType = questionTypes[i % questionTypes.length];
+  async extractTextFromPDF(fileName: string, base64Data: string): Promise<string> {
+    try {
+      const fileSize = Math.ceil((base64Data.length * 3) / 4);
       
-      let question: any = {
-        id: `q_${i}`,
-        question: `${courseName} dersi için ${difficulty} zorlukta ${i}. soru`,
-        type: questionType,
-        difficulty: difficulty,
-        explanation: 'Bu sorunun açıklaması burada yer alacak',
-      };
-
-      if (questionType === 'multiple_choice') {
-        question.options = [
-          'A) Birinci seçenek',
-          'B) İkinci seçenek', 
-          'C) Üçüncü seçenek',
-          'D) Dördüncü seçenek'
-        ];
-        question.correctAnswer = 'A';
-      } else if (questionType === 'true_false') {
-        question.correctAnswer = Math.random() > 0.5;
-      } else {
-        question.correctAnswer = 'Açık uçlu soru cevabı';
+      if (fileSize > 5 * 1024 * 1024) {
+        throw new Error('PDF dosyası çok büyük (5MB limit)');
       }
-      
-      questions.push(question);
+
+      const prompt = `
+        Bu PDF dosyasından metin çıkar: ${fileName}
+        
+        PDF Base64 verisi: ${base64Data}
+        
+        Lütfen:
+        1. Tüm metni çıkar
+        2. Formatı koru
+        3. Türkçe karakterleri düzgün göster
+        4. Sayfa numaralarını belirt
+        
+        Sadece çıkarılan metni döndür, başka açıklama ekleme.
+      `;
+
+      const extractedText = await this.makeGeminiRequest(prompt, this.summaryApiKey);
+      return extractedText;
+    } catch (error) {
+      console.error('PDF text extraction failed:', error);
+      throw error;
     }
-    
-    return questions;
   }
 }
 
