@@ -6,9 +6,10 @@ import { useAuth } from '../contexts/AuthContext';
 
 interface ChatWindowProps {
   onClose: () => void;
+  onMinimize?: () => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onMinimize }) => {
   const [message, setMessage] = useState('');
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -25,11 +26,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
   }, [chatHistory]);
 
   const handleSendMessage = async () => {
-    if (message.trim() === '') return;
+    const currentMessage = message.trim();
+    if (currentMessage === '') return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      content: message,
+      content: currentMessage,
       role: 'user',
       timestamp: new Date()
     };
@@ -46,8 +48,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          question: message,
-          userId: user?.uid 
+          question: currentMessage,
+          userId: user?.uid || 'anonymous'
         }),
       });
 
@@ -61,14 +63,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
       };
 
       setChatHistory((prev) => [...prev, botMessage]);
-      if (data.sources) {
+      if (data.sources && data.sources.length > 0) {
         setSources(data.sources);
       }
     } catch (error) {
       console.error('Error sending message:', error);
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
-        content: 'Mesaj gönderilirken bir hata oluştu.',
+        content: 'Mesaj gönderilirken bir hata oluştu. Lütfen tekrar deneyin.',
         role: 'assistant',
         timestamp: new Date()
       };
@@ -116,25 +118,38 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
     <div className="fixed bottom-4 right-4 w-96 h-[500px] bg-white rounded-lg shadow-xl flex flex-col z-50">
       {/* Header */}
       <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">YBS Buddy</h2>
-            <p className="text-xs opacity-90">Akıllı Asistan</p>
-          </div>
-        </div>
-        <button 
-          onClick={onClose} 
-          className="text-white hover:text-gray-200 focus:outline-none transition-colors"
-        >
-          <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+                    <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">YBS Buddy</h2>
+                <p className="text-xs opacity-90">Akıllı Asistan</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2">
+              {onMinimize && (
+                <button 
+                  onClick={onMinimize} 
+                  className="text-white hover:text-gray-200 focus:outline-none transition-colors"
+                  title="Minimize"
+                >
+                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
+              )}
+              <button 
+                onClick={onClose} 
+                className="text-white hover:text-gray-200 focus:outline-none transition-colors"
+              >
+                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
       </div>
 
       {/* Messages */}
@@ -146,8 +161,51 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
                 <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
               </svg>
             </div>
-            <p className="text-sm">Merhaba! Size nasıl yardımcı olabilirim?</p>
-            <p className="text-xs mt-2">Derslerle ilgili sorularınızı sorabilirsiniz.</p>
+            <p className="text-sm font-medium mb-2">Merhaba! Ben YBS Buddy 👋</p>
+            <p className="text-xs mb-4">Size nasıl yardımcı olabilirim?</p>
+            
+            {/* Örnek sorular */}
+            <div className="space-y-2">
+              <p className="text-xs font-medium text-gray-600 mb-2">Örnek sorular:</p>
+              <div className="grid grid-cols-1 gap-2">
+                <button
+                  onClick={() => {
+                    setMessage("Müfredatta kaç adet ders var?");
+                    setTimeout(() => handleSendMessage(), 100);
+                  }}
+                  className="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors text-left"
+                >
+                  📚 Müfredatta kaç adet ders var?
+                </button>
+                <button
+                  onClick={() => {
+                    setMessage("Benim notlarım neler?");
+                    setTimeout(() => handleSendMessage(), 100);
+                  }}
+                  className="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors text-left"
+                >
+                  📝 Benim notlarım neler?
+                </button>
+                <button
+                  onClick={() => {
+                    setMessage("Geçmiş sınav sonuçlarım nasıl?");
+                    setTimeout(() => handleSendMessage(), 100);
+                  }}
+                  className="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors text-left"
+                >
+                  📊 Geçmiş sınav sonuçlarım nasıl?
+                </button>
+                <button
+                  onClick={() => {
+                    setMessage("En yüksek puan aldığım sınav hangisi?");
+                    setTimeout(() => handleSendMessage(), 100);
+                  }}
+                  className="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors text-left"
+                >
+                  🏆 En yüksek puan aldığım sınav hangisi?
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
@@ -237,7 +295,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
           <input
             type="text"
             className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            placeholder="Mesajınızı yazın..."
+            placeholder="Müfredat, ders notları, sınavlar hakkında soru sorun..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={(e) => {

@@ -7,6 +7,7 @@ export interface QuizGenerationRequest {
   questionCount: number;
   timeLimit: number;
   examFormat: string;
+  notesContent?: string;
 }
 
 export interface NoteSummarizationRequest {
@@ -70,28 +71,67 @@ export class GeminiService {
 
   async generateQuiz(request: QuizGenerationRequest): Promise<any> {
     try {
+      // Sınav türüne göre soru tiplerini belirle
+      let questionTypes = [];
+      switch (request.examFormat) {
+        case 'test':
+          questionTypes = ['multiple_choice'];
+          break;
+        case 'classic':
+          questionTypes = ['open_ended'];
+          break;
+        case 'mixed':
+        default:
+          questionTypes = ['multiple_choice', 'true_false', 'open_ended'];
+          break;
+      }
+
       const prompt = `
         YBS (Yönetim Bilişim Sistemleri) bölümü için ${request.questionCount} adet ${request.difficulty} zorlukta soru oluştur.
         
-        Sınav Formatı: ${request.examFormat}
-        Süre: ${request.timeLimit} dakika
         Ders: ${request.courseId}
+        Sınav Formatı: ${request.examFormat}
+        Soru Türleri: ${questionTypes.join(', ')}
+        Süre: ${request.timeLimit} dakika
         
-        Sorular şu formatta olmalı:
-        - Çoktan seçmeli sorular (A, B, C, D seçenekleri)
-        - Doğru/Yanlış soruları
-        - Açık uçlu sorular
+        ${request.notesContent ? `Not İçeriği:\n${request.notesContent}\n\nBu notlara dayalı sorular oluştur.` : ''}
         
-        Her soru için:
-        - Soru metni
-        - Seçenekler (çoktan seçmeli için)
-        - Doğru cevap
-        - Açıklama
+        Soru formatları:
+        ${questionTypes.includes('multiple_choice') ? '- Çoktan seçmeli sorular (A, B, C, D seçenekleri)' : ''}
+        ${questionTypes.includes('true_false') ? '- Doğru/Yanlış soruları' : ''}
+        ${questionTypes.includes('open_ended') ? '- Açık uçlu sorular' : ''}
         
-        JSON formatında döndür.
+        SADECE JSON formatında yanıt ver, markdown kullanma. Her soru için:
+        {
+          "id": "soru_id",
+          "question": "Soru metni",
+          "type": "multiple_choice|true_false|open_ended",
+          "options": ["A) Seçenek1", "B) Seçenek2", "C) Seçenek3", "D) Seçenek4"] (sadece multiple_choice için),
+          "correctAnswer": "Doğru cevap",
+          "explanation": "Açıklama",
+          "difficulty": "${request.difficulty}"
+        }
+        
+        Tüm soruları bir array içinde döndür. Sadece JSON, başka hiçbir şey yazma.
       `;
+      
       const response = await this.makeGeminiRequest(prompt);
-      return JSON.parse(response);
+      
+      // Markdown formatındaki JSON'u temizle
+      let cleanResponse = response;
+      if (response.includes('```json')) {
+        cleanResponse = response.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+      } else if (response.includes('```')) {
+        cleanResponse = response.replace(/```\n?/g, '');
+      }
+      
+      try {
+        return JSON.parse(cleanResponse);
+      } catch (parseError) {
+        console.error('JSON parse error:', parseError);
+        console.error('Response that failed to parse:', cleanResponse);
+        throw new Error('Gemini API yanıtı JSON formatında değil');
+      }
     } catch (error) {
       console.error('Quiz generation failed:', error);
       throw error;

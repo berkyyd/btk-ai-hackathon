@@ -1,39 +1,66 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChatWindow from './ChatWindow';
+import { useAuth } from '../contexts/AuthContext';
+import { usePathname } from 'next/navigation';
 
 const ChatIcon: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const { user, loading } = useAuth();
+  const pathname = usePathname();
+
+  // Kullanıcı değiştiğinde chat'i kapat
+  useEffect(() => {
+    if (!user) {
+      setIsOpen(false);
+      setIsMinimized(false);
+    }
+  }, [user]);
+
+  // Sayfa değiştiğinde chat'i minimize et
+  useEffect(() => {
+    if (isOpen && !isMinimized) {
+      setIsMinimized(true);
+    }
+  }, [pathname, isOpen, isMinimized]);
 
   const toggleChat = () => {
-    setIsOpen(!isOpen);
+    if (isMinimized) {
+      setIsMinimized(false);
+      setIsOpen(true);
+    } else {
+      setIsOpen(!isOpen);
+    }
   };
+
+  const minimizeChat = () => {
+    setIsMinimized(true);
+    setIsOpen(false);
+  };
+
+  const restoreChat = () => {
+    setIsMinimized(false);
+    setIsOpen(true);
+  };
+
+  // Giriş yapmamış kullanıcılar için chat gösterilmez
+  if (loading || !user) {
+    return null;
+  }
 
   return (
     <>
-      <button
-        onClick={toggleChat}
-        className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50 z-50 transition-all duration-200"
-        aria-label="Chatbot'u aç"
-      >
-        {isOpen ? (
+      {/* Minimized Chat Tab */}
+      {isMinimized && (
+        <button
+          onClick={restoreChat}
+          className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-3 rounded-full shadow-lg hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50 z-50 transition-all duration-200"
+          aria-label="Chatbot'u geri yükle"
+        >
           <svg
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        ) : (
-          <svg
-            className="h-6 w-6"
+            className="h-5 w-5"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -45,9 +72,56 @@ const ChatIcon: React.FC = () => {
               d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
             />
           </svg>
-        )}
-      </button>
-      {isOpen && <ChatWindow onClose={toggleChat} />}
+        </button>
+      )}
+
+      {/* Main Chat Button */}
+      {!isMinimized && (
+        <button
+          onClick={toggleChat}
+          className="fixed bottom-6 right-6 bg-gradient-to-r from-blue-500 to-blue-600 text-white p-4 rounded-full shadow-lg hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-4 focus:ring-blue-300 focus:ring-opacity-50 z-50 transition-all duration-200"
+          aria-label="Chatbot'u aç"
+        >
+          {isOpen ? (
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
+              />
+            </svg>
+          )}
+        </button>
+      )}
+
+      {/* Chat Window */}
+      {isOpen && (
+        <ChatWindow 
+          key={user?.uid} // Kullanıcı değiştiğinde component yeniden oluşturulur
+          onClose={toggleChat} 
+          onMinimize={minimizeChat}
+        />
+      )}
     </>
   );
 };

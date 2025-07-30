@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Card from '../../components/Card'
 import { apiClient } from '../../utils/apiClient'
 import { useAuth } from '../../contexts/AuthContext'
+import LoginPrompt from '../../components/LoginPrompt'
 
 interface Question {
   id: string
@@ -42,6 +43,7 @@ interface QuizResult {
     userAnswer: string | boolean
     isCorrect: boolean
   }[]
+  questions: Question[] // Soru metinlerini ve doğru cevapları saklamak için
 }
 
 interface Course {
@@ -50,15 +52,41 @@ interface Course {
   code: string
 }
 
+interface Note {
+  id: string
+  title: string
+  content: string
+  courseId: string
+  classYear: number
+  semester: string
+  tags?: string[]
+  isPublic: boolean
+  likes: number
+  favorites: number
+  createdAt: string | Date
+  updatedAt: string | Date
+  userId?: string
+  fileUrl?: string
+  isPDF?: boolean
+  extractedText?: string
+  pageCount?: number
+  fileSize?: number
+  originalFileName?: string
+  role?: 'student' | 'academician' | 'admin'
+}
+
 export default function SinavSimulasyonuPage() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
   const [courses, setCourses] = useState<Course[]>([])
+  const [notes, setNotes] = useState<Note[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   
   // Quiz oluşturma
   const [showCreateForm, setShowCreateForm] = useState(false)
   const [creatingQuiz, setCreatingQuiz] = useState(false)
+  const [selectedNotes, setSelectedNotes] = useState<string[]>([])
+  const [filteredNotes, setFilteredNotes] = useState<Note[]>([])
   const [newQuiz, setNewQuiz] = useState({
     title: '',
     description: '',
@@ -82,15 +110,31 @@ export default function SinavSimulasyonuPage() {
   const handleCreateQuiz = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    if (selectedNotes.length === 0) {
+      setError('Lütfen en az bir not seçin')
+      return
+    }
+    
     try {
       setCreatingQuiz(true)
+      
+      // Seçilen notların içeriklerini al
+      const selectedNoteContents = notes
+        .filter(note => selectedNotes.includes(note.id))
+        .map(note => ({
+          id: note.id,
+          title: note.title,
+          content: note.content,
+          courseId: note.courseId
+        }))
       
       const response = await apiClient.generateQuiz({
         courseId: newQuiz.courseId,
         difficulty: newQuiz.difficulty,
         questionCount: newQuiz.questionCount,
         timeLimit: newQuiz.timeLimit,
-        examFormat: newQuiz.examFormat
+        examFormat: newQuiz.examFormat,
+        selectedNotes: selectedNoteContents // Seçilen notları gönder
       })
       
       if (response.success && response.data) {
@@ -108,7 +152,14 @@ export default function SinavSimulasyonuPage() {
         }
         
         setQuizzes(prev => [quiz, ...prev])
+        setActiveQuiz(quiz)
+        setQuizStartTime(new Date()) // Sınav başlangıç zamanını set et
+        setCurrentQuestionIndex(0)
+        setUserAnswers({})
+        setQuizResults(null)
+        setElapsedTime(0)
         setShowCreateForm(false)
+        setSelectedNotes([]) // Seçilen notları temizle
         setNewQuiz({
           title: '',
           description: '',
@@ -119,7 +170,7 @@ export default function SinavSimulasyonuPage() {
           examFormat: 'mixed'
         })
       } else {
-        setError(response.error || 'Quiz oluşturulurken bir hata oluştu')
+        setError(response.error || 'Quiz oluşturulamadı')
       }
     } catch (err) {
       setError('Bağlantı hatası')
@@ -162,7 +213,19 @@ export default function SinavSimulasyonuPage() {
 
   // Sınavı bitir
   const finishQuiz = async () => {
-    if (!activeQuiz || !quizStartTime) return
+    console.log('finishQuiz called')
+    console.log('activeQuiz:', activeQuiz)
+    console.log('quizStartTime:', quizStartTime)
+    
+    if (!activeQuiz) {
+      console.error('Cannot finish quiz: missing activeQuiz')
+      return
+    }
+    
+    if (!quizStartTime) {
+      console.error('Cannot finish quiz: missing quizStartTime')
+      return
+    }
 
     const endTime = new Date()
     const timeSpent = Math.floor((endTime.getTime() - quizStartTime.getTime()) / 1000)
@@ -170,23 +233,50 @@ export default function SinavSimulasyonuPage() {
     let correctAnswers = 0
     const answers = activeQuiz.questions.map(question => {
       const userAnswer = userAnswers[question.id]
+      
+      // Debug için cevap bilgilerini logla
+      console.log('Question:', question.question)
+      console.log('Question type:', question.type)
+      console.log('User answer:', userAnswer)
+      console.log('Correct answer:', question.correctAnswer)
+      console.log('Correct answer type:', typeof question.correctAnswer)
+      
       const isCorrect = (() => {
+        if (!userAnswer) return false;
+        
         if (question.type === 'true_false') {
-          console.log(`Question ID: ${question.id}, Type: ${question.type}, User Answer: ${userAnswer}, Correct Answer: ${question.correctAnswer}`);
-          return String(userAnswer) === String(question.correctAnswer);
-        } else if (question.type === 'multiple_choice' || question.type === 'open_ended') {
-          const userAnsTrimmed = String(userAnswer).toLowerCase().trim();
-          const correctAnsTrimmed = String(question.correctAnswer).toLowerCase().trim();
-          console.log(`Question ID: ${question.id}, Type: ${question.type}, User Answer (trimmed): '${userAnsTrimmed}', Correct Answer (trimmed): '${correctAnsTrimmed}'`);
-          return userAnsTrimmed === correctAnsTrimmed;
+          // Boolean değerleri string'e çevir ve karşılaştır
+          const userAnsStr = String(userAnswer).toLowerCase();
+          const correctAnsStr = String(question.correctAnswer).toLowerCase();
+          console.log('True/False comparison:', userAnsStr, 'vs', correctAnsStr)
+          return userAnsStr === correctAnsStr;
+        } else if (question.type === 'multiple_choice') {
+          // Çoktan seçmeli sorularda harf eşleşmesi ara
+          const userAnsStr = String(userAnswer).trim();
+          const correctAnsStr = String(question.correctAnswer).trim();
+          
+          // Kullanıcı cevabından harfi çıkar (örn: "B) Metin" -> "B")
+          const userLetter = userAnsStr.match(/^[A-D]\)/)?.[0]?.replace(')', '') || userAnsStr;
+          const correctLetter = correctAnsStr.match(/^[A-D]\)/)?.[0]?.replace(')', '') || correctAnsStr;
+          
+          console.log('Multiple choice comparison:', userLetter, 'vs', correctLetter)
+          return userLetter === correctLetter;
+        } else if (question.type === 'open_ended') {
+          // Açık uçlu sorularda daha esnek karşılaştırma
+          const userAnsStr = String(userAnswer).toLowerCase().trim();
+          const correctAnsStr = String(question.correctAnswer).toLowerCase().trim();
+          console.log('Open ended comparison:', userAnsStr, 'vs', correctAnsStr)
+          return userAnsStr === correctAnsStr;
         }
         return false; // Bilinmeyen soru tipi
       })();
+      
+      console.log('Is correct:', isCorrect)
       if (isCorrect) correctAnswers++
       
       return {
         questionId: question.id,
-        userAnswer,
+        userAnswer: userAnswer || '',
         isCorrect
       }
     })
@@ -199,7 +289,8 @@ export default function SinavSimulasyonuPage() {
       wrongAnswers: activeQuiz.totalQuestions - correctAnswers,
       timeSpent,
       completedAt: endTime.toISOString(),
-      answers
+      answers,
+      questions: activeQuiz.questions // Soru metinlerini ve doğru cevapları sakla
     }
 
     setQuizResults(result)
@@ -207,16 +298,21 @@ export default function SinavSimulasyonuPage() {
 
     // Quiz sonucunu sunucuya kaydet
     if (user) {
-      await apiClient.submitQuiz({
-        userId: user.uid,
-        quizId: result.quizId,
-        score: result.score,
-        totalPoints: result.totalQuestions,
-        answers: result.answers,
-        completedAt: result.completedAt,
-        timeSpent: result.timeSpent,
-        questions: activeQuiz.questions // yeni eklendi
-      })
+      try {
+        await apiClient.submitQuiz({
+          userId: user.uid,
+          quizId: result.quizId,
+          score: result.score,
+          totalPoints: result.totalQuestions,
+          answers: result.answers,
+          completedAt: result.completedAt,
+          timeSpent: result.timeSpent,
+          questions: activeQuiz.questions
+        })
+      } catch (error) {
+        console.error('Quiz submit error:', error)
+        // Hata olsa bile sınav sonucu gösterilmeye devam eder
+      }
     }
   }
 
@@ -242,11 +338,46 @@ export default function SinavSimulasyonuPage() {
     }
   }
 
+  // Notları yükle
+  const loadNotes = async () => {
+    try {
+      const response = await apiClient.getNotes()
+      if (response.success && response.data) {
+        const apiData = response.data as any;
+        // Eğer data bir array değilse, data.data'yı kontrol et
+        if (Array.isArray(apiData)) {
+          setNotes(apiData)
+        } else if (apiData.data && Array.isArray(apiData.data)) {
+          setNotes(apiData.data)
+        } else {
+          setNotes([])
+        }
+      }
+    } catch (error) {
+      console.error('Notes load error:', error)
+      setNotes([]) // Hata durumunda boş array
+    }
+  }
+
   // İlk yükleme
   useEffect(() => {
     loadCourses()
+    loadNotes()
     setLoading(false)
   }, [])
+
+  // Ders seçimi değiştiğinde notları filtrele
+  useEffect(() => {
+    if (newQuiz.courseId && Array.isArray(notes)) {
+      const filtered = notes.filter(note => note.courseId === newQuiz.courseId)
+      setFilteredNotes(filtered)
+      // Ders değiştiğinde seçili notları temizle
+      setSelectedNotes([])
+    } else {
+      setFilteredNotes([])
+      setSelectedNotes([])
+    }
+  }, [newQuiz.courseId, notes])
 
   // Zamanlayıcı (sınav sırasında)
   useEffect(() => {
@@ -283,8 +414,33 @@ export default function SinavSimulasyonuPage() {
     return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`
   }
 
-  if (authLoading) return <div>Yükleniyor...</div>;
-  if (!user) return <div>Lütfen giriş yapınız.</div>;
+  // Giriş kontrolü
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
+          <p className="text-gray-600">Yükleniyor...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <LoginPrompt
+        title="Sınav Simülasyonu Sayfasına Erişim"
+        description="Sınav simülasyonları oluşturmak ve gerçek sınav deneyimi yaşamak için giriş yapmanız gerekiyor."
+        features={[
+          "Kişiselleştirilmiş sınav oluşturma",
+          "Not bazlı soru üretimi",
+          "Gerçek zamanlı sınav deneyimi",
+          "Detaylı sonuç analizi",
+          "Geçmiş sınav raporları"
+        ]}
+      />
+    );
+  }
 
   return (
     <div className='py-8'>
@@ -396,6 +552,51 @@ export default function SinavSimulasyonuPage() {
               </div>
             </div>
             
+            {/* Not Seçimi */}
+            <div>
+              <label className='block text-sm font-medium text-text mb-2'>
+                Not Seçimi (Seçilen derse ait notlar)
+              </label>
+              <div className='max-h-60 overflow-y-auto border border-gray-300 rounded-md p-2'>
+                {!newQuiz.courseId ? (
+                  <p className='text-gray-500 text-sm'>Önce bir ders seçin</p>
+                ) : !Array.isArray(filteredNotes) || filteredNotes.length === 0 ? (
+                  <p className='text-gray-500 text-sm'>Bu derse ait not bulunmuyor.</p>
+                ) : (
+                  <div className='space-y-2'>
+                    {filteredNotes.map((note) => (
+                      <label key={note.id} className='flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded'>
+                        <input
+                          type='checkbox'
+                          checked={selectedNotes.includes(note.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedNotes(prev => [...prev, note.id])
+                            } else {
+                              setSelectedNotes(prev => prev.filter(id => id !== note.id))
+                            }
+                          }}
+                          className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                        />
+                        <div className='flex-1'>
+                          <div className='font-medium text-sm'>{note.title}</div>
+                          <div className='text-xs text-gray-500'>
+                            {courses.find(c => c.id === note.courseId)?.name || 'Bilinmeyen Ders'} - 
+                            {note.classYear}. Sınıf {note.semester}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                )}
+              </div>
+              {selectedNotes.length > 0 && (
+                <p className='text-sm text-blue-600 mt-2'>
+                  {selectedNotes.length} not seçildi
+                </p>
+              )}
+            </div>
+            
             <div>
               <label className='block text-sm font-medium text-text mb-2'>Açıklama</label>
               <textarea
@@ -456,19 +657,19 @@ export default function SinavSimulasyonuPage() {
             <div className='space-y-4'>
               <div className='bg-gray-50 p-4 rounded-lg'>
                 <h4 className='font-semibold text-lg mb-4'>
-                  {activeQuiz.questions[currentQuestionIndex].question}
+                  {activeQuiz.questions[currentQuestionIndex]?.question || 'Soru yükleniyor...'}
                 </h4>
                 
-                {activeQuiz.questions[currentQuestionIndex].type === 'multiple_choice' && (
+                {activeQuiz.questions[currentQuestionIndex]?.type === 'multiple_choice' && (
                   <div className='space-y-2'>
-                    {activeQuiz.questions[currentQuestionIndex].options?.map((option, index) => (
+                    {activeQuiz.questions[currentQuestionIndex]?.options?.map((option, index) => (
                       <label key={index} className='flex items-center space-x-2 cursor-pointer'>
                         <input
                           type='radio'
-                          name={`question-${activeQuiz.questions[currentQuestionIndex].id}`}
+                          name={`question-${activeQuiz.questions[currentQuestionIndex]?.id}`}
                           value={option}
-                          checked={userAnswers[activeQuiz.questions[currentQuestionIndex].id] === option}
-                          onChange={(e) => handleAnswer(activeQuiz.questions[currentQuestionIndex].id, e.target.value)}
+                          checked={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] === option}
+                          onChange={(e) => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', e.target.value)}
                           className='text-blue-600'
                         />
                         <span>{option}</span>
@@ -477,15 +678,15 @@ export default function SinavSimulasyonuPage() {
                   </div>
                 )}
 
-                {activeQuiz.questions[currentQuestionIndex].type === 'true_false' && (
+                {activeQuiz.questions[currentQuestionIndex]?.type === 'true_false' && (
                   <div className='space-y-2'>
                     <label className='flex items-center space-x-2 cursor-pointer'>
                       <input
                         type='radio'
-                        name={`question-${activeQuiz.questions[currentQuestionIndex].id}`}
+                        name={`question-${activeQuiz.questions[currentQuestionIndex]?.id}`}
                         value='true'
-                        checked={userAnswers[activeQuiz.questions[currentQuestionIndex].id] === true}
-                        onChange={() => handleAnswer(activeQuiz.questions[currentQuestionIndex].id, true)}
+                        checked={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] === true}
+                        onChange={() => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', true)}
                         className='text-blue-600'
                       />
                       <span>Doğru</span>
@@ -493,10 +694,10 @@ export default function SinavSimulasyonuPage() {
                     <label className='flex items-center space-x-2 cursor-pointer'>
                       <input
                         type='radio'
-                        name={`question-${activeQuiz.questions[currentQuestionIndex].id}`}
+                        name={`question-${activeQuiz.questions[currentQuestionIndex]?.id}`}
                         value='false'
-                        checked={userAnswers[activeQuiz.questions[currentQuestionIndex].id] === false}
-                        onChange={() => handleAnswer(activeQuiz.questions[currentQuestionIndex].id, false)}
+                        checked={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] === false}
+                        onChange={() => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', false)}
                         className='text-blue-600'
                       />
                       <span>Yanlış</span>
@@ -504,10 +705,10 @@ export default function SinavSimulasyonuPage() {
                   </div>
                 )}
 
-                {activeQuiz.questions[currentQuestionIndex].type === 'open_ended' && (
+                {activeQuiz.questions[currentQuestionIndex]?.type === 'open_ended' && (
                   <textarea
-                    value={userAnswers[activeQuiz.questions[currentQuestionIndex].id] as string || ''}
-                    onChange={(e) => handleAnswer(activeQuiz.questions[currentQuestionIndex].id, e.target.value)}
+                    value={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] as string || ''}
+                    onChange={(e) => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', e.target.value)}
                     className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
                     rows={4}
                     placeholder='Cevabınızı buraya yazın...'
@@ -534,7 +735,10 @@ export default function SinavSimulasyonuPage() {
                   
                   {currentQuestionIndex === activeQuiz.totalQuestions - 1 ? (
                     <button
-                      onClick={finishQuiz}
+                      onClick={() => {
+                        console.log('Finish button clicked')
+                        finishQuiz()
+                      }}
                       className='px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors'
                     >
                       Sınavı Bitir

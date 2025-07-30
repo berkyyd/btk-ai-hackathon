@@ -1,13 +1,14 @@
 import { db } from '../config/firebase';
-import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc, query, where, getDocs, deleteDoc, doc, updateDoc, getDoc } from 'firebase/firestore';
 import { getAuth } from 'firebase/auth';
 
 interface InvitationCode {
   code: string;
   createdAt: Date;
   createdBy: string; // UID of the admin who created it
-  usedBy?: string; // UID of the user who used it
+  usedBy?: string | null; // UID of the user who used it
   usedAt?: Date;
+  targetRole?: 'academician' | 'student'; // Hedef rol
 }
 
 // Function to generate a simple unique code (you might want a more robust one)
@@ -16,21 +17,18 @@ const generateUniqueCode = (): string => {
 };
 
 // Function to check if the current user has an admin role
-// This is a placeholder. You'll need to implement actual role checking,
-// e.g., by reading custom claims from the user's ID token or a user document in Firestore.
 const isAdmin = async (userId: string): Promise<boolean> => {
-  // For demonstration, let's assume a user with UID 'admin_uid' is an admin.
-  // In a real application, you would fetch the user's role from Firestore
-  // or check custom claims on their ID token.
-  // Example:
-  // const userDocRef = doc(db, 'users', userId);
-  // const userDoc = await getDoc(userDocRef);
-  // return userDoc.exists() && userDoc.data()?.role === 'admin';
-  console.warn('Admin role check is a placeholder. Implement actual role verification.');
-  return true; // Temporarily return true for testing purposes
+  try {
+    const userDocRef = doc(db, 'users', userId);
+    const userDoc = await getDoc(userDocRef);
+    return userDoc.exists() && userDoc.data()?.role === 'admin';
+  } catch (error) {
+    console.error('Error checking admin role:', error);
+    return false;
+  }
 };
 
-export const createInvitationCode = async (): Promise<{ success: boolean; code?: string; error?: string }> => {
+export const createInvitationCode = async (targetRole: 'academician' | 'student' = 'student'): Promise<{ success: boolean; code?: string; error?: string }> => {
   const auth = getAuth();
   const user = auth.currentUser;
 
@@ -49,7 +47,8 @@ export const createInvitationCode = async (): Promise<{ success: boolean; code?:
       code: newCode,
       createdAt: new Date(),
       createdBy: user.uid,
-      usedBy: undefined, // Yeni eklenen satır
+      usedBy: null,
+      targetRole: targetRole,
     };
 
     await addDoc(collection(db, 'invitationCodes'), invitationCode);
@@ -62,7 +61,7 @@ export const createInvitationCode = async (): Promise<{ success: boolean; code?:
 
 import { DocumentReference } from 'firebase/firestore';
 
-export const validateInvitationCode = async (code: string): Promise<{ success: boolean; docRef?: DocumentReference; error?: string }> => {
+export const validateInvitationCode = async (code: string): Promise<{ success: boolean; docRef?: DocumentReference; targetRole?: string; error?: string }> => {
   try {
     const q = query(collection(db, 'invitationCodes'), where('code', '==', code), where('usedBy', '==', null));
     const querySnapshot = await getDocs(q);
@@ -71,8 +70,15 @@ export const validateInvitationCode = async (code: string): Promise<{ success: b
       return { success: false, error: 'Invalid or already used invitation code.' };
     }
 
-    const docRef = querySnapshot.docs[0].ref;
-    return { success: true, docRef };
+    const docRef = querySnapshot.docs[0]?.ref;
+    if (!docRef) {
+      return { success: false, error: 'Invalid invitation code.' };
+    }
+    
+    const docData = querySnapshot.docs[0].data();
+    const targetRole = docData?.targetRole || 'student';
+    
+    return { success: true, docRef, targetRole };
   } catch (e: any) {
     console.error('Error validating invitation code:', e);
     return { success: false, error: e.message };

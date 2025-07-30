@@ -51,7 +51,7 @@ export async function POST(request: NextRequest) {
   try {
     const requestBody = await request.json();
     console.log('Received raw request body for new note:', requestBody);
-    const { title, content, courseId, classYear, semester, tags, isPublic, fileUrl } = requestBody;
+    const { title, content, courseId, classYear, semester, tags, isPublic, fileUrl, role, userId } = requestBody;
 
     // Validation
     if (!title || !content || !courseId) {
@@ -74,9 +74,11 @@ export async function POST(request: NextRequest) {
       favorites: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      // TODO: Kullanıcı ID'si eklenecek (auth sistemi tamamlandığında)
-      userId: 'anonymous',
       fileUrl: fileUrl || null, // Yeni eklendi
+      // Role alanı eklendi
+      role: role || 'student', // Gelen role değerini kullan, yoksa student
+      // Kullanıcı ID'si
+      userId: userId || 'anonymous',
     });
 
     return NextResponse.json({
@@ -90,6 +92,46 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(
       { error: 'Not eklenirken bir hata oluştu' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const noteId = searchParams.get('id');
+    
+    if (!noteId) {
+      return NextResponse.json(
+        { error: 'Not ID\'si gereklidir' },
+        { status: 400 }
+      );
+    }
+
+    const requestBody = await request.json();
+    const { title, content, tags, isPublic } = requestBody;
+
+    // Firestore'da notu güncelle
+    const noteRef = doc(db, 'notes', noteId);
+    await updateDoc(noteRef, {
+      title,
+      content,
+      tags: tags || [],
+      isPublic: isPublic || false,
+      updatedAt: new Date().toISOString(),
+    });
+
+    return NextResponse.json({
+      success: true,
+      message: 'Not başarıyla güncellendi',
+    });
+
+  } catch (error: any) {
+    console.error('Update note error:', error);
+    
+    return NextResponse.json(
+      { error: 'Not güncellenirken bir hata oluştu' },
       { status: 500 }
     );
   }
