@@ -3,7 +3,7 @@ import { geminiService } from '../../../../utils/geminiService';
 
 export async function POST(request: NextRequest) {
   try {
-    const { content, category } = await request.json();
+    const { content, summaryType } = await request.json();
 
     // Validation
     if (!content) {
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Gemini API ile özetleme
-    const summary = await geminiService.summarizeNote(content, category || 'academic');
+    const summary = await geminiService.summarizeNote(content, summaryType || 'academic');
 
     return NextResponse.json({
       success: true,

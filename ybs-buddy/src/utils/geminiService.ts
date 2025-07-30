@@ -1,4 +1,5 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
+import { SUMMARY_PROMPTS } from './summaryPrompts';
 
 export interface QuizGenerationRequest {
   courseId: string;
@@ -29,26 +30,24 @@ export class GeminiService {
   private genAI: GoogleGenerativeAI;
 
   constructor() {
-    this.apiKey = process.env.GEMINI_API_KEY || '';
-    this.summaryApiKey = process.env.GEMINI_SUMMARY_API_KEY || '';
+    this.apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
+    this.summaryApiKey = process.env.GEMINI_SUMMARY_API_KEY || process.env.NEXT_PUBLIC_GEMINI_SUMMARY_API_KEY || '';
     
     if (!this.apiKey) {
       console.warn('GEMINI_API_KEY environment variable is not set');
     }
-<<<<<<< HEAD
-    
     if (!this.summaryApiKey) {
       console.warn('GEMINI_SUMMARY_API_KEY environment variable is not set');
-=======
+    }
+    // Always use summaryApiKey if available for genAI
+    this.genAI = new GoogleGenerativeAI(this.summaryApiKey || this.apiKey);
   }
 
   async makeRequest(prompt: string): Promise<string> {
     if (!this.apiKey) {
       throw new Error('Gemini API key is not configured');
->>>>>>> 6a3dc9a29efac6230c979ba4642734c8a27c828a
     }
-
-    this.genAI = new GoogleGenerativeAI(this.apiKey);
+    return this.makeGeminiRequest(prompt);
   }
 
   private async makeGeminiRequest(prompt: string, apiKey?: string): Promise<string> {
@@ -57,8 +56,9 @@ export class GeminiService {
       if (!key) {
         throw new Error('API key is required');
       }
-
-      const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+      // Her istek için doğru anahtarla model nesnesi oluştur
+      const genAI = new GoogleGenerativeAI(key);
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
       const result = await model.generateContent(prompt);
       const response = await result.response;
       return response.text();
@@ -90,7 +90,6 @@ export class GeminiService {
         
         JSON formatında döndür.
       `;
-
       const response = await this.makeGeminiRequest(prompt);
       return JSON.parse(response);
     } catch (error) {
@@ -99,20 +98,10 @@ export class GeminiService {
     }
   }
 
-  async summarizeNote(request: NoteSummarizationRequest): Promise<string> {
+  async summarizeNote(content: string, summaryType: keyof typeof SUMMARY_PROMPTS = 'academic'): Promise<string> {
     try {
-      const prompt = `
-        Aşağıdaki notu ${request.summaryType} şekilde özetle:
-        
-        ${request.content}
-        
-        Özet türü: ${request.summaryType}
-        - brief: Kısa özet (2-3 cümle)
-        - detailed: Detaylı özet (5-7 cümle)
-        - bullet_points: Madde halinde özet
-      `;
-
-      return await this.makeGeminiRequest(prompt);
+      const prompt = SUMMARY_PROMPTS[summaryType](content);
+      return await this.makeGeminiRequest(prompt, this.summaryApiKey);
     } catch (error) {
       console.error('Note summarization failed:', error);
       throw error;
@@ -138,7 +127,6 @@ export class GeminiService {
         - Kariyer tavsiyeleri
         - Zaman yönetimi
       `;
-
       return await this.makeGeminiRequest(prompt);
     } catch (error) {
       console.error('Academic guidance generation failed:', error);
@@ -158,7 +146,6 @@ export class GeminiService {
         - Konuyla ilgili önemli noktalar
         - Benzer sorular için ipuçları
       `;
-
       return await this.makeGeminiRequest(prompt);
     } catch (error) {
       console.error('Gemini açıklama üretimi başarısız:', error);
@@ -169,11 +156,9 @@ export class GeminiService {
   async extractTextFromPDF(fileName: string, base64Data: string): Promise<string> {
     try {
       const fileSize = Math.ceil((base64Data.length * 3) / 4);
-      
       if (fileSize > 5 * 1024 * 1024) {
         throw new Error('PDF dosyası çok büyük (5MB limit)');
       }
-
       const prompt = `
         Bu PDF dosyasından metin çıkar: ${fileName}
         
@@ -187,7 +172,6 @@ export class GeminiService {
         
         Sadece çıkarılan metni döndür, başka açıklama ekleme.
       `;
-
       const extractedText = await this.makeGeminiRequest(prompt, this.summaryApiKey);
       return extractedText;
     } catch (error) {
