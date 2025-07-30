@@ -61,7 +61,7 @@ export default function RegisterPage() {
       console.log('Firebase register successful:', user);
 
       let userRole = 'student'; // Varsayılan rol
-      let invitationCodeDocRef = null;
+      let invitationCodeDocRef: DocumentReference | null = null;
 
       // Davet kodu kontrolü
       if (formData.invitationCode) {

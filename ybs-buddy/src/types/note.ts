@@ -1,5 +1,14 @@
 import { ClassType, SemesterType } from './basic'
 
+// PDF extraction result interface
+export interface ExtractedTextResult {
+  success: boolean
+  text?: string
+  error?: string
+  pageCount?: number
+  fileSize?: number
+}
+
 // Note related types
 export interface Note {
   id: string
@@ -15,6 +24,13 @@ export interface Note {
   favorites: number
   tags?: string[]
   fileUrl?: string
+  isPublic?: boolean
+  // PDF specific properties
+  isPDF?: boolean
+  extractedText?: string
+  pageCount?: number
+  fileSize?: number
+  originalFileName?: string
 }
 
 export interface PersonalNote {

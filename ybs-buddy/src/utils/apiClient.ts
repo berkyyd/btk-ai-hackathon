@@ -117,6 +117,11 @@ class ApiClient {
     semester?: string;
     tags?: string[];
     isPublic?: boolean;
+    // PDF specific properties
+    originalFileName?: string | null;
+    isPDF?: boolean;
+    extractedText?: string | null;
+    fileSize?: number | null;
   }) {
     return this.request('/notes', {
       method: 'POST',

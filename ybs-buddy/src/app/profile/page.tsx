@@ -173,7 +173,7 @@ const ProfilePage = () => {
                   <ul className="mt-4 space-y-4">
                     {result.answers.map((ans: Answer, idx: number) => (
                       <li key={ans.questionId} className={`p-3 rounded-lg ${ans.isCorrect ? 'bg-green-50' : 'bg-red-50'}`}>
-                        <div className="font-semibold"><b>{idx + 1}. Soru:</b> {result.questions?.find(q => q.id === ans.questionId)?.question || ans.questionId}</div>
+                        <div className="font-semibold"><b>{idx + 1}. Soru:</b> {result.questions?.find(q => q.id === ans.questionId)?.text || `Soru ${ans.questionId}`}</div>
                         <div className="mt-1"><b>Cevabınız:</b> {String(ans.userAnswer)}</div>
                         {!ans.isCorrect && (
                           <div className="mt-1"><b>Doğru Cevap:</b> {String(result.questions?.find(q => q.id === ans.questionId)?.correctAnswer)}</div>

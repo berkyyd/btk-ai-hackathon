@@ -1,7 +1,7 @@
 # YBS Buddy Projesi - Teknik Geliştirici Rehberi
 
 **Oluşturulma Tarihi:** 26 Temmuz 2025  
-**Güncelleme Tarihi:** 28 Temmuz 2025  
+**Güncelleme Tarihi:** 30 Temmuz 2025  
 **Proje Türü:** Next.js + TypeScript + Firebase + Gemini API Web Uygulaması  
 **Hedef Geliştirici:** Full-stack Geliştiriciler ve Kod İnceleyiciler  
 
@@ -33,12 +33,12 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 **Organizasyon Prensibi:** Separation of Concerns (SoC) + Feature-based organization  
 **İçeriği:**
 - `app/` - Next.js App Router sayfaları ve API routes
-- `components/` - Reusable UI components (Card, Header, Footer)
+- `components/` - Reusable UI components (Card, Header, Footer, QuizForm)
 - `contexts/` - React Context API ile global state management
 - `config/` - Firebase ve diğer servis konfigürasyonları
 - `utils/` - Utility fonksiyonları ve API client'ları
 - `types/` - TypeScript tip tanımları
-- `constants/` - Uygulama sabitleri
+- `constants.ts` - Uygulama sabitleri (magic numbers, limits, defaults)
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `src` klasörü, uygulamanızın tüm kodlarının bulunduğu ana klasördür. Next.js App Router, sayfa yönlendirmelerini dosya sistemi üzerinden yapar. `app` klasöründe her klasör bir route'u temsil eder. `contexts` klasörü, uygulama genelinde paylaşılan verileri (kullanıcı bilgisi gibi) yönetir.
 
@@ -68,6 +68,8 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
   - `route.ts` - Not CRUD işlemleri
   - `summarize/route.ts` - Gemini API ile not özetleme
 - `quiz/generate/route.ts` - Gemini API ile quiz üretimi
+- `pdf-extract/route.ts` - PDF metin çıkarma
+- `upload/route.ts` - Dosya yükleme
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `api` klasörü, backend işlevlerini içerir. Her `route.ts` dosyası bir HTTP endpoint'ini temsil eder. Firebase ile entegre çalışır ve Gemini API'yi kullanarak akıllı içerik üretir.
 
@@ -77,6 +79,8 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - `Card.tsx` - Genel kart komponenti
 - `Header.tsx` - Navigasyon ve kullanıcı durumu
 - `Footer.tsx` - Alt bilgi komponenti
+- `FileUpload.tsx` - PDF dosya yükleme komponenti
+- `QuizForm.tsx` - Quiz oluşturma formu
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `components` klasörü, uygulama genelinde kullanılan UI parçalarını içerir. Bu komponentler yeniden kullanılabilir ve farklı sayfalarda aynı görünümü sağlar.
 
@@ -100,6 +104,8 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - `apiClient.ts` - HTTP API istekleri için client
 - `geminiService.ts` - Gemini API entegrasyonu
 - `errorHandler.ts` - Hata yönetimi utilities
+- `pdfToTextService.ts` - PDF metin çıkarma servisi
+- `invitationCodeService.ts` - Davet kodu yönetimi
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `utils` klasörü, yardımcı fonksiyonları içerir. `apiClient`, backend API'lerine istek göndermek için kullanılır. `geminiService`, yapay zeka entegrasyonu için kullanılır.
 
@@ -110,13 +116,16 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - `TODO.md` - Development roadmap ve progress tracking
 - `version1_prd.md` - Product requirements specification
 - `proje_bilgileri.md` - Technical developer guide (bu dosya)
+- `CHANGELOG.md` - Proje değişiklik geçmişi
+- `CONTRIBUTING.md` - Katkı rehberi
+- `DEPLOYMENT.md` - Deployment rehberi
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `docs` klasörü, proje hakkında tüm yazılı dokümantasyonu içerir. PRD (Product Requirements Document), projenin gereksinimlerini tanımlar.
 
 #### `public/` - Static Assets
 **Build-time:** Next.js tarafından doğrudan serve edilir  
 **İçeriği:**
-- `vite.svg` - Default logo (placeholder)
+- `pdf.worker.min.js` - PDF.js worker dosyası
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `public` klasörü, tarayıcıda doğrudan erişilebilen dosyaları içerir. Bu dosyalar, uygulamanız çalışırken değişmeyen dosyalardır.
 
@@ -139,7 +148,7 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 **Key Sections:**
 - `scripts`: Development, build, preview commands
 - `dependencies`: Runtime dependencies (Next.js, React, Firebase)
-- `devDependencies`: Development tools (TypeScript, ESLint)
+- `devDependencies`: Development tools (TypeScript, ESLint, Prettier)
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `package.json` dosyası, projenizin kimlik kartı gibidir. Bu dosyada projenizin adı, versiyonu, hangi kütüphaneleri kullandığı ve hangi komutları çalıştırabileceği yazılıdır.
 
@@ -158,6 +167,7 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - App Router configuration
 - Build optimization settings
 - Environment variables setup
+- Webpack fallbacks for Node.js modules
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `next.config.ts` dosyası, Next.js'in nasıl çalışacağını belirler. App Router, sayfa yönlendirmelerini dosya sistemi üzerinden yapar.
 
@@ -167,8 +177,18 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - TypeScript-specific linting rules
 - React hooks rules
 - Import/export validation
+- Next.js specific rules
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `eslint.config.js` dosyası, kod kalitesi kurallarını tanımlar. ESLint, kodunuzdaki potansiyel hataları ve kötü alışkanlıkları tespit eden bir araçtır.
+
+#### `prettier.config.js` - Prettier Configuration
+**Purpose:** Code formatting ve style consistency  
+**Key Features:**
+- Consistent code formatting
+- TypeScript and JSX support
+- Custom formatting rules
+
+> **💡 Yeni Geliştiriciler İçin Açıklama:** `prettier.config.js` dosyası, kodunuzun otomatik olarak düzenlenmesini sağlar. Prettier, kod stilini tutarlı hale getiren bir araçtır.
 
 #### `tsconfig.json` - TypeScript Configuration
 **Purpose:** TypeScript compiler options  
@@ -176,6 +196,7 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - Strict type checking enabled
 - ES2020 target
 - React JSX support
+- Path mapping for absolute imports
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `tsconfig.json` dosyası, TypeScript derleyicisinin nasıl çalışacağını belirler. TypeScript, JavaScript'e tip güvenliği ekleyen bir dildir.
 
@@ -184,6 +205,7 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 **Key Variables:**
 - `NEXT_PUBLIC_FIREBASE_*` - Firebase configuration
 - `GEMINI_API_KEY` - Gemini API key
+- `GEMINI_SUMMARY_API_KEY` - Gemini Summary API key
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `.env.local` dosyası, hassas bilgileri (API key'ler gibi) güvenli bir şekilde saklar. Bu dosya Git'e dahil edilmez.
 
@@ -194,19 +216,29 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - `.next/` - Build outputs
 - `*.log` - Log files
 - `.env.local` - Environment files
+- `dist/` - Build directories
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `.gitignore` dosyası, Git'in hangi dosyaları takip etmeyeceğini belirler. Bu dosya, gereksiz veya büyük dosyaların Git repository'sine eklenmesini engeller.
+
+#### `LICENSE` - Project License
+**Purpose:** MIT License for open source project  
+**Key Features:**
+- Open source licensing
+- Commercial use allowed
+- Attribution required
+
+> **💡 Yeni Geliştiriciler İçin Açıklama:** `LICENSE` dosyası, projenin lisans koşullarını belirler. MIT License, açık kaynak projeler için yaygın kullanılan bir lisanstır.
 
 ---
 
 ## 🛠️ Technology Stack ve Development Tools
 
 ### Core Technologies
-- **Next.js 14:** Full-stack React framework with App Router
-- **React 18:** Component-based UI library with hooks
+- **Next.js 15:** Full-stack React framework with App Router
+- **React 19:** Component-based UI library with hooks
 - **TypeScript 5:** Static type checking ve compile-time error detection
-- **Tailwind CSS 4:** Utility-first CSS framework
-- **Firebase 10:** Backend-as-a-Service (Firestore, Auth, Storage)
+- **Tailwind CSS 3:** Utility-first CSS framework
+- **Firebase 11:** Backend-as-a-Service (Firestore, Auth, Storage)
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** Next.js, React tabanlı bir framework olup hem frontend hem de backend işlevlerini sunar. Firebase, Google'ın sunduğu backend-as-a-service platformudur. Firestore, NoSQL veritabanıdır. Auth, kimlik doğrulama servisidir.
 
@@ -243,6 +275,8 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 3. **Curriculum Viewer (`/mufredat`):** Firebase Firestore ile dinamik ders yönetimi
 4. **Course Notes (`/ders-notlari`):** Not paylaşım platformu ve Gemini API özetleme
 5. **Exam Simulation (`/sinav-simulasyonu`):** Gemini API ile dinamik quiz üretimi
+6. **PDF Processing:** PDF dosya yükleme ve metin çıkarma
+7. **File Upload:** Firebase Storage ile dosya yönetimi
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** Uygulama artık tam bir full-stack uygulamasıdır. Backend işlevleri Firebase ile sağlanır. Yapay zeka entegrasyonu Gemini API ile gerçekleştirilir.
 
@@ -251,6 +285,8 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 2. **Courses:** `/api/courses` (GET, POST)
 3. **Notes:** `/api/notes` (GET, POST), `/api/notes/summarize`
 4. **Quiz:** `/api/quiz/generate`
+5. **File Upload:** `/api/upload`
+6. **PDF Processing:** `/api/pdf-extract`
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** API endpoint'leri Next.js API Routes kullanılarak oluşturulmuştur. Her endpoint Firebase ile entegre çalışır ve gerekli yerlerde Gemini API kullanır.
 
@@ -262,6 +298,8 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - **AI Integration:** ✅ Complete (Gemini API)
 - **State Management:** ✅ Complete (React Context API)
 - **Real-time Updates:** ✅ Complete (Firebase Firestore)
+- **File Processing:** ✅ Complete (PDF upload and text extraction)
+- **Code Quality:** ✅ Complete (ESLint + Prettier + Clean Code)
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** Uygulama tamamen fonksiyonel durumdadır. Tüm temel özellikler implement edilmiştir. Backend, frontend ve yapay zeka entegrasyonu tamamlanmıştır.
 
@@ -271,7 +309,7 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 
 ### Prerequisites
 - **Node.js:** v18.0.0 or higher
-- **NPM:** v8.0.0 or higher
+- **NPM:** v9.0.0 or higher
 - **Git:** For version control
 - **Firebase Account:** For backend services
 - **Google AI Studio:** For Gemini API key
@@ -303,6 +341,10 @@ npm run dev
 - `npm run build` - Build for production
 - `npm run start` - Start production server
 - `npm run lint` - Run ESLint for code quality check
+- `npm run lint:fix` - Fix ESLint errors automatically
+- `npm run type-check` - Run TypeScript type checking
+- `npm run format` - Format code with Prettier
+- `npm run format:check` - Check code formatting
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** Bu komutlar, projeyi farklı amaçlar için çalıştırmanızı sağlar. `dev` komutu geliştirme için, `build` komutu üretim için, `start` komutu üretim sunucusunu başlatmak için, `lint` komutu ise kod kalitesini kontrol etmek için kullanılır.
 
@@ -322,6 +364,9 @@ npm run dev
 - `docs/TODO.md` - Development roadmap ve progress tracking
 - `docs/version1_prd.md` - Product requirements specification
 - `docs/proje_bilgileri.md` - Technical developer guide (bu dosya)
+- `docs/CHANGELOG.md` - Project change history
+- `docs/CONTRIBUTING.md` - Contribution guidelines
+- `docs/DEPLOYMENT.md` - Deployment guide
 
 ### External Resources
 - [Next.js Documentation](https://nextjs.org/docs) - Official Next.js docs
@@ -341,6 +386,7 @@ npm run dev
 - **ESLint:** Enforced code quality rules
 - **Prettier:** Consistent code formatting
 - **Firebase Best Practices:** Security rules and data modeling
+- **Constants Usage:** Magic numbers replaced with constants
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** Clean Code prensipleri, kodun daha okunabilir ve sürdürülebilir olmasını sağlayan kurallardır. Firebase Best Practices, güvenlik kuralları ve veri modelleme konularını kapsar.
 
@@ -383,6 +429,8 @@ npm run dev
 - [ ] Firebase security rules checked
 - [ ] API error handling implemented
 - [ ] Documentation updated if needed
+- [ ] Constants used instead of magic numbers
+- [ ] Console.log statements removed for production
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** Code review checklist, kodunuzu kontrol ederken dikkat etmeniz gereken noktaları listeler. Firebase security rules, veritabanı güvenlik kurallarını kontrol etmek anlamına gelir. API error handling, hata yönetiminin doğru yapıldığını kontrol etmek anlamına gelir.
 
@@ -395,6 +443,7 @@ npm run dev
 - `courses` - Ders bilgileri
 - `notes` - Not bilgileri
 - `quizzes` - Quiz bilgileri (planned)
+- `invitationCodes` - Davet kodları
 
 ### Security Rules
 - Authentication required for write operations
@@ -420,30 +469,38 @@ npm run dev
 ```typescript
 class GeminiService {
   private apiKey: string;
-  private baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+  private summaryApiKey: string;
+  private genAI: GoogleGenerativeAI;
 
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY || '';
+    this.summaryApiKey = process.env.GEMINI_SUMMARY_API_KEY || '';
+    this.genAI = new GoogleGenerativeAI(this.apiKey);
   }
 
   // Ana API istek metodu
-  private async makeRequest(prompt: string): Promise<string> {
+  private async makeGeminiRequest(prompt: string, apiKey?: string): Promise<string> {
     // Gemini API'ye istek gönderme
   }
 
   // Quiz soruları oluşturma
-  async generateQuizQuestions(courseName: string, difficulty: string, questionCount: number): Promise<any[]> {
+  async generateQuiz(request: QuizGenerationRequest): Promise<any> {
     // Quiz prompt'u ve işleme
   }
 
   // Not özetleme
-  async summarizeNote(content: string): Promise<string> {
+  async summarizeNote(request: NoteSummarizationRequest): Promise<string> {
     // Özetleme prompt'u ve işleme
   }
 
   // Akademik yönlendirme
-  async generateAcademicGuidance(userPerformance: any): Promise<string> {
+  async generateAcademicGuidance(request: AcademicGuidanceRequest): Promise<string> {
     // Yönlendirme prompt'u ve işleme
+  }
+
+  // PDF metin çıkarma
+  async extractTextFromPDF(fileName: string, base64Data: string): Promise<string> {
+    // PDF işleme prompt'u ve işleme
   }
 }
 ```
@@ -522,7 +579,7 @@ async generateStudyPlan(courseName: string, topics: string[], timeAvailable: num
   `;
 
   try {
-    return await this.makeRequest(prompt);
+    return await this.makeGeminiRequest(prompt);
   } catch (error) {
     console.error('Study plan generation failed:', error);
     return 'Çalışma planı oluşturulamadı.';
@@ -554,88 +611,66 @@ export async function POST(request: NextRequest) {
 
 ### 📊 Mevcut AI Servisleri
 
-**1. Quiz Üretimi (`generateQuizQuestions`):**
+**1. Quiz Üretimi (`generateQuiz`):**
 - **Kullanım:** Sınav simülasyonu sayfasında
-- **Parametreler:** `courseName`, `difficulty`, `questionCount`
+- **Parametreler:** `courseId`, `difficulty`, `questionCount`, `timeLimit`, `examFormat`
 - **Çıktı:** JSON formatında soru array'i
 - **API Endpoint:** `/api/quiz/generate`
 
 **2. Not Özetleme (`summarizeNote`):**
 - **Kullanım:** Ders notları sayfasında
-- **Parametreler:** `content` (not içeriği)
+- **Parametreler:** `content` (not içeriği), `summaryType` (brief, detailed, bullet_points)
 - **Çıktı:** Özetlenmiş metin
 - **API Endpoint:** `/api/notes/summarize`
 
 **3. Akademik Yönlendirme (`generateAcademicGuidance`):**
 - **Kullanım:** Kullanıcı performansına göre öneriler
-- **Parametreler:** `userPerformance` (kullanıcı performans verisi)
+- **Parametreler:** `userProfile` (classYear, interests, goals, weaknesses), `courseContext`
 - **Çıktı:** Kişiselleştirilmiş öneriler
 - **API Endpoint:** `/api/ai/guidance`
+
+**4. PDF Metin Çıkarma (`extractTextFromPDF`):**
+- **Kullanım:** PDF dosya yükleme
+- **Parametreler:** `fileName`, `base64Data`
+- **Çıktı:** Çıkarılan metin
+- **API Endpoint:** `/api/pdf-extract`
 
 ### 🛡️ Hata Yönetimi ve Fallback Sistemi
 
 **A) API Hata Durumları:**
 ```typescript
 try {
-  const response = await this.makeRequest(prompt);
+  const response = await this.makeGeminiRequest(prompt);
   return JSON.parse(response);
 } catch (error) {
   console.error('Quiz generation failed:', error);
-  // Fallback: Mock sorular döndür
-  return this.generateMockQuestions(courseName, difficulty, questionCount);
+  throw error;
 }
 ```
 
-**B) Mock Data Fallback:**
+**B) Environment Variable Kontrolü:**
 ```typescript
-private generateMockQuestions(courseName: string, difficulty: string, count: number): any[] {
-  const questions: any[] = [];
-  const questionTypes = ['multiple_choice', 'true_false', 'open_ended'];
+constructor() {
+  this.apiKey = process.env.GEMINI_API_KEY || '';
+  this.summaryApiKey = process.env.GEMINI_SUMMARY_API_KEY || '';
   
-  for (let i = 1; i <= count; i++) {
-    const questionType = questionTypes[i % questionTypes.length];
-    
-    let question: any = {
-      id: `q_${i}`,
-      question: `${courseName} dersi için ${difficulty} zorlukta ${i}. soru`,
-      type: questionType,
-      difficulty: difficulty,
-      explanation: 'Bu sorunun açıklaması burada yer alacak',
-    };
-
-    if (questionType === 'multiple_choice') {
-      question.options = [
-        'A) Birinci seçenek',
-        'B) İkinci seçenek', 
-        'C) Üçüncü seçenek',
-        'D) Dördüncü seçenek'
-      ];
-      question.correctAnswer = 'A';
-    }
-    
-    questions.push(question);
+  if (!this.apiKey) {
+    console.warn('GEMINI_API_KEY environment variable is not set');
   }
   
-  return questions;
+  if (!this.summaryApiKey) {
+    console.warn('GEMINI_SUMMARY_API_KEY environment variable is not set');
+  }
 }
 ```
 
 ### 🔑 Environment Variables
 
-**Gerekli API Key:**
+**Gerekli API Key'ler:**
 ```bash
 # .env.local dosyasında
 GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-**API Key Kontrolü:**
-```typescript
-constructor() {
-  this.apiKey = process.env.GEMINI_API_KEY || '';
-  if (!this.apiKey) {
-    console.warn('GEMINI_API_KEY environment variable is not set');
-  }
-}
+GEMINI_SUMMARY_API_KEY=your_gemini_summary_api_key_here
 ```
 
 ### 📈 Performance ve Optimizasyon
@@ -659,4 +694,4 @@ constructor() {
 
 ---
 
-*Bu doküman, geliştiricilerin projeyi incelemeden önce teknik detayları anlaması için hazırlanmıştır. Kod yapısı ve mimari kararlar hakkında bilgi sağlar. Son güncelleme: 28 Temmuz 2025.* 
+*Bu doküman, geliştiricilerin projeyi incelemeden önce teknik detayları anlaması için hazırlanmıştır. Kod yapısı ve mimari kararlar hakkında bilgi sağlar. Son güncelleme: 30 Temmuz 2025.* 
