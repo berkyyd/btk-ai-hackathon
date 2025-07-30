@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { collection, query, where, getDocs, addDoc, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, addDoc, orderBy, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../../config/firebase';
 
 interface Note {
@@ -80,7 +80,9 @@ export async function POST(request: NextRequest) {
       extractedText,
       pageCount,
       fileSize,
-      originalFileName
+      originalFileName,
+      role,
+      userId
     } = requestBody;
 
     // Validation
@@ -104,8 +106,8 @@ export async function POST(request: NextRequest) {
       favorites: 0,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
-      // Kullanıcı ID'si auth sistemi tamamlandığında eklenecek
-      userId: 'anonymous',
+      // Kullanıcı ID'si
+      userId: userId || 'anonymous',
       fileUrl: fileUrl || null,
       // PDF specific properties
       isPDF: isPDF || false,
@@ -113,6 +115,8 @@ export async function POST(request: NextRequest) {
       pageCount: pageCount || null,
       fileSize: fileSize || null,
       originalFileName: originalFileName || null,
+      // Role alanı eklendi
+      role: role || 'student', // Gelen role değerini kullan, yoksa student
     });
 
     return NextResponse.json({
@@ -126,6 +130,52 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json(
       { error: 'Not eklenirken bir hata oluştu' },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const noteId = searchParams.get('id');
+    
+    console.log('PUT request - noteId:', noteId);
+    
+    if (!noteId) {
+      return NextResponse.json(
+        { error: 'Not ID\'si gereklidir' },
+        { status: 400 }
+      );
+    }
+
+    const requestBody = await request.json();
+    const { title, content, tags, isPublic } = requestBody;
+    
+    console.log('PUT request - body:', { title, content, tags, isPublic });
+
+    // Firestore'da notu güncelle
+    const noteRef = doc(db, 'notes', noteId);
+    await updateDoc(noteRef, {
+      title,
+      content,
+      tags: tags || [],
+      isPublic: isPublic || false,
+      updatedAt: new Date().toISOString(),
+    });
+
+    console.log('Note updated successfully:', noteId);
+
+    return NextResponse.json({
+      success: true,
+      message: 'Not başarıyla güncellendi',
+    });
+
+  } catch (error: any) {
+    console.error('Update note error:', error);
+    
+    return NextResponse.json(
+      { error: `Not güncellenirken bir hata oluştu: ${error.message}` },
       { status: 500 }
     );
   }

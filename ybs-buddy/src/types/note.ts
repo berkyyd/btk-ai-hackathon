@@ -31,6 +31,10 @@ export interface Note {
   pageCount?: number
   fileSize?: number
   originalFileName?: string
+  // Role alanı eklendi
+  role?: 'student' | 'academician' | 'admin'
+  // Kullanıcı ID'si eklendi
+  userId?: string
 }
 
 export interface PersonalNote {

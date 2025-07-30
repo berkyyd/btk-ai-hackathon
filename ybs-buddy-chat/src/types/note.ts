@@ -15,6 +15,11 @@ export interface Note {
   favorites: number
   tags?: string[]
   fileUrl?: string
+  // Role alanı eklendi
+  role?: 'student' | 'academician' | 'admin'
+  // Kullanıcı ID'si ve isPublic alanları eklendi
+  userId?: string
+  isPublic?: boolean
 }
 
 export interface PersonalNote {

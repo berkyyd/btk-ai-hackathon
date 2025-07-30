@@ -14,6 +14,10 @@ export default function DersNotlariPage() {
   const [courses, setCourses] = useState<Course[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  
+  // Not düzenleme state'i
+  const [isEditing, setIsEditing] = useState(false)
+  const [editingNote, setEditingNote] = useState<Note | null>(null)
 
 
 
@@ -34,6 +38,8 @@ export default function DersNotlariPage() {
     class: 1,
     semester: 'Güz',
     tags: [] as string[],
+    role: role || 'student', // Kullanıcının rolünü kullan
+    isPublic: true, // Varsayılan olarak herkese açık
   })
 
 
@@ -99,6 +105,16 @@ export default function DersNotlariPage() {
   const filterNotes = (notesToFilter: Note[]) => {
     let filtered = notesToFilter
 
+    // Kullanıcı sadece kendi notlarını ve herkese açık notları görebilsin
+    if (user) {
+      filtered = filtered.filter(note => 
+        note.isPublic || note.userId === user.uid
+      )
+    } else {
+      // Giriş yapmamış kullanıcılar sadece herkese açık notları görebilir
+      filtered = filtered.filter(note => note.isPublic)
+    }
+
     if (filters.classYear) {
       filtered = filtered.filter(note => note.class === parseInt(filters.classYear))
     }
@@ -115,6 +131,14 @@ export default function DersNotlariPage() {
         note.content.toLowerCase().includes(searchLower)
       )
     }
+    
+    // Akademisyen notlarını önce göster
+    filtered.sort((a, b) => {
+      if (a.role === 'academician' && b.role !== 'academician') return -1
+      if (a.role !== 'academician' && b.role === 'academician') return 1
+      return 0
+    })
+    
     setNotes(filtered)
   }
 
@@ -133,7 +157,9 @@ export default function DersNotlariPage() {
 
     try {
       const response = await apiClient.addNote({
-        ...newNote
+        ...newNote,
+        role: role || 'student',
+        userId: user?.uid || 'anonymous'
       });
       
       if (response.success) {
@@ -145,6 +171,8 @@ export default function DersNotlariPage() {
           class: 1,
           semester: 'Güz',
           tags: [],
+          role: role || 'student',
+          isPublic: true,
         })
         loadNotes() // Notları yeniden yükle
       } else {
@@ -167,6 +195,44 @@ export default function DersNotlariPage() {
         ...prev,
         tags: prev.tags.filter(t => t !== tag)
       }))
+    }
+  }
+
+  // Not düzenlemeye başla
+  const handleEditNote = (note: Note) => {
+    setEditingNote({ ...note })
+    setIsEditing(true)
+  }
+
+  // Not düzenlemeyi iptal et
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    setEditingNote(null)
+  }
+
+  // Not düzenlemeyi kaydet
+  const handleSaveEdit = async () => {
+    if (!editingNote) return
+
+    try {
+      const response = await apiClient.updateNote(editingNote.id, {
+        title: editingNote.title,
+        content: editingNote.content,
+        tags: editingNote.tags || [],
+        isPublic: editingNote.isPublic || false
+      })
+
+      if (response.success) {
+        // Notları yeniden yükle
+        loadNotes()
+        setIsEditing(false)
+        setEditingNote(null)
+        setShowNoteModal(false)
+      } else {
+        setError(response.error || 'Not güncellenirken bir hata oluştu')
+      }
+    } catch (err) {
+      setError('Bağlantı hatası')
     }
   }
 
@@ -270,7 +336,14 @@ export default function DersNotlariPage() {
       {/* Yeni Not Ekleme Formu */}
       {showAddForm && (
         <Card className='mb-8'>
-          <h3 className='text-xl font-bold text-text mb-4'>Yeni Not Ekle</h3>
+          <div className='flex items-center justify-between mb-4'>
+            <h3 className='text-xl font-bold text-text'>Yeni Not Ekle</h3>
+            {role === 'academician' && (
+              <span className='text-blue-600 font-semibold text-sm bg-blue-100 px-3 py-1 rounded-full'>
+                🎓 Akademisyen olarak not ekliyorsunuz
+              </span>
+            )}
+          </div>
           <form onSubmit={handleAddNote} className='space-y-4'>
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div>
@@ -359,6 +432,22 @@ export default function DersNotlariPage() {
               </div>
             </div>
             
+            <div className='flex items-center space-x-2'>
+              <input
+                type='checkbox'
+                id='isPublic'
+                checked={newNote.isPublic}
+                onChange={(e) => setNewNote(prev => ({ ...prev, isPublic: e.target.checked }))}
+                className='w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500'
+              />
+              <label htmlFor='isPublic' className='text-sm font-medium text-text'>
+                Herkese Açık
+              </label>
+              <span className='text-xs text-gray-500 ml-2'>
+                {newNote.isPublic ? 'Bu not tüm kullanıcılar tarafından görülebilir' : 'Bu not sadece siz tarafından görülebilir'}
+              </span>
+            </div>
+            
             <div className='flex justify-end space-x-4'>
               <button
                 type='button'
@@ -403,10 +492,40 @@ export default function DersNotlariPage() {
         ) : (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
             {notes.map((note) => (
-              <div key={note.id} className='border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow'>
+              <div 
+                key={note.id} 
+                className={`border rounded-lg p-4 hover:shadow-md transition-shadow ${
+                  note.role === 'academician' 
+                    ? 'border-blue-400 bg-blue-50 shadow-lg' 
+                    : 'border-gray-200'
+                }`}
+              >
+                {/* Akademisyen notu etiketi */}
+                {note.role === 'academician' && (
+                  <div className='flex items-center gap-2 mb-2'>
+                    <span className='text-blue-600 font-semibold text-sm'>🎓 Akademisyen Notu</span>
+                  </div>
+                )}
+                
                 <div className='flex justify-between items-start mb-2'>
-                  <h3 className='font-bold text-lg text-text line-clamp-2'>{note.title}</h3>
+                  <h3 className={`font-bold text-lg line-clamp-2 ${
+                    note.role === 'academician' ? 'text-blue-800' : 'text-text'
+                  }`}>
+                    {note.title}
+                  </h3>
                   
+                  {/* Kilit simgesi - özel notlar için */}
+                  {!note.isPublic && (
+                    <span className='text-gray-500 text-lg' title='Özel Not'>🔒</span>
+                  )}
+                </div>
+                
+                {/* Kullanıcı adı */}
+                <div className='flex items-center gap-2 mb-2'>
+                  <span className='text-xs text-gray-500'>👤</span>
+                  <span className='text-xs text-gray-600'>
+                    {note.author || 'Bilinmeyen Kullanıcı'}
+                  </span>
                 </div>
                 
                 <p className='text-sm text-gray-600 mb-2'>

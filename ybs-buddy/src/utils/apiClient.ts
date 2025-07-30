@@ -122,9 +122,25 @@ class ApiClient {
     isPDF?: boolean;
     extractedText?: string | null;
     fileSize?: number | null;
+    // Role alanı eklendi
+    role?: string;
+    // Kullanıcı ID'si eklendi
+    userId?: string;
   }) {
     return this.request('/notes', {
       method: 'POST',
+      body: JSON.stringify(noteData),
+    });
+  }
+
+  async updateNote(noteId: string, noteData: {
+    title?: string;
+    content?: string;
+    tags?: string[];
+    isPublic?: boolean;
+  }) {
+    return this.request(`/notes?id=${noteId}`, {
+      method: 'PUT',
       body: JSON.stringify(noteData),
     });
   }
@@ -136,6 +152,12 @@ class ApiClient {
     questionCount: number;
     timeLimit?: number;
     examFormat?: 'test' | 'classic' | 'mixed';
+    selectedNotes?: Array<{
+      id: string;
+      title: string;
+      content: string;
+      courseId: string;
+    }>;
   }) {
     return this.request('/quiz/generate', {
       method: 'POST',
