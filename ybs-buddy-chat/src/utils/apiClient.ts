@@ -117,9 +117,25 @@ class ApiClient {
     semester?: string;
     tags?: string[];
     isPublic?: boolean;
+    // Role alanı eklendi
+    role?: string;
+    // Kullanıcı ID'si eklendi
+    userId?: string;
   }) {
     return this.request('/notes', {
       method: 'POST',
+      body: JSON.stringify(noteData),
+    });
+  }
+
+  async updateNote(noteId: string, noteData: {
+    title?: string;
+    content?: string;
+    tags?: string[];
+    isPublic?: boolean;
+  }) {
+    return this.request(`/notes?id=${noteId}`, {
+      method: 'PUT',
       body: JSON.stringify(noteData),
     });
   }

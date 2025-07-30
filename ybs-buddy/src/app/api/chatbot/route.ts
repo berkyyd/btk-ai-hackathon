@@ -3,6 +3,172 @@ import { getLectureNotes, saveChatHistory, saveChatFeedback } from '../../../uti
 import { ChatbotRequest, ChatbotResponse, ChatMessage } from '../../../types/api';
 import { answerWithRetriever } from '../../../utils/langchainService';
 import { geminiService } from '../../../utils/geminiService';
+import { db } from '../../../config/firebase';
+import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+
+// Kullanıcıya özel veri kaynaklarını çek
+async function getUserSpecificData(userId: string) {
+  const data: {
+    courses: any[];
+    notes: any[];
+    quizResults: any[];
+    userInfo: any;
+  } = {
+    courses: [],
+    notes: [],
+    quizResults: [],
+    userInfo: null
+  };
+
+  try {
+    // Müfredat bilgilerini çek (tüm kullanıcılar için aynı)
+    const coursesSnapshot = await getDocs(collection(db, 'courses'));
+    data.courses = coursesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Kullanıcının notlarını çek
+    const notesQuery = query(
+      collection(db, 'notes'),
+      where('userId', '==', userId)
+    );
+    const notesSnapshot = await getDocs(notesQuery);
+    data.notes = notesSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    }));
+
+    // Kullanıcının sınav sonuçlarını çek
+    const quizQuery = query(
+      collection(db, 'quizResults'),
+      where('userId', '==', userId)
+    );
+    const quizSnapshot = await getDocs(quizQuery);
+    data.quizResults = quizSnapshot.docs.map(doc => ({
+      id: doc.id,
+      ...doc.data()
+    })).sort((a: any, b: any) => {
+      // Client-side sorting by completedAt
+      const dateA = new Date(a.completedAt || 0);
+      const dateB = new Date(b.completedAt || 0);
+      return dateB.getTime() - dateA.getTime();
+    });
+
+    // Kullanıcı bilgilerini çek
+    const userQuery = query(collection(db, 'users'), where('uid', '==', userId));
+    const userSnapshot = await getDocs(userQuery);
+    if (!userSnapshot.empty && userSnapshot.docs[0]) {
+      data.userInfo = {
+        id: userSnapshot.docs[0].id,
+        ...userSnapshot.docs[0].data()
+      };
+    }
+
+  } catch (error) {
+    console.error('Error fetching user-specific data:', error);
+    // Hata durumunda boş veri döndür
+    return data;
+  }
+
+  return data;
+}
+
+// Soru analizi ve akıllı cevap üretimi
+async function generateSmartAnswer(question: string, data: any, userId: string) {
+  const questionLower = question.toLowerCase();
+  
+  // Soru türünü belirle
+  let contextType = 'general';
+  let specificPrompt = '';
+
+  if (questionLower.includes('müfredat') || questionLower.includes('ders') || questionLower.includes('course')) {
+    contextType = 'courses';
+    specificPrompt = `
+SORU TÜRÜ: MÜFREDAT/DERS SORUSU
+KULLANICI: ${data.userInfo?.displayName || 'Kullanıcı'}
+SORU: ${question}
+
+MÜFREDAT VERİLERİ:
+${JSON.stringify(data.courses, null, 2)}
+
+YÖNERGELER:
+- Sadece müfredat verilerini kullan
+- Ders kodları, AKTS kredileri, zorunlu/seçmeli durumu belirt
+- Sınıf ve dönem bilgilerini ver
+- Gerçek verilerden bahset, varsayım yapma
+- Türkçe cevap ver
+
+CEVAP:`;
+  } else if (questionLower.includes('not') || questionLower.includes('note') || questionLower.includes('pdf')) {
+    contextType = 'notes';
+    specificPrompt = `
+SORU TÜRÜ: NOT SORUSU
+KULLANICI: ${data.userInfo?.displayName || 'Kullanıcı'}
+SORU: ${question}
+
+KULLANICININ NOTLARI:
+${JSON.stringify(data.notes, null, 2)}
+
+YÖNERGELER:
+- Sadece kullanıcının kendi notlarını kullan
+- Not başlıkları, içerikleri, ders bilgilerini ver
+- PDF dosyalarından bahset
+- Akademisyen notlarını vurgula
+- Gerçek not verilerini kullan, varsayım yapma
+- Türkçe cevap ver
+
+CEVAP:`;
+  } else if (questionLower.includes('sınav') || questionLower.includes('quiz') || questionLower.includes('test') || questionLower.includes('exam')) {
+    contextType = 'quiz';
+    specificPrompt = `
+SORU TÜRÜ: SINAV SORUSU
+KULLANICI: ${data.userInfo?.displayName || 'Kullanıcı'}
+SORU: ${question}
+
+KULLANICININ SINAV SONUÇLARI:
+${JSON.stringify(data.quizResults, null, 2)}
+
+YÖNERGELER:
+- Sadece kullanıcının kendi sınav sonuçlarını kullan
+- Puanları, doğru/yanlış sayılarını ver
+- Sınav tarihlerini belirt
+- Başarı oranlarını hesapla
+- Eğer sınav sonucu yoksa "Henüz sınav sonucunuz bulunmuyor" de
+- Gerçek sınav verilerini kullan, varsayım yapma
+- Türkçe cevap ver
+
+CEVAP:`;
+  } else {
+    // Genel soru
+    specificPrompt = `
+SORU TÜRÜ: GENEL SORU
+KULLANICI: ${data.userInfo?.displayName || 'Kullanıcı'}
+SORU: ${question}
+
+KULLANICI BİLGİLERİ:
+${JSON.stringify(data.userInfo, null, 2)}
+
+MÜFREDAT BİLGİLERİ:
+${JSON.stringify(data.courses, null, 2)}
+
+KULLANICININ NOTLARI:
+${JSON.stringify(data.notes, null, 2)}
+
+KULLANICININ SINAV SONUÇLARI:
+${JSON.stringify(data.quizResults, null, 2)}
+
+YÖNERGELER:
+- Samimi ve motive edici cevap ver
+- Kullanıcının adını kullan
+- Genel bilgiler ver
+- Türkçe cevap ver
+
+CEVAP:`;
+  }
+
+  return await geminiService.makeRequest(specificPrompt);
+}
 
 // Örnek notları oluşturmak için GET endpoint'i
 export async function GET(request: Request) {
@@ -11,11 +177,9 @@ export async function GET(request: Request) {
     const action = searchParams.get('action');
 
     if (action === 'create-sample-notes') {
-      const { createSampleNotesForChatbot } = await import('../../../utils/firebaseUtils');
-      await createSampleNotesForChatbot();
       return NextResponse.json({ 
         success: true, 
-        message: 'Sample notes created successfully for chatbot' 
+        message: 'Sample notes feature removed' 
       });
     }
 
@@ -34,16 +198,25 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Question is required' }, { status: 400 });
     }
 
-    // Tüm notları çek (cache için)
+    if (!userId) {
+      return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
+    }
+
+    // Kullanıcıya özel veri kaynaklarını çek
+    const userData = await getUserSpecificData(userId);
+    
+    // Tüm notları çek (eski retriever için - sadece kullanıcının notları)
     const allNotes = await getLectureNotes();
+    const userNotes = allNotes.filter((note: any) => note.userId === userId);
+    
     let answer: string | undefined = undefined;
     let sources: string[] = [];
     let usedRetriever = false;
 
-    if (allNotes.length > 0) {
-      // LangChain retriever + QA chain ile cevap üret
+    // Önce LangChain retriever ile dene (kullanıcının notları için)
+    if (userNotes.length > 0) {
       try {
-        const result = await answerWithRetriever({ question, notes: allNotes });
+        const result = await answerWithRetriever({ question, notes: userNotes });
         answer = result.answer;
         sources = result.sources;
         usedRetriever = true;
@@ -53,9 +226,21 @@ export async function POST(request: Request) {
       }
     }
 
-    // Eğer retriever ile cevap yoksa veya not bulunamadıysa, Gemini genel asistan prompt'u ile cevap üret
+    // Eğer retriever ile cevap yoksa veya yetersizse, akıllı cevap üret
+    if (!answer || answer.length < 50) {
+      try {
+        answer = await generateSmartAnswer(question, userData, userId);
+        sources = ['Kullanıcı Verileri'];
+        usedRetriever = false;
+      } catch (err) {
+        console.error('Smart answer generation error:', err);
+        answer = undefined;
+      }
+    }
+
+    // Eğer hala cevap yoksa, genel asistan prompt'u ile cevap üret
     if (!answer) {
-      const generalPrompt = `Sen YBS Buddy'nin akıllı asistanısın. Kullanıcıdan gelen soruya öğrenci dostu, samimi ve açıklayıcı bir şekilde cevap ver. Eğer selam, naber, nasılsın gibi bir mesaj ise sıcak bir şekilde karşılık ver. Eğer derslerle ilgili bir soruysa, genel bilgi ver. Cevabın sade, anlaşılır ve motive edici olsun.`;
+      const generalPrompt = `Sen YBS Buddy'nin akıllı asistanısın. Kullanıcıdan gelen soruya öğrenci dostu, samimi ve açıklayıcı bir şekilde cevap ver. Eğer selam, naber, nasılsın gibi bir mesaj ise sıcak bir şekilde karşılık ver. Cevabın sade, anlaşılır ve motive edici olsun.`;
       answer = await geminiService.makeRequest(`${generalPrompt}\n\nSORU: ${question}\n\nCEVAP:`);
       sources = [];
     }
@@ -69,27 +254,25 @@ export async function POST(request: Request) {
       feedback: null
     };
 
-    // Chat geçmişini kaydet (eğer userId varsa)
-    if (userId) {
-      try {
-        await saveChatHistory(userId, [
-          {
-            id: (Date.now() - 1).toString(),
-            content: question,
-            role: 'user',
-            timestamp: new Date()
-          },
-          chatMessage
-        ]);
-      } catch (error) {
-        console.error('Error saving chat history:', error);
-      }
+    // Chat geçmişini kaydet
+    try {
+      await saveChatHistory(userId, [
+        {
+          id: (Date.now() - 1).toString(),
+          content: question,
+          role: 'user',
+          timestamp: new Date()
+        },
+        chatMessage
+      ]);
+    } catch (error) {
+      console.error('Error saving chat history:', error);
     }
 
     const response: ChatbotResponse = {
       answer: answer || '',
       sources,
-      confidence: usedRetriever ? 0.8 : 0.5
+      confidence: usedRetriever ? 0.95 : 0.85
     };
 
     return NextResponse.json(response);

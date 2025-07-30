@@ -32,7 +32,7 @@ export interface QuizResult {
   answers: Answer[]
   completedAt: Date
   timeSpent: number
-  questions: Question[];
+  questions: Question[]; // Soru metinlerini ve doğru cevapları saklamak için
 }
 
 export interface Answer {
