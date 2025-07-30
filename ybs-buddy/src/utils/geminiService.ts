@@ -35,9 +35,17 @@ export class GeminiService {
     if (!this.apiKey) {
       console.warn('GEMINI_API_KEY environment variable is not set');
     }
+<<<<<<< HEAD
     
     if (!this.summaryApiKey) {
       console.warn('GEMINI_SUMMARY_API_KEY environment variable is not set');
+=======
+  }
+
+  async makeRequest(prompt: string): Promise<string> {
+    if (!this.apiKey) {
+      throw new Error('Gemini API key is not configured');
+>>>>>>> 6a3dc9a29efac6230c979ba4642734c8a27c828a
     }
 
     this.genAI = new GoogleGenerativeAI(this.apiKey);
