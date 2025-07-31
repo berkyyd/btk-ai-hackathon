@@ -26,7 +26,7 @@ export default function RootLayout({
             </main>
             <Footer />
           </div>
-          <ChatIcon onClick={() => setIsChatOpen(true)} />
+          <ChatIcon />
           {isChatOpen && <ChatWindow onClose={() => setIsChatOpen(false)} />}
         </AuthProvider>
       </body>

@@ -9,7 +9,7 @@ import { Course } from '../../types/course'
 import FileUpload from '../../components/FileUpload'
 import { SUMMARY_PROMPTS } from '../../utils/summaryPrompts';
 import SummaryModal from '../../components/SummaryModal';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import LoginPrompt from '../../components/LoginPrompt'
 
@@ -393,7 +393,20 @@ export default function DersNotlariPage() {
     }
   };
 
-  
+  const handleDeleteNote = async (noteId: string, noteTitle: string) => {
+    if (!confirm(`"${noteTitle}" notunu silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'notes', noteId));
+      alert('Not başarıyla silindi!');
+      loadNotes(); // Notları yeniden yükle
+    } catch (error) {
+      console.error('Not silme hatası:', error);
+      alert('Not silinirken hata oluştu.');
+    }
+  };
 
   // Giriş kontrolü
   if (authLoading) {
@@ -759,8 +772,21 @@ export default function DersNotlariPage() {
                     <span>⭐ {note.favorites}</span>
                   </div>
                   
-                  <span className='text-blue-500 text-xs'>Detaylar için tıklayın</span>
-                  
+                  <div className='flex items-center gap-2'>
+                    <span className='text-blue-500 text-xs'>Detaylar için tıklayın</span>
+                    {note.userId === user?.uid && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteNote(note.id, note.title);
+                        }}
+                        className='text-red-500 hover:text-red-700 text-xs px-2 py-1 rounded hover:bg-red-50 transition-colors'
+                        title='Notu Sil'
+                      >
+                        🗑️ Sil
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}
