@@ -67,8 +67,7 @@ export async function answerWithRetriever({ question, notes }:{ question: string
   const vectorStore = await getCachedVectorStore(notes);
   const retriever = vectorStore.asRetriever();
   const chain = RetrievalQAChain.fromLLM(geminiLLM, retriever, {
-    returnSourceDocuments: true,
-    prompt: undefined // default prompt kullan
+    returnSourceDocuments: true
   });
   const result = await chain.invoke({ query: question });
   return {

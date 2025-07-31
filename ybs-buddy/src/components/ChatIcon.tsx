@@ -1,21 +1,25 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ChatWindow from './ChatWindow';
 import { useAuth } from '../contexts/AuthContext';
 import { usePathname } from 'next/navigation';
+import { ChatMessage } from '../types/api';
 
 const ChatIcon: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const { user, loading } = useAuth();
   const pathname = usePathname();
+  const chatRef = useRef<HTMLDivElement>(null);
 
-  // Kullanıcı değiştiğinde chat'i kapat
+  // Kullanıcı değiştiğinde chat'i kapat ve history'yi sıfırla
   useEffect(() => {
     if (!user) {
       setIsOpen(false);
       setIsMinimized(false);
+      setChatHistory([]);
     }
   }, [user]);
 
@@ -25,6 +29,26 @@ const ChatIcon: React.FC = () => {
       setIsMinimized(true);
     }
   }, [pathname, isOpen, isMinimized]);
+
+  // Dışarı tıklama ile minimize et
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (chatRef.current && !chatRef.current.contains(event.target as Node)) {
+        if (isOpen && !isMinimized) {
+          setIsMinimized(true);
+          setIsOpen(false);
+        }
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen, isMinimized]);
 
   const toggleChat = () => {
     if (isMinimized) {
@@ -40,9 +64,19 @@ const ChatIcon: React.FC = () => {
     setIsOpen(false);
   };
 
+  const closeChat = () => {
+    setIsOpen(false);
+    setIsMinimized(false);
+    setChatHistory([]); // Chat history'yi sıfırla
+  };
+
   const restoreChat = () => {
     setIsMinimized(false);
     setIsOpen(true);
+  };
+
+  const handleChatHistoryChange = (newHistory: ChatMessage[]) => {
+    setChatHistory(newHistory);
   };
 
   // Giriş yapmamış kullanıcılar için chat gösterilmez
@@ -116,11 +150,15 @@ const ChatIcon: React.FC = () => {
 
       {/* Chat Window */}
       {isOpen && (
-        <ChatWindow 
-          key={user?.uid} // Kullanıcı değiştiğinde component yeniden oluşturulur
-          onClose={toggleChat} 
-          onMinimize={minimizeChat}
-        />
+        <div ref={chatRef}>
+          <ChatWindow 
+            key={user?.uid} // Kullanıcı değiştiğinde component yeniden oluşturulur
+            onClose={closeChat} 
+            onMinimize={minimizeChat}
+            chatHistory={chatHistory}
+            onChatHistoryChange={handleChatHistoryChange}
+          />
+        </div>
       )}
     </>
   );

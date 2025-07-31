@@ -192,6 +192,14 @@ class ApiClient {
   async getSummarizedNotes() {
     return this.request('/profile/summarized-notes');
   }
+
+  // Quiz Analizi
+  async getQuizAnalysis(userId: string) {
+    return this.request('/analytics/quiz-analysis', {
+      method: 'POST',
+      body: JSON.stringify({ userId }),
+    });
+  }
 }
 
 export const apiClient = new ApiClient(); 
