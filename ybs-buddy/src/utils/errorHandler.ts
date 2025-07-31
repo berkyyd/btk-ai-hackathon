@@ -3,7 +3,7 @@ import { ERROR_MESSAGES } from '../constants'
 // Error types
 export class ApiError extends Error {
   public statusCode: number
-  public code?: string
+  public code: string | undefined
 
   constructor(message: string, statusCode: number, code?: string) {
     super(message)
@@ -14,7 +14,7 @@ export class ApiError extends Error {
 }
 
 export class ValidationError extends Error {
-  public field?: string
+  public field: string | undefined
 
   constructor(message: string, field?: string) {
     super(message)

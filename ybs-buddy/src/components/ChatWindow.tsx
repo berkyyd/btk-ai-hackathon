@@ -7,15 +7,33 @@ import { useAuth } from '../contexts/AuthContext';
 interface ChatWindowProps {
   onClose: () => void;
   onMinimize?: () => void;
+  chatHistory?: ChatMessage[];
+  onChatHistoryChange?: (history: ChatMessage[]) => void;
 }
 
-const ChatWindow: React.FC<ChatWindowProps> = ({ onClose, onMinimize }) => {
+const ChatWindow: React.FC<ChatWindowProps> = ({ 
+  onClose, 
+  onMinimize, 
+  chatHistory: externalChatHistory,
+  onChatHistoryChange 
+}) => {
   const [message, setMessage] = useState('');
-  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [internalChatHistory, setInternalChatHistory] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [sources, setSources] = useState<string[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+
+  // Chat history'yi yönet
+  const chatHistory = externalChatHistory || internalChatHistory;
+  const setChatHistory = (newHistory: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
+    if (onChatHistoryChange) {
+      const updatedHistory = typeof newHistory === 'function' ? newHistory(chatHistory) : newHistory;
+      onChatHistoryChange(updatedHistory);
+    } else {
+      setInternalChatHistory(typeof newHistory === 'function' ? newHistory : newHistory);
+    }
+  };
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

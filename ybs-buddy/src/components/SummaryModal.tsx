@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SUMMARY_PROMPTS } from '../utils/summaryPrompts';
+import SummaryRenderer from './SummaryRenderer';
 
 interface SummaryModalProps {
   open: boolean;
@@ -110,7 +111,12 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ open, onClose, note, user, 
         {summaryResult && (
           <div className="mb-4">
             <h3 className="font-bold mb-2">Özet</h3>
-            <div className="bg-gray-100 p-3 rounded whitespace-pre-line text-gray-800 mb-2" style={{ maxHeight: 200, overflowY: 'auto' }}>{summaryResult}</div>
+            <div className="mb-4" style={{ maxHeight: 400, overflowY: 'auto' }}>
+              <SummaryRenderer 
+                content={summaryResult} 
+                summaryType={summaryType} 
+              />
+            </div>
             <button
               className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full"
               onClick={handleSaveSummary}
