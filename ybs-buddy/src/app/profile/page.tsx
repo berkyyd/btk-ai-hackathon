@@ -1,7 +1,7 @@
 'use client';
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../../contexts/AuthContext";
-import { collection, getDocs, query, where, doc, updateDoc, setDoc } from "firebase/firestore";
+import { collection, getDocs, query, where, doc, updateDoc, setDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../config/firebase";
 import { QuizResult, Answer } from "../../types/quiz";
 import { geminiService } from '../../utils/geminiService';
@@ -9,6 +9,7 @@ import Card from '../../components/Card';
 import { apiClient } from '../../utils/apiClient';
 import { createInvitationCode } from '../../utils/invitationCodeService';
 import SummarizedNotesList from '../../components/SummarizedNotesList';
+import QuizAnalysis from '../../components/QuizAnalysis';
 
 const ProfilePage = () => {
   const { user, role, loading } = useAuth();
@@ -42,6 +43,26 @@ const ProfilePage = () => {
       alert(`${roleText} davet kodu oluşturuldu: ${result.code}`);
     } else {
       alert(`Davet kodu oluşturulamadı: ${result.error}`);
+    }
+  };
+
+  const handleDeleteQuizResult = async (resultId: string, score: number) => {
+    if (!confirm(`Bu quiz sonucunu (${score} puan) silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'quizResults', resultId));
+      alert('Quiz sonucu başarıyla silindi!');
+      // Quiz sonuçlarını yeniden yükle
+      const resultsRef = collection(db, "quizResults");
+      const q = query(resultsRef, where("userId", "==", user?.uid));
+      const snapshot = await getDocs(q);
+      const results: QuizResult[] = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })) as QuizResult[];
+      setQuizResults(results);
+    } catch (error) {
+      console.error('Quiz sonucu silme hatası:', error);
+      alert('Quiz sonucu silinirken hata oluştu.');
     }
   };
 
@@ -227,7 +248,7 @@ const ProfilePage = () => {
                         })}
                       </p>
                     </div>
-                    <div className="mt-4 md:mt-0">
+                    <div className="flex items-center gap-4 mt-4 md:mt-0">
                       <span className={`px-4 py-2 rounded-full text-sm font-bold ${
                         result.score >= 80 ? 'bg-green-100 text-green-800' :
                         result.score >= 60 ? 'bg-yellow-100 text-yellow-800' :
@@ -235,6 +256,13 @@ const ProfilePage = () => {
                       }`}>
                         {result.score} Puan
                       </span>
+                      <button
+                        onClick={() => handleDeleteQuizResult(result.id, result.score)}
+                        className="text-red-500 hover:text-red-700 text-sm px-3 py-1 rounded hover:bg-red-50 transition-colors"
+                        title="Quiz Sonucunu Sil"
+                      >
+                        🗑️ Sil
+                      </button>
                     </div>
                   </div>
                   
@@ -379,6 +407,16 @@ const ProfilePage = () => {
           </h2>
           {user && <SummarizedNotesList userId={user.uid} />}
         </Card>
+
+        {/* Quiz Analizi */}
+        <Card>
+          <h2 className="text-3xl font-bold text-text mb-6 text-center border-b-2 border-primary pb-3">
+            📊 Quiz Analizi & Gelişim Takibi
+          </h2>
+          <QuizAnalysis />
+        </Card>
+
+
       </div>
     </div>
   );

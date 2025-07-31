@@ -6,17 +6,32 @@ import { geminiService } from '../../../utils/geminiService';
 import { db } from '../../../config/firebase';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 
+// Composite index oluşturma fonksiyonu
+async function createCompositeIndex() {
+  try {
+    // Index oluşturma isteği gönder
+    const indexUrl = 'https://console.firebase.google.com/v1/r/project/ybs-buddy/firestore/indexes?create_composite=ClFwcm9qZWN0cy95YnMtYnVkZHkvZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL3N1bW1hcml6ZWROb3Rlcy9pbmRleGVzL18QARoKCgZ1c2VySWQQARoNCgljcmVhdGVkQXQQAhoMCghfX25hbWVfXxAC';
+    console.log('Composite index oluşturmak için şu linke gidin:', indexUrl);
+    return false; // Index henüz hazır değil
+  } catch (error) {
+    console.error('Index oluşturma hatası:', error);
+    return false;
+  }
+}
+
 // Kullanıcıya özel veri kaynaklarını çek
 async function getUserSpecificData(userId: string) {
   const data: {
     courses: any[];
     notes: any[];
     quizResults: any[];
+    summarizedNotes: any[];
     userInfo: any;
   } = {
     courses: [],
     notes: [],
     quizResults: [],
+    summarizedNotes: [],
     userInfo: null
   };
 
@@ -38,6 +53,37 @@ async function getUserSpecificData(userId: string) {
       id: doc.id,
       ...doc.data()
     }));
+
+    // Kullanıcının özetlenmiş notlarını çek (index hatası için try-catch)
+    try {
+      const summarizedNotesQuery = query(
+        collection(db, 'summarizedNotes'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
+      const summarizedNotesSnapshot = await getDocs(summarizedNotesQuery);
+      data.summarizedNotes = summarizedNotesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+    } catch (indexError) {
+      console.warn('Composite index not ready for summarizedNotes, fetching without orderBy');
+      // Index yoksa sadece userId ile çek
+      const summarizedNotesQuery = query(
+        collection(db, 'summarizedNotes'),
+        where('userId', '==', userId)
+      );
+      const summarizedNotesSnapshot = await getDocs(summarizedNotesQuery);
+      data.summarizedNotes = summarizedNotesSnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })).sort((a: any, b: any) => {
+        // Client-side sorting by createdAt
+        const dateA = new Date(a.createdAt?.seconds * 1000 || 0);
+        const dateB = new Date(b.createdAt?.seconds * 1000 || 0);
+        return dateB.getTime() - dateA.getTime();
+      });
+    }
 
     // Kullanıcının sınav sonuçlarını çek
     const quizQuery = query(
@@ -110,12 +156,37 @@ SORU: ${question}
 KULLANICININ NOTLARI:
 ${JSON.stringify(data.notes, null, 2)}
 
+KULLANICININ ÖZETLENMİŞ NOTLARI:
+${JSON.stringify(data.summarizedNotes, null, 2)}
+
 YÖNERGELER:
 - Sadece kullanıcının kendi notlarını kullan
 - Not başlıkları, içerikleri, ders bilgilerini ver
 - PDF dosyalarından bahset
 - Akademisyen notlarını vurgula
+- Özetlenmiş notları da dahil et
 - Gerçek not verilerini kullan, varsayım yapma
+- Türkçe cevap ver
+
+CEVAP:`;
+  } else if (questionLower.includes('özet') || questionLower.includes('summary') || questionLower.includes('summarized')) {
+    contextType = 'summarizedNotes';
+    specificPrompt = `
+SORU TÜRÜ: ÖZETLENMİŞ NOT SORUSU
+KULLANICI: ${data.userInfo?.displayName || 'Kullanıcı'}
+SORU: ${question}
+
+KULLANICININ ÖZETLENMİŞ NOTLARI:
+${JSON.stringify(data.summarizedNotes, null, 2)}
+
+YÖNERGELER:
+- Sadece kullanıcının özetlenmiş notlarını kullan
+- Özet türlerini belirt (Akademik, Samimi, Sınav Odaklı)
+- Özetlenmiş not başlıklarını ve içeriklerini ver
+- Hangi nottan özetlendiğini belirt
+- Özetleme tarihlerini belirt
+- Eğer özetlenmiş not yoksa "Henüz özetlenmiş notunuz bulunmuyor" de
+- Gerçek özet verilerini kullan, varsayım yapma
 - Türkçe cevap ver
 
 CEVAP:`;
@@ -155,6 +226,9 @@ ${JSON.stringify(data.courses, null, 2)}
 KULLANICININ NOTLARI:
 ${JSON.stringify(data.notes, null, 2)}
 
+KULLANICININ ÖZETLENMİŞ NOTLARI:
+${JSON.stringify(data.summarizedNotes, null, 2)}
+
 KULLANICININ SINAV SONUÇLARI:
 ${JSON.stringify(data.quizResults, null, 2)}
 
@@ -162,6 +236,7 @@ YÖNERGELER:
 - Samimi ve motive edici cevap ver
 - Kullanıcının adını kullan
 - Genel bilgiler ver
+- Özetlenmiş notları da dahil et
 - Türkçe cevap ver
 
 CEVAP:`;

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import pdfMake from 'pdfmake/build/pdfmake';
 import 'pdfmake/build/vfs_fonts';
+import SummaryRenderer from './SummaryRenderer';
 
 interface SummarizedNote {
   id: string;
@@ -88,6 +89,35 @@ const SummarizedNotesList: React.FC<SummarizedNotesListProps> = ({ userId }) => 
   const handleCancel = () => {
     setEditingId(null);
     setEditSummary('');
+  };
+
+  const handleDeleteSummary = async (summaryId: string, originalTitle: string) => {
+    if (!confirm(`"${originalTitle}" özetini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`/api/profile/summarized-notes`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          summaryId,
+        }),
+      });
+
+      const data = await response.json();
+      if (data.success) {
+        setSummaries(prev => prev.filter(s => s.id !== summaryId));
+        alert('Özet başarıyla silindi!');
+      } else {
+        alert('Özet silinirken hata oluştu: ' + data.error);
+      }
+    } catch (error) {
+      console.error('Delete error:', error);
+      alert('Özet silinirken hata oluştu.');
+    }
   };
 
   const downloadPDF = (summary: SummarizedNote) => {
@@ -203,6 +233,13 @@ const SummarizedNotesList: React.FC<SummarizedNotesListProps> = ({ userId }) => 
               >
                 📄 PDF İndir
               </button>
+              <button
+                onClick={() => handleDeleteSummary(s.id, s.originalTitle)}
+                className="text-xs px-2 py-1 rounded bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                title="Özeti Sil"
+              >
+                🗑️ Sil
+              </button>
             </div>
           </div>
           
@@ -231,8 +268,11 @@ const SummarizedNotesList: React.FC<SummarizedNotesListProps> = ({ userId }) => 
               </div>
             </div>
           ) : (
-            <div className="text-gray-700 whitespace-pre-line mb-2" style={{ maxHeight: 150, overflowY: 'auto' }}>
-              {s.summary}
+            <div className="mb-2" style={{ maxHeight: 300, overflowY: 'auto' }}>
+              <SummaryRenderer 
+                content={s.summary} 
+                summaryType={s.summaryType as 'academic' | 'friendly' | 'exam'} 
+              />
             </div>
           )}
           

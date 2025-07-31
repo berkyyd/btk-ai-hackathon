@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '../../../../config/firebase';
-import { collection, getDocs, addDoc, query, where, Timestamp, doc, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, addDoc, query, where, Timestamp, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 // GET: Kullanıcının özetlenmiş notlarını getir
 export async function GET(request: NextRequest) {
@@ -59,6 +59,27 @@ export async function PUT(request: NextRequest) {
     console.error('Update summary error:', error);
     return NextResponse.json({ 
       error: 'Özet güncellenirken hata oluştu: ' + error.message 
+    }, { status: 500 });
+  }
+}
+
+// DELETE: Özet sil
+export async function DELETE(request: NextRequest) {
+  try {
+    const { summaryId } = await request.json();
+    
+    if (!summaryId) {
+      return NextResponse.json({ error: 'summaryId gerekli' }, { status: 400 });
+    }
+
+    const summaryRef = doc(db, 'summarizedNotes', summaryId);
+    await deleteDoc(summaryRef);
+
+    return NextResponse.json({ success: true, message: 'Özet başarıyla silindi' });
+  } catch (error: any) {
+    console.error('Delete summary error:', error);
+    return NextResponse.json({ 
+      error: 'Özet silinirken hata oluştu: ' + error.message 
     }, { status: 500 });
   }
 } 

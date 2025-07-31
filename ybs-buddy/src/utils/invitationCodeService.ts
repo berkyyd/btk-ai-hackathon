@@ -70,12 +70,13 @@ export const validateInvitationCode = async (code: string): Promise<{ success: b
       return { success: false, error: 'Invalid or already used invitation code.' };
     }
 
-    const docRef = querySnapshot.docs[0]?.ref;
-    if (!docRef) {
+    const firstDoc = querySnapshot.docs[0];
+    if (!firstDoc) {
       return { success: false, error: 'Invalid invitation code.' };
     }
-    
-    const docData = querySnapshot.docs[0].data();
+
+    const docRef = firstDoc.ref;
+    const docData = firstDoc.data();
     const targetRole = docData?.targetRole || 'student';
     
     return { success: true, docRef, targetRole };
@@ -116,7 +117,12 @@ export const deleteInvitationCode = async (code: string): Promise<{ success: boo
       return { success: false, error: 'Invitation code not found.' };
     }
 
-    const docRef = querySnapshot.docs[0].ref;
+    const firstDoc = querySnapshot.docs[0];
+    if (!firstDoc) {
+      return { success: false, error: 'Invitation code not found.' };
+    }
+
+    const docRef = firstDoc.ref;
     await deleteDoc(docRef);
     return { success: true };
   } catch (e: any) {
