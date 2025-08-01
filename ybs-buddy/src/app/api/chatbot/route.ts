@@ -1,13 +1,13 @@
 import { NextResponse } from 'next/server';
 import { getLectureNotes, saveChatHistory, saveChatFeedback } from '../../../utils/firebaseUtils';
-import { ChatbotRequest, ChatbotResponse, ChatMessage } from '../../../types/api';
+import { ChatbotRequest, ChatbotResponse, ChatMessage, UserData, CurriculumCourse, Note, SummarizedNote, QuizResult, UserInfo } from '../../../types/api';
 import { answerWithRetriever } from '../../../utils/langchainService';
 import { geminiService } from '../../../utils/geminiService';
 import { db } from '../../../config/firebase';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
 
 // Composite index oluşturma fonksiyonu
-async function createCompositeIndex() {
+async function createCompositeIndex(): Promise<boolean> {
   try {
     // Index oluşturma isteği gönder
     const indexUrl = 'https://console.firebase.google.com/v1/r/project/ybs-buddy/firestore/indexes?create_composite=ClFwcm9qZWN0cy95YnMtYnVkZHkvZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL3N1bW1hcml6ZWROb3Rlcy9pbmRleGVzL18QARoKCgZ1c2VySWQQARoNCgljcmVhdGVkQXQQAhoMCghfX25hbWVfXxAC';
@@ -20,14 +20,9 @@ async function createCompositeIndex() {
 }
 
 // Kullanıcıya özel veri kaynaklarını çek
-async function getUserSpecificData(userId: string) {
-  const data: {
-    courses: any[];
-    notes: any[];
-    quizResults: any[];
-    summarizedNotes: any[];
-    userInfo: any;
-  } = {
+async function getUserSpecificData(userId: string): Promise<UserData> {
+  const data: UserData = {
+    curriculum: null,
     courses: [],
     notes: [],
     quizResults: [],
@@ -41,7 +36,7 @@ async function getUserSpecificData(userId: string) {
     data.courses = coursesSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    })) as unknown as CurriculumCourse[];
 
     // Kullanıcının notlarını çek
     const notesQuery = query(
@@ -52,7 +47,7 @@ async function getUserSpecificData(userId: string) {
     data.notes = notesSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    }));
+    })) as unknown as Note[];
 
     // Kullanıcının özetlenmiş notlarını çek (index hatası için try-catch)
     try {
@@ -65,7 +60,7 @@ async function getUserSpecificData(userId: string) {
       data.summarizedNotes = summarizedNotesSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      }));
+      })) as unknown as SummarizedNote[];
     } catch (indexError) {
       console.warn('Composite index not ready for summarizedNotes, fetching without orderBy');
       // Index yoksa sadece userId ile çek
@@ -74,13 +69,24 @@ async function getUserSpecificData(userId: string) {
         where('userId', '==', userId)
       );
       const summarizedNotesSnapshot = await getDocs(summarizedNotesQuery);
-      data.summarizedNotes = summarizedNotesSnapshot.docs.map(doc => ({
+      const rawSummarizedNotes = summarizedNotesSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
-      })).sort((a: any, b: any) => {
-        // Client-side sorting by createdAt
-        const dateA = new Date(a.createdAt?.seconds * 1000 || 0);
-        const dateB = new Date(b.createdAt?.seconds * 1000 || 0);
+      })) as unknown as SummarizedNote[];
+      
+      // Client-side sorting by createdAt
+      data.summarizedNotes = rawSummarizedNotes.sort((a, b) => {
+        // Firestore timestamp'i Date'e çevir
+        const getDate = (timestamp: unknown): Date => {
+          if (timestamp instanceof Date) return timestamp;
+          if (timestamp && typeof timestamp === 'object' && 'seconds' in timestamp) {
+            return new Date((timestamp as { seconds: number }).seconds * 1000);
+          }
+          return new Date(0);
+        };
+        
+        const dateA = getDate(a.createdAt);
+        const dateB = getDate(b.createdAt);
         return dateB.getTime() - dateA.getTime();
       });
     }
@@ -91,11 +97,13 @@ async function getUserSpecificData(userId: string) {
       where('userId', '==', userId)
     );
     const quizSnapshot = await getDocs(quizQuery);
-    data.quizResults = quizSnapshot.docs.map(doc => ({
+    const rawQuizResults = quizSnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data()
-    })).sort((a: any, b: any) => {
-      // Client-side sorting by completedAt
+    })) as unknown as QuizResult[];
+    
+    // Client-side sorting by completedAt
+    data.quizResults = rawQuizResults.sort((a, b) => {
       const dateA = new Date(a.completedAt || 0);
       const dateB = new Date(b.completedAt || 0);
       return dateB.getTime() - dateA.getTime();
@@ -108,7 +116,7 @@ async function getUserSpecificData(userId: string) {
       data.userInfo = {
         id: userSnapshot.docs[0].id,
         ...userSnapshot.docs[0].data()
-      };
+      } as unknown as UserInfo;
     }
 
   } catch (error) {
@@ -120,8 +128,7 @@ async function getUserSpecificData(userId: string) {
   return data;
 }
 
-// Soru analizi ve akıllı cevap üretimi
-async function generateSmartAnswer(question: string, data: any, userId: string) {
+async function generateSmartAnswer(question: string, data: UserData, userId: string): Promise<string> {
   const questionLower = question.toLowerCase();
   
   // Soru türünü belirle
@@ -163,8 +170,9 @@ YÖNERGELER:
 - Sadece kullanıcının kendi notlarını kullan
 - Not başlıkları, içerikleri, ders bilgilerini ver
 - PDF dosyalarından bahset
-- Akademisyen notlarını vurgula
-- Özetlenmiş notları da dahil et
+- Akademisyen notlarını vurgula (🎓 Akademisyen Notu)
+- Öğrenci notlarını belirt (👨‍🎓 Öğrenci Notu)
+- Özetlenmiş notları da dahil et (📝 ÖZET)
 - Gerçek not verilerini kullan, varsayım yapma
 - Türkçe cevap ver
 
@@ -210,6 +218,95 @@ YÖNERGELER:
 - Türkçe cevap ver
 
 CEVAP:`;
+  } else if (questionLower.includes('kişisel takip') || questionLower.includes('personal tracking') || questionLower.includes('geçmiş sınavlarım') || questionLower.includes('quiz analizi') || questionLower.includes('sınav geçmişi') || questionLower.includes('performans') || questionLower.includes('başarı') || questionLower.includes('takip')) {
+    contextType = 'personalTracking';
+    specificPrompt = `
+SORU TÜRÜ: KİŞİSEL TAKİP SORUSU
+KULLANICI: ${data.userInfo?.displayName || 'Kullanıcı'}
+SORU: ${question}
+
+KULLANICININ SINAV SONUÇLARI:
+${JSON.stringify(data.quizResults, null, 2)}
+
+KULLANICININ NOTLARI:
+${JSON.stringify(data.notes, null, 2)}
+
+KULLANICININ ÖZETLENMİŞ NOTLARI:
+${JSON.stringify(data.summarizedNotes, null, 2)}
+
+YÖNERGELER:
+- Kişisel Takip özelliği hakkında detaylı bilgi ver
+- Kullanıcının sınav performansını analiz et
+- Başarı trendlerini göster
+- Hangi derslerde daha iyi/kötü olduğunu belirt
+- Öneriler sun (hangi derslere daha fazla çalışması gerektiği)
+- Quiz analizi özelliğinden bahset
+- Geçmiş sınavların detaylarını ver
+- Motive edici ve yapıcı öneriler ver
+- Türkçe cevap ver
+
+CEVAP:`;
+  } else if (questionLower.includes('profilim') || questionLower.includes('profile') || questionLower.includes('profil') || questionLower.includes('kullanıcı bilgileri') || questionLower.includes('hesap')) {
+    contextType = 'profile';
+    specificPrompt = `
+SORU TÜRÜ: PROFİL SORUSU
+KULLANICI: ${data.userInfo?.displayName || 'Kullanıcı'}
+SORU: ${question}
+
+KULLANICI BİLGİLERİ:
+${JSON.stringify(data.userInfo, null, 2)}
+
+KULLANICININ NOTLARI:
+${JSON.stringify(data.notes, null, 2)}
+
+KULLANICININ ÖZETLENMİŞ NOTLARI:
+${JSON.stringify(data.summarizedNotes, null, 2)}
+
+KULLANICININ SINAV SONUÇLARI:
+${JSON.stringify(data.quizResults, null, 2)}
+
+YÖNERGELER:
+- Profilim sayfası özelliklerini açıkla
+- Kullanıcının not istatistiklerini ver
+- Akademisyen notlarını vurgula (🎓 Akademisyen Notu)
+- Öğrenci notlarını belirt (👨‍🎓 Öğrenci Notu)
+- Özetlenmiş notları dahil et (📝 ÖZET)
+- Sınav performansını analiz et
+- Kişisel gelişim önerileri sun
+- Motive edici yaklaşım benimse
+- Türkçe cevap ver
+
+CEVAP:`;
+  } else if (questionLower.includes('ders notları') || questionLower.includes('ders notlari') || questionLower.includes('notlar') || questionLower.includes('notes') || questionLower.includes('not ekle') || questionLower.includes('not paylaş')) {
+    contextType = 'courseNotes';
+    specificPrompt = `
+SORU TÜRÜ: DERS NOTLARI SORUSU
+KULLANICI: ${data.userInfo?.displayName || 'Kullanıcı'}
+SORU: ${question}
+
+KULLANICININ NOTLARI:
+${JSON.stringify(data.notes, null, 2)}
+
+KULLANICININ ÖZETLENMİŞ NOTLARI:
+${JSON.stringify(data.summarizedNotes, null, 2)}
+
+MÜFREDAT BİLGİLERİ:
+${JSON.stringify(data.courses, null, 2)}
+
+YÖNERGELER:
+- Ders Notları sayfası özelliklerini açıkla
+- Not türlerini belirt:
+  * 🎓 Akademisyen Notu (Akademisyenler tarafından paylaşılan)
+  * 👨‍🎓 Öğrenci Notu (Öğrenciler tarafından paylaşılan)
+  * 📝 ÖZET (Özetlenmiş notlar)
+- Not filtreleme özelliklerini açıkla
+- PDF yükleme özelliğinden bahset
+- Not paylaşım kurallarını belirt
+- Akademisyen notlarının önceliğini vurgula
+- Özetlenmiş notların özel durumunu açıkla
+- Türkçe cevap ver
+
+CEVAP:`;
   } else {
     // Genel soru
     specificPrompt = `
@@ -236,6 +333,7 @@ YÖNERGELER:
 - Samimi ve motive edici cevap ver
 - Kullanıcının adını kullan
 - Genel bilgiler ver
+- Not türlerini belirt (Akademisyen/Öğrenci/Özet)
 - Özetlenmiş notları da dahil et
 - Türkçe cevap ver
 

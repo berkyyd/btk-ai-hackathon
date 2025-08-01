@@ -63,6 +63,16 @@ export default function HomePage() {
               </p>
             </Card>
           </Link>
+          <Link href="/kisisel-takip" className='block'>
+            <Card className='h-full flex flex-col items-center justify-center text-center hover:shadow-lg transition-shadow duration-300'>
+              <h3 className='text-2xl font-bold text-primary mb-2'>
+                Kişisel Takip
+              </h3>
+              <p className='text-text-light text-sm'>
+                Gelişiminizi takip edin ve analiz edin.
+              </p>
+            </Card>
+          </Link>
         </div>
       </section>
     </div>

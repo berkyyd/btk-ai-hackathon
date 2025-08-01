@@ -39,9 +39,14 @@ export default function Header() {
               Sınav Simülasyonu
             </Link>
             {user && (
-              <Link href="/profile" className="text-text-light hover:text-primary transition-colors duration-300 font-medium">
-                Profilim
-              </Link>
+              <>
+                <Link href="/kisisel-takip" className="text-text-light hover:text-primary transition-colors duration-300 font-medium">
+                  Kişisel Takip
+                </Link>
+                <Link href="/profile" className="text-text-light hover:text-primary transition-colors duration-300 font-medium">
+                  Profilim
+                </Link>
+              </>
             )}
           </nav>
 
