@@ -51,7 +51,7 @@ export class GeminiService {
     return this.makeGeminiRequest(prompt);
   }
 
-  private async makeGeminiRequest(prompt: string, apiKey?: string): Promise<string> {
+  public async makeGeminiRequest(prompt: string, apiKey?: string): Promise<string> {
     try {
       const key = apiKey || this.apiKey;
       if (!key) {

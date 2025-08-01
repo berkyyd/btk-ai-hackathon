@@ -4,7 +4,9 @@ export const ROUTES = {
   MUFEDAT: '/mufredat',
   DERS_NOTLARI: '/ders-notlari',
   NOT_ALANI: '/not-alani',
-  SINAV_SIMULASYONU: '/sinav-simulasyonu'
+  SINAV_SIMULASYONU: '/sinav-simulasyonu',
+  KISISEL_TAKIP: '/kisisel-takip',
+  PROFILIM: '/profile'
 } as const
 
 // Class options for filtering
@@ -46,7 +48,28 @@ export const EXAM_FORMAT_OPTIONS = [
   { value: 'Karışık', label: 'Karışık' }
 ] as const
 
-// API endpoints (for future use)
+// Note types
+export const NOTE_TYPES = {
+  ACADEMICIAN: 'academician',
+  STUDENT: 'student',
+  SUMMARY: 'summary'
+} as const
+
+// Note type labels
+export const NOTE_TYPE_LABELS = {
+  [NOTE_TYPES.ACADEMICIAN]: '🎓 Akademisyen Notu',
+  [NOTE_TYPES.STUDENT]: '👨‍🎓 Öğrenci Notu',
+  [NOTE_TYPES.SUMMARY]: '📝 ÖZET'
+} as const
+
+// Note type colors
+export const NOTE_TYPE_COLORS = {
+  [NOTE_TYPES.ACADEMICIAN]: 'text-blue-600',
+  [NOTE_TYPES.STUDENT]: 'text-green-600',
+  [NOTE_TYPE_LABELS[NOTE_TYPES.SUMMARY]]: 'text-purple-600'
+} as const
+
+// API endpoints
 export const API_ENDPOINTS = {
   AUTH: {
     LOGIN: '/api/auth/login',
@@ -60,21 +83,27 @@ export const API_ENDPOINTS = {
   NOTES: {
     LIST: '/api/notes',
     DETAIL: '/api/notes/:id',
-    PERSONAL: '/api/notes/personal'
+    PERSONAL: '/api/notes/personal',
+    SUMMARIZE: '/api/notes/summarize'
   },
   QUIZ: {
     GENERATE: '/api/quiz/generate',
     EVALUATE: '/api/quiz/evaluate',
-    REINFORCEMENT: '/api/quiz/reinforcement'
+    REINFORCEMENT: '/api/quiz/reinforcement',
+    SUBMIT: '/api/quiz/submit'
   },
   ANALYTICS: {
-    WEAKNESS: '/api/analytics/weakness'
+    WEAKNESS: '/api/analytics/weakness',
+    QUIZ_ANALYSIS: '/api/analytics/quiz-analysis'
   },
   UPLOAD: {
     FILE: '/api/upload'
   },
-  SUMMARIZE: {
-    NOTE: '/api/summarize'
+  CHATBOT: {
+    CHAT: '/api/chatbot'
+  },
+  PROFILE: {
+    SUMMARIZED_NOTES: '/api/profile/summarized-notes'
   }
 } as const
 
@@ -85,7 +114,9 @@ export const ERROR_MESSAGES = {
   VALIDATION_ERROR: 'Geçersiz veri. Lütfen bilgilerinizi kontrol edin.',
   UNAUTHORIZED: 'Yetkisiz erişim. Lütfen giriş yapın.',
   NOT_FOUND: 'Aradığınız içerik bulunamadı.',
-  UNKNOWN_ERROR: 'Beklenmeyen bir hata oluştu.'
+  UNKNOWN_ERROR: 'Beklenmeyen bir hata oluştu.',
+  FIREBASE_ERROR: 'Veritabanı hatası. Lütfen daha sonra tekrar deneyin.',
+  GEMINI_ERROR: 'AI servisi hatası. Lütfen daha sonra tekrar deneyin.'
 } as const
 
 // Success messages
@@ -94,53 +125,69 @@ export const SUCCESS_MESSAGES = {
   DELETE_SUCCESS: 'Başarıyla silindi.',
   UPDATE_SUCCESS: 'Başarıyla güncellendi.',
   LOGIN_SUCCESS: 'Başarıyla giriş yapıldı.',
-  LOGOUT_SUCCESS: 'Başarıyla çıkış yapıldı.'
+  LOGOUT_SUCCESS: 'Başarıyla çıkış yapıldı.',
+  NOTE_ADDED: 'Not başarıyla eklendi.',
+  NOTE_UPDATED: 'Not başarıyla güncellendi.',
+  SUMMARY_SAVED: 'Özet notu kaydedildi!',
+  QUIZ_SUBMITTED: 'Sınav başarıyla tamamlandı.'
 } as const
 
 // Loading messages
 export const LOADING_MESSAGES = {
-  LOADING: 'Yükleniyor...',
-  SAVING: 'Kaydediliyor...',
-  DELETING: 'Siliniyor...',
-  UPLOADING: 'Yükleniyor...',
-  GENERATING: 'Oluşturuluyor...'
+  LOADING_NOTES: 'Notlar yükleniyor...',
+  LOADING_COURSES: 'Dersler yükleniyor...',
+  LOADING_QUIZ: 'Sınav hazırlanıyor...',
+  SUBMITTING_QUIZ: 'Sınav gönderiliyor...',
+  GENERATING_SUMMARY: 'Özet oluşturuluyor...',
+  SAVING_NOTE: 'Not kaydediliyor...',
+  UPLOADING_FILE: 'Dosya yükleniyor...'
 } as const
 
-// Default values
-export const DEFAULTS = {
-  SELECT_CLASS: '1',
-  SELECT_SEMESTER: 'Güz',
-  SELECT_COURSE_TYPE: 'Tümü',
-  SELECT_EXAM_TYPE: '',
-  SELECT_EXAM_FORMAT: ''
+// Validation messages
+export const VALIDATION_MESSAGES = {
+  REQUIRED_FIELD: 'Bu alan zorunludur.',
+  INVALID_EMAIL: 'Geçerli bir e-posta adresi giriniz.',
+  PASSWORD_TOO_SHORT: 'Şifre en az 6 karakter olmalıdır.',
+  PASSWORDS_DONT_MATCH: 'Şifreler eşleşmiyor.',
+  INVALID_INVITATION_CODE: 'Geçersiz davet kodu.',
+  FILE_TOO_LARGE: 'Dosya boyutu çok büyük.',
+  INVALID_FILE_TYPE: 'Geçersiz dosya türü.',
+  MIN_TITLE_LENGTH: 'Başlık en az 3 karakter olmalıdır.',
+  MIN_CONTENT_LENGTH: 'İçerik en az 10 karakter olmalıdır.'
 } as const
 
-// File size limits (in bytes)
-export const FILE_SIZE_LIMITS = {
-  PDF_MAX_SIZE: 10 * 1024 * 1024, // 10MB
-  PDF_MAX_SIZE_GEMINI: 5 * 1024 * 1024, // 5MB for Gemini API
-  PDF_HEADER_CHECK_SIZE: 1024 // PDF header check size
+// File upload constants
+export const FILE_UPLOAD = {
+  MAX_SIZE: 10 * 1024 * 1024, // 10MB
+  ALLOWED_TYPES: ['application/pdf'],
+  MAX_FILE_NAME_LENGTH: 100
 } as const
 
-// Quiz defaults
-export const QUIZ_DEFAULTS = {
-  DEFAULT_QUESTION_COUNT: 10,
-  DEFAULT_TIME_LIMIT: 30, // minutes
-  MIN_QUESTION_COUNT: 5,
-  MAX_QUESTION_COUNT: 50,
-  MIN_TIME_LIMIT: 5,
-  MAX_TIME_LIMIT: 120
+// Quiz constants
+export const QUIZ = {
+  MIN_QUESTIONS: 5,
+  MAX_QUESTIONS: 50,
+  DEFAULT_TIME_LIMIT: 30 * 60, // 30 minutes in seconds
+  PASSING_SCORE: 60
 } as const
 
-// Progress percentages
-export const PROGRESS_PERCENTAGES = {
-  UPLOAD_START: 0,
-  UPLOAD_MIDDLE: 50,
-  UPLOAD_COMPLETE: 100
+// Pagination constants
+export const PAGINATION = {
+  DEFAULT_PAGE_SIZE: 10,
+  MAX_PAGE_SIZE: 50,
+  DEFAULT_PAGE: 1
 } as const
 
-// Time intervals (in milliseconds)
-export const TIME_INTERVALS = {
-  QUIZ_TIMER_UPDATE: 1000, // 1 second
-  ERROR_DISPLAY_DELAY: 1000 // 1 second
+// UI constants
+export const UI = {
+  DEBOUNCE_DELAY: 300,
+  TOAST_DURATION: 5000,
+  ANIMATION_DURATION: 300,
+  MOBILE_BREAKPOINT: 768
+} as const
+
+// Development constants
+export const DEV = {
+  DEBUG_MODE: process.env.NODE_ENV === 'development',
+  LOG_LEVEL: process.env.LOG_LEVEL || 'info'
 } as const 

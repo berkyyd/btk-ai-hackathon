@@ -5,6 +5,7 @@ import Card from '../../components/Card'
 import { apiClient } from '../../utils/apiClient'
 import { useAuth } from '../../contexts/AuthContext'
 import LoginPrompt from '../../components/LoginPrompt'
+import { getAllCourses, getCoursesByClassAndSemester, getClassAndSemesterOptions, CurriculumCourse } from '../../utils/curriculumUtils'
 
 interface Question {
   id: string
@@ -46,11 +47,7 @@ interface QuizResult {
   questions: Question[] // Soru metinlerini ve doğru cevapları saklamak için
 }
 
-interface Course {
-  id: string
-  name: string
-  code: string
-}
+
 
 interface Note {
   id: string
@@ -77,8 +74,9 @@ interface Note {
 
 export default function SinavSimulasyonuPage() {
   const [quizzes, setQuizzes] = useState<Quiz[]>([])
-  const [courses, setCourses] = useState<Course[]>([])
+
   const [notes, setNotes] = useState<Note[]>([])
+  const [curriculumCourses, setCurriculumCourses] = useState<CurriculumCourse[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   
@@ -95,6 +93,13 @@ export default function SinavSimulasyonuPage() {
     questionCount: 10,
     timeLimit: 30,
     examFormat: 'mixed' as 'test' | 'classic' | 'mixed'
+  })
+
+  // Müfredat filtreleri
+  const [curriculumFilters, setCurriculumFilters] = useState({
+    selectedClass: 1,
+    selectedSemester: 'Güz',
+    selectedCourse: ''
   })
 
   // Aktif sınav
@@ -326,16 +331,12 @@ export default function SinavSimulasyonuPage() {
   }
 
   // Dersleri yükle
-  const loadCourses = async () => {
-    try {
-      const response = await apiClient.getCourses()
-      if (response.success && response.data) {
-        const data = response.data as any
-        setCourses(data.courses || [])
-      }
-    } catch (err) {
-      console.error('Courses load error:', err)
-    }
+
+
+  // Müfredat derslerini yükle
+  const loadCurriculumCourses = () => {
+    const allCurriculumCourses = getAllCourses()
+    setCurriculumCourses(allCurriculumCourses)
   }
 
   // Notları yükle
@@ -361,23 +362,100 @@ export default function SinavSimulasyonuPage() {
 
   // İlk yükleme
   useEffect(() => {
-    loadCourses()
+    loadCurriculumCourses()
     loadNotes()
     setLoading(false)
+    
+    // URL parametrelerini kontrol et
+    const urlParams = new URLSearchParams(window.location.search)
+    const classParam = urlParams.get('class')
+    const semesterParam = urlParams.get('semester')
+    const courseParam = urlParams.get('course')
+    
+    if (classParam || semesterParam || courseParam) {
+      // URL parametrelerini filtreye uygula
+      if (classParam) {
+        setCurriculumFilters(prev => ({ ...prev, selectedClass: parseInt(classParam) }))
+      }
+      if (semesterParam) {
+        const semesterOptions = getClassAndSemesterOptions()
+        const matchingSemester = semesterOptions.find(option => 
+          option.class === (classParam ? parseInt(classParam) : 1) && 
+          option.semester.toLowerCase().includes(semesterParam.toLowerCase())
+        )
+        if (matchingSemester) {
+          setCurriculumFilters(prev => ({ ...prev, selectedSemester: matchingSemester.semester }))
+        }
+      }
+      if (courseParam) {
+        setCurriculumFilters(prev => ({ ...prev, selectedCourse: courseParam }))
+        // Seçilen dersi quiz formuna uygula
+        const selectedCourse = getCoursesByClassAndSemester(
+          classParam ? parseInt(classParam) : 1, 
+                        semesterParam || 'Güz'
+        ).find(course => course.code === courseParam)
+        
+        if (selectedCourse) {
+          setNewQuiz(prev => ({
+            ...prev,
+            title: `${selectedCourse.name} Quiz`,
+            courseId: selectedCourse.code
+          }))
+        }
+      }
+    }
   }, [])
 
   // Ders seçimi değiştiğinde notları filtrele
   useEffect(() => {
     if (newQuiz.courseId && Array.isArray(notes)) {
-      const filtered = notes.filter(note => note.courseId === newQuiz.courseId)
-      setFilteredNotes(filtered)
+      // Önce akademisyen notlarını bul
+      const academicianNotes = notes.filter(note => 
+        note.courseId === newQuiz.courseId && note.role === 'academician'
+      )
+      
+      // Akademisyen notu varsa sadece onları göster
+      if (academicianNotes.length > 0) {
+        setFilteredNotes(academicianNotes)
+      } else {
+        // Akademisyen notu yoksa herkese açık notlar ve kullanıcının kendi notlarını göster
+        const availableNotes = notes.filter(note => 
+          note.courseId === newQuiz.courseId && 
+          (note.isPublic || note.userId === user?.uid)
+        )
+        setFilteredNotes(availableNotes)
+      }
+      
       // Ders değiştiğinde seçili notları temizle
       setSelectedNotes([])
     } else {
       setFilteredNotes([])
       setSelectedNotes([])
     }
-  }, [newQuiz.courseId, notes])
+  }, [newQuiz.courseId, notes, user?.uid])
+
+  // Müfredat filtresi değişikliği
+  const handleCurriculumFilterChange = (key: string, value: any) => {
+    const newCurriculumFilters = {
+      ...curriculumFilters,
+      [key]: value
+    }
+    
+    setCurriculumFilters(newCurriculumFilters)
+    
+    // Seçilen müfredat dersini otomatik olarak quiz formuna uygula
+    if (key === 'selectedCourse' && value) {
+      const selectedCourse = getCoursesByClassAndSemester(newCurriculumFilters.selectedClass, newCurriculumFilters.selectedSemester)
+        .find(course => course.code === value)
+      if (selectedCourse) {
+        setNewQuiz(prev => ({
+          ...prev,
+          title: `${selectedCourse.name} Quiz`,
+          courseId: selectedCourse.code
+        }))
+      }
+    }
+  }
 
   // Zamanlayıcı (sınav sırasında)
   useEffect(() => {
@@ -468,6 +546,71 @@ export default function SinavSimulasyonuPage() {
 
           {showCreateForm && (
           <form onSubmit={handleCreateQuiz} className='space-y-4'>
+            <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+              <div>
+                <label className='block text-sm font-medium text-text mb-2'>Sınıf</label>
+                <select
+                  value={curriculumFilters.selectedClass}
+                  onChange={(e) => handleCurriculumFilterChange('selectedClass', parseInt(e.target.value))}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                >
+                  <option value={1}>1. Sınıf</option>
+                  <option value={2}>2. Sınıf</option>
+                  <option value={3}>3. Sınıf</option>
+                  <option value={4}>4. Sınıf</option>
+                </select>
+              </div>
+              
+              <div>
+                <label className='block text-sm font-medium text-text mb-2'>Dönem</label>
+                <select
+                  value={curriculumFilters.selectedSemester}
+                  onChange={(e) => handleCurriculumFilterChange('selectedSemester', e.target.value)}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                >
+                  {getClassAndSemesterOptions()
+                    .filter(option => option.class === curriculumFilters.selectedClass)
+                    .map(option => (
+                      <option key={option.label} value={option.semester}>
+                        {option.semester.includes('Güz') ? 'Güz' : 'Bahar'}
+                      </option>
+                    ))}
+                </select>
+              </div>
+              
+              <div>
+                <label className='block text-sm font-medium text-text mb-2'>Ders</label>
+                <select
+                  value={curriculumFilters.selectedCourse}
+                  onChange={(e) => {
+                    handleCurriculumFilterChange('selectedCourse', e.target.value)
+                    // Seçilen müfredat dersini quiz'e uygula
+                    if (e.target.value) {
+                      const selectedCourse = getCoursesByClassAndSemester(curriculumFilters.selectedClass, curriculumFilters.selectedSemester)
+                        .find(course => course.code === e.target.value)
+                      if (selectedCourse) {
+                        setNewQuiz(prev => ({
+                          ...prev,
+                          title: `${selectedCourse.name} Quiz`,
+                          courseId: selectedCourse.code
+                        }))
+                      }
+                    }
+                  }}
+                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                >
+                  <option value=''>Ders Seçin</option>
+                  {getCoursesByClassAndSemester(curriculumFilters.selectedClass, curriculumFilters.selectedSemester).map(course => (
+                    <option key={course.code} value={course.code}>
+                      {course.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              
+
+            </div>
+
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div>
                 <label className='block text-sm font-medium text-text mb-2'>Quiz Başlığı</label>
@@ -481,22 +624,7 @@ export default function SinavSimulasyonuPage() {
                 />
               </div>
               
-              <div>
-                <label className='block text-sm font-medium text-text mb-2'>Ders</label>
-                <select
-                  value={newQuiz.courseId}
-                  onChange={(e) => setNewQuiz(prev => ({ ...prev, courseId: e.target.value }))}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-                  required
-                >
-                  <option value=''>Ders Seçin</option>
-                  {courses.map(course => (
-                    <option key={course.id} value={course.id}>
-                      {course.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+
               
               <div>
                 <label className='block text-sm font-medium text-text mb-2'>Zorluk Seviyesi</label>
@@ -552,11 +680,18 @@ export default function SinavSimulasyonuPage() {
               </div>
             </div>
             
-            {/* Not Seçimi */}
-            <div>
-              <label className='block text-sm font-medium text-text mb-2'>
-                Not Seçimi (Seçilen derse ait notlar)
-              </label>
+                         {/* Not Seçimi */}
+             <div>
+               <label className='block text-sm font-medium text-text mb-2'>
+                 Not Seçimi {(() => {
+                   const academicianNotes = filteredNotes.filter(note => note.role === 'academician')
+                   if (academicianNotes.length > 0) {
+                     return '(Önerilen: Akademisyen Notları)'
+                   } else {
+                     return '(Herkese Açık ve Kişisel Notlar)'
+                   }
+                 })()}
+               </label>
               <div className='max-h-60 overflow-y-auto border border-gray-300 rounded-md p-2'>
                 {!newQuiz.courseId ? (
                   <p className='text-gray-500 text-sm'>Önce bir ders seçin</p>
@@ -564,29 +699,38 @@ export default function SinavSimulasyonuPage() {
                   <p className='text-gray-500 text-sm'>Bu derse ait not bulunmuyor.</p>
                 ) : (
                   <div className='space-y-2'>
-                    {filteredNotes.map((note) => (
-                      <label key={note.id} className='flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded'>
-                        <input
-                          type='checkbox'
-                          checked={selectedNotes.includes(note.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedNotes(prev => [...prev, note.id])
-                            } else {
-                              setSelectedNotes(prev => prev.filter(id => id !== note.id))
-                            }
-                          }}
-                          className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
-                        />
-                        <div className='flex-1'>
-                          <div className='font-medium text-sm'>{note.title}</div>
-                          <div className='text-xs text-gray-500'>
-                            {courses.find(c => c.id === note.courseId)?.name || 'Bilinmeyen Ders'} - 
-                            {note.classYear}. Sınıf {note.semester}
-                          </div>
-                        </div>
-                      </label>
-                    ))}
+                                         {filteredNotes.map((note) => (
+                       <label key={note.id} className={`flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded ${
+                         note.role === 'academician' ? 'bg-blue-50 border border-blue-200' : ''
+                       }`}>
+                         <input
+                           type='checkbox'
+                           checked={selectedNotes.includes(note.id)}
+                           onChange={(e) => {
+                             if (e.target.checked) {
+                               setSelectedNotes(prev => [...prev, note.id])
+                             } else {
+                               setSelectedNotes(prev => prev.filter(id => id !== note.id))
+                             }
+                           }}
+                           className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
+                         />
+                         <div className='flex-1'>
+                           <div className='flex items-center gap-2'>
+                             <div className='font-medium text-sm'>{note.title}</div>
+                             {note.role === 'academician' && (
+                               <span className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>
+                                 🎓 Akademisyen
+                               </span>
+                             )}
+                           </div>
+                           <div className='text-xs text-gray-500'>
+                             {curriculumCourses.find(c => c.code === note.courseId)?.name || 'Bilinmeyen Ders'} - 
+                             {note.classYear}. Sınıf {note.semester}
+                           </div>
+                         </div>
+                       </label>
+                     ))}
                   </div>
                 )}
               </div>
@@ -819,9 +963,9 @@ export default function SinavSimulasyonuPage() {
                   </span>
                 </div>
                 
-                <p className='text-sm text-gray-600 mb-2'>
-                  {courses.find(c => c.id === quiz.courseId)?.name || 'Bilinmeyen Ders'}
-                </p>
+                                 <p className='text-sm text-gray-600 mb-2'>
+                   {curriculumCourses.find(c => c.code === quiz.courseId)?.name || 'Bilinmeyen Ders'}
+                 </p>
                 
                 <p className='text-sm text-gray-600 line-clamp-2 mb-3'>
                   {quiz.description}

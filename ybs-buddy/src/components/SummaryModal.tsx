@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 import { SUMMARY_PROMPTS } from '../utils/summaryPrompts';
-import SummaryRenderer from './SummaryRenderer';
+import { geminiService } from '../utils/geminiService';
 
 interface SummaryModalProps {
   open: boolean;
   onClose: () => void;
-  note: { id: string; title: string; content: string } | null;
+  note: { 
+    id: string; 
+    title: string; 
+    content: string;
+    courseId?: string;
+    class?: number;
+    semester?: string;
+  } | null;
   user: { uid: string } | null;
   onSaved?: () => void;
 }
@@ -57,22 +64,32 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ open, onClose, note, user, 
     setSummaryLoading(true);
     setSummaryError('');
     try {
-      const res = await fetch('/api/profile/summarized-notes', {
+      // Özet notu normal notlar koleksiyonuna kaydet
+      const res = await fetch('/api/notes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          title: `Özet: ${note.title}`,
+          content: summaryResult,
+          courseId: note.courseId || '',
+          class: note.class || 1,
+          semester: note.semester || 'Güz',
+          tags: ['Özet', summaryType],
+          role: 'student',
+          isPublic: false, // Özet notlar özel olsun
           userId: user.uid,
-          noteId: note.id,
-          originalTitle: note.title,
-          summary: summaryResult,
-          summaryType,
+          originalFileName: null,
+          isPDF: false,
+          extractedText: null,
+          fileSize: null,
+          fileUrl: null
         }),
       });
       const data = await res.json();
       if (data.success) {
         if (onSaved) onSaved();
         onClose();
-        alert('Özet profiline kaydedildi!');
+        alert('Özet notu kaydedildi!');
       } else {
         setSummaryError(data.error || 'Kayıt başarısız.');
       }
@@ -112,10 +129,9 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ open, onClose, note, user, 
           <div className="mb-4">
             <h3 className="font-bold mb-2">Özet</h3>
             <div className="mb-4" style={{ maxHeight: 400, overflowY: 'auto' }}>
-              <SummaryRenderer 
-                content={summaryResult} 
-                summaryType={summaryType} 
-              />
+              {/* SummaryRenderer component was removed, so this will be empty or a placeholder */}
+              {/* For now, we'll just display the raw summary result */}
+              <p>{summaryResult}</p>
             </div>
             <button
               className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full"
