@@ -10,6 +10,7 @@ export interface ChatbotRequest {
   question: string;
   userId: string;
   context?: string;
+  previousMessages?: ChatMessage[];
 }
 
 export interface ChatbotResponse {

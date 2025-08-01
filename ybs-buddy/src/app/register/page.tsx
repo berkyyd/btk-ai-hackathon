@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { auth, db } from '../../config/firebase';
 import { doc, setDoc, getDoc, updateDoc, DocumentReference } from "firebase/firestore";
@@ -19,6 +20,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { register } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -93,7 +95,10 @@ export default function RegisterPage() {
         await markInvitationCodeAsUsed(invitationCodeDocRef, user.uid);
       }
       
-      // 4. Başarılı kayıt - ana sayfaya yönlendir
+      // 4. AuthContext'i güncelle
+      await register(formData.email, formData.password);
+      
+      // 5. Başarılı kayıt - ana sayfaya yönlendir
       router.push('/');
 
     } catch (err: any) {

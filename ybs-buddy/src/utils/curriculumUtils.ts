@@ -106,10 +106,11 @@ export const getClassAndSemesterOptions = () => {
 };
 
 // Müfredat bilgilerini getir
-export const getCurriculumInfo = () => {
+export const getCurriculumInfo = (): CurriculumData => {
   return {
     university: curriculumData.university,
     faculty: curriculumData.faculty,
-    department: curriculumData.department
+    department: curriculumData.department,
+    curriculum: curriculumData.curriculum
   };
 }; 

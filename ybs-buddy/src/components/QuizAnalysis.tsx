@@ -22,13 +22,14 @@ interface QuizAnalysis {
 const QuizAnalysis: React.FC = () => {
   const { user } = useAuth();
   const [analysis, setAnalysis] = useState<QuizAnalysis | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>('');
 
   useEffect(() => {
     if (!user) return;
 
-    const fetchAnalysis = async () => {
+    const fetchLatestAnalysis = async () => {
       try {
         setLoading(true);
         
@@ -49,14 +50,9 @@ const QuizAnalysis: React.FC = () => {
             const data = latestAnalysis.data();
             setAnalysis(data.data);
             setLastUpdated(new Date(data.createdAt).toLocaleDateString('tr-TR'));
-          } else {
-            // Analiz yoksa yeni analiz yap
-            await triggerAnalysis();
           }
         } catch (indexError) {
-          console.log('Composite index gerekli, analiz yeniden yapılıyor...');
-          // Index yoksa direkt analiz yap
-          await triggerAnalysis();
+          console.log('Composite index gerekli, analiz bulunamadı...');
         }
       } catch (error) {
         console.error('Analiz yüklenirken hata:', error);
@@ -65,11 +61,12 @@ const QuizAnalysis: React.FC = () => {
       }
     };
 
-    fetchAnalysis();
+    fetchLatestAnalysis();
   }, [user]);
 
   const triggerAnalysis = async () => {
     try {
+      setAnalyzing(true);
       const response = await fetch('/api/analytics/quiz-analysis', {
         method: 'POST',
         headers: {
@@ -82,9 +79,13 @@ const QuizAnalysis: React.FC = () => {
         const data = await response.json();
         setAnalysis(data.analysis);
         setLastUpdated(new Date().toLocaleDateString('tr-TR'));
+      } else {
+        console.error('Analiz yapılamadı');
       }
     } catch (error) {
       console.error('Analiz tetiklenirken hata:', error);
+    } finally {
+      setAnalyzing(false);
     }
   };
 
@@ -108,13 +109,21 @@ const QuizAnalysis: React.FC = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Henüz Quiz Sonucu Yok</h3>
-          <p className="text-gray-500 mb-4">İlk quizinizi tamamladıktan sonra analiz görüntülenecek.</p>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">Quiz Analizi</h3>
+          <p className="text-gray-500 mb-4">Mevcut quiz sonuçlarınıza göre detaylı analiz yapmak için butona tıklayın.</p>
           <button
             onClick={triggerAnalysis}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+            disabled={analyzing}
+            className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center mx-auto"
           >
-            Analiz Yap
+            {analyzing ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                Analiz Yapılıyor...
+              </>
+            ) : (
+              '📊 Analiz Yap'
+            )}
           </button>
         </div>
       </Card>
@@ -129,6 +138,8 @@ const QuizAnalysis: React.FC = () => {
           <h3 className="text-xl font-semibold text-gray-800">📊 Quiz Analizi</h3>
           <div className="text-sm text-gray-500">
             Son güncelleme: {lastUpdated}
+            <br />
+            <span className="text-xs text-gray-400">Mevcut quiz verilerinize göre analiz edildi</span>
           </div>
         </div>
         
@@ -198,9 +209,17 @@ const QuizAnalysis: React.FC = () => {
       <div className="text-center">
         <button
           onClick={triggerAnalysis}
-          className="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 transition-colors"
+          disabled={analyzing}
+          className="bg-blue-500 text-white px-6 py-3 rounded-lg hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center mx-auto"
         >
-          🔄 Analizi Yenile
+          {analyzing ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+              Analiz Yapılıyor...
+            </>
+          ) : (
+            '🔄 Analizi Yenile'
+          )}
         </button>
       </div>
     </div>

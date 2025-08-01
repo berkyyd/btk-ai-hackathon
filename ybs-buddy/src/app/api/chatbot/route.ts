@@ -5,6 +5,7 @@ import { answerWithRetriever } from '../../../utils/langchainService';
 import { geminiService } from '../../../utils/geminiService';
 import { db } from '../../../config/firebase';
 import { collection, getDocs, query, where, orderBy, limit } from 'firebase/firestore';
+import { getAllCourses, getCoursesByClassAndSemester, getCurriculumInfo } from '../../../utils/curriculumUtils';
 
 // Composite index oluşturma fonksiyonu
 async function createCompositeIndex(): Promise<boolean> {
@@ -31,7 +32,11 @@ async function getUserSpecificData(userId: string): Promise<UserData> {
   };
 
   try {
-    // Müfredat bilgilerini çek (tüm kullanıcılar için aynı)
+    // Güncel müfredat bilgilerini çek
+    const curriculumInfo = getCurriculumInfo();
+    data.curriculum = curriculumInfo;
+    
+    // API'den gelen dersler
     const coursesSnapshot = await getDocs(collection(db, 'courses'));
     data.courses = coursesSnapshot.docs.map(doc => ({
       id: doc.id,
@@ -128,8 +133,20 @@ async function getUserSpecificData(userId: string): Promise<UserData> {
   return data;
 }
 
-async function generateSmartAnswer(question: string, data: UserData, userId: string): Promise<string> {
+async function generateSmartAnswer(question: string, data: UserData, userId: string, previousMessages?: ChatMessage[]): Promise<string> {
   const questionLower = question.toLowerCase();
+  
+  // Dinamik selamlaşma kontrolü
+  if (questionLower.includes('naber') || questionLower.includes('nasılsın') || questionLower.includes('selam') || questionLower.includes('merhaba') || questionLower.includes('hey')) {
+    const greetings = [
+      `Merhaba! 👋 ${data.userInfo?.displayName || 'Kullanıcı'} nasılsın?`,
+      `Selam! 😊 ${data.userInfo?.displayName || 'Kullanıcı'} iyi misin?`,
+      `Hey! 🎉 ${data.userInfo?.displayName || 'Kullanıcı'} nasıl gidiyor?`,
+      `Merhaba! 🌟 ${data.userInfo?.displayName || 'Kullanıcı'} bugün nasıl?`,
+      `Selamlar! ✨ ${data.userInfo?.displayName || 'Kullanıcı'} nasılsın?`
+    ];
+    return greetings[Math.floor(Math.random() * greetings.length)];
+  }
   
   // Soru türünü belirle
   let contextType = 'general';
@@ -137,19 +154,27 @@ async function generateSmartAnswer(question: string, data: UserData, userId: str
 
   if (questionLower.includes('müfredat') || questionLower.includes('ders') || questionLower.includes('course')) {
     contextType = 'courses';
+    
+    // Son 5 mesajı al ve context oluştur
+    const recentMessages = previousMessages?.slice(-5) || [];
+    const conversationContext = recentMessages.length > 0 
+      ? `\n\nÖNCEKİ KONUŞMA:\n${recentMessages.map(msg => `${msg.role === 'user' ? 'Kullanıcı' : 'Asistan'}: ${msg.content}`).join('\n')}`
+      : '';
+
     specificPrompt = `
 SORU TÜRÜ: MÜFREDAT/DERS SORUSU
 KULLANICI: ${data.userInfo?.displayName || 'Kullanıcı'}
 SORU: ${question}
 
-MÜFREDAT VERİLERİ:
-${JSON.stringify(data.courses, null, 2)}
+GÜNCEL MÜFREDAT BİLGİLERİ:
+${JSON.stringify(data.curriculum, null, 2)}
 
 YÖNERGELER:
-- Sadece müfredat verilerini kullan
+- Güncel müfredat verilerini kullan (curriculum.json)
 - Ders kodları, AKTS kredileri, zorunlu/seçmeli durumu belirt
 - Sınıf ve dönem bilgilerini ver
 - Gerçek verilerden bahset, varsayım yapma
+- Önceki konuşmayı dikkate al ve bağlamı koru
 - Türkçe cevap ver
 
 CEVAP:`;
@@ -365,7 +390,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { question, userId, context }: ChatbotRequest = await request.json();
+    const { question, userId, context, previousMessages }: ChatbotRequest = await request.json();
 
     if (!question) {
       return NextResponse.json({ error: 'Question is required' }, { status: 400 });
@@ -402,7 +427,7 @@ export async function POST(request: Request) {
     // Eğer retriever ile cevap yoksa veya yetersizse, akıllı cevap üret
     if (!answer || answer.length < 50) {
       try {
-        answer = await generateSmartAnswer(question, userData, userId);
+        answer = await generateSmartAnswer(question, userData, userId, previousMessages);
         sources = ['Kullanıcı Verileri'];
         usedRetriever = false;
       } catch (err) {
@@ -413,8 +438,14 @@ export async function POST(request: Request) {
 
     // Eğer hala cevap yoksa, genel asistan prompt'u ile cevap üret
     if (!answer) {
-      const generalPrompt = `Sen YBS Buddy'nin akıllı asistanısın. Kullanıcıdan gelen soruya öğrenci dostu, samimi ve açıklayıcı bir şekilde cevap ver. Eğer selam, naber, nasılsın gibi bir mesaj ise sıcak bir şekilde karşılık ver. Cevabın sade, anlaşılır ve motive edici olsun.`;
-      answer = await geminiService.makeRequest(`${generalPrompt}\n\nSORU: ${question}\n\nCEVAP:`);
+      // Son 5 mesajı al ve context oluştur
+      const recentMessages = previousMessages?.slice(-5) || [];
+      const conversationContext = recentMessages.length > 0 
+        ? `\n\nÖNCEKİ KONUŞMA:\n${recentMessages.map(msg => `${msg.role === 'user' ? 'Kullanıcı' : 'Asistan'}: ${msg.content}`).join('\n')}`
+        : '';
+
+      const generalPrompt = `Sen YBS Buddy'nin akıllı asistanısın. Kullanıcıdan gelen soruya öğrenci dostu, samimi ve açıklayıcı bir şekilde cevap ver. Eğer selam, naber, nasılsın gibi bir mesaj ise sıcak bir şekilde karşılık ver. Cevabın sade, anlaşılır ve motive edici olsun. Önceki konuşmayı dikkate al ve bağlamı koru.`;
+      answer = await geminiService.makeRequest(`${generalPrompt}${conversationContext}\n\nSORU: ${question}\n\nCEVAP:`);
       sources = [];
     }
 

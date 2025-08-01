@@ -14,7 +14,32 @@ const ChatIcon: React.FC = () => {
   const pathname = usePathname();
   const chatRef = useRef<HTMLDivElement>(null);
 
-  // Kullanıcı değiştiğinde chat'i kapat ve history'yi sıfırla
+  // Chat history'yi localStorage'dan yükle
+  useEffect(() => {
+    if (user?.uid) {
+      const savedHistory = localStorage.getItem(`chatHistory_${user.uid}`);
+      if (savedHistory) {
+        try {
+          const parsedHistory = JSON.parse(savedHistory);
+          // Timestamp'leri Date objesine çevir
+          const historyWithDates = parsedHistory.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }));
+          setChatHistory(historyWithDates);
+        } catch (error) {
+          console.error('Chat history yüklenirken hata:', error);
+          setChatHistory([]);
+        }
+      } else {
+        setChatHistory([]);
+      }
+    } else {
+      setChatHistory([]);
+    }
+  }, [user?.uid]);
+
+  // Kullanıcı değiştiğinde chat'i kapat
   useEffect(() => {
     if (!user) {
       setIsOpen(false);
@@ -67,7 +92,7 @@ const ChatIcon: React.FC = () => {
   const closeChat = () => {
     setIsOpen(false);
     setIsMinimized(false);
-    setChatHistory([]); // Chat history'yi sıfırla
+    setChatHistory([]);
   };
 
   const restoreChat = () => {
@@ -77,6 +102,15 @@ const ChatIcon: React.FC = () => {
 
   const handleChatHistoryChange = (newHistory: ChatMessage[]) => {
     setChatHistory(newHistory);
+    
+    // Chat history'yi localStorage'a kaydet
+    if (user?.uid) {
+      try {
+        localStorage.setItem(`chatHistory_${user.uid}`, JSON.stringify(newHistory));
+      } catch (error) {
+        console.error('Chat history kaydedilirken hata:', error);
+      }
+    }
   };
 
   // Giriş yapmamış kullanıcılar için chat gösterilmez
@@ -152,7 +186,6 @@ const ChatIcon: React.FC = () => {
       {isOpen && (
         <div ref={chatRef}>
           <ChatWindow 
-            key={user?.uid} // Kullanıcı değiştiğinde component yeniden oluşturulur
             onClose={closeChat} 
             onMinimize={minimizeChat}
             chatHistory={chatHistory}

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
+import { collection, query, where, getDocs, orderBy, addDoc } from 'firebase/firestore';
 import { db } from '../../../../config/firebase';
 import { geminiService } from '../../../../utils/geminiService';
 
@@ -159,11 +159,20 @@ export async function POST(request: NextRequest) {
       .slice(0, 3)
       .map(([topic, count]) => ({ topic, errorCount: count as number }));
 
+    // En son quiz sonucunu belirle (en üstteki quiz)
+    const mostRecentQuiz = quizResults[0]; // En son yapılan quiz
+    const oldestQuiz = quizResults[quizResults.length - 1]; // En eski quiz
+    
     // AI ile analiz yap
     const analysisPrompt = `
 Kullanıcının quiz sonuçlarını analiz et ve kişiselleştirilmiş çalışma önerileri ver.
 
-QUIZ SONUÇLARI:
+ÖNEMLİ: Quiz sonuçları en yeniden en eskiye doğru sıralanmıştır. En üstteki quiz en son yapılan quizdir.
+
+EN SON QUIZ (${mostRecentQuiz?.completedAt}): ${mostRecentQuiz?.score}%
+EN ESKİ QUIZ (${oldestQuiz?.completedAt}): ${oldestQuiz?.score}%
+
+QUIZ SONUÇLARI (En yeniden en eskiye):
 ${JSON.stringify(quizResults.slice(0, 10), null, 2)}
 
 YANLIŞ CEVAPLAR:
@@ -178,25 +187,42 @@ ${JSON.stringify(weeklyData, null, 2)}
 Lütfen şu formatta analiz yap:
 
 1. GENEL PERFORMANS: Kullanıcının genel başarı durumu
-2. ZAYIF ALANLAR: En çok hata yaptığı konular (3-5 tane)
-3. ÇALIŞMA ÖNERİLERİ: Her zayıf alan için spesifik öneriler
-4. HAFTALIK GELİŞİM: Son 4 haftadaki ilerleme analizi
-5. MOTİVASYON: Kullanıcıyı motive edici mesaj
+2. SON QUIZ ANALİZİ: En son yapılan quizin detaylı analizi
+3. ZAYIF ALANLAR: En çok hata yaptığı konular (3-5 tane)
+4. ÇALIŞMA ÖNERİLERİ: Her zayıf alan için spesifik öneriler
+5. HAFTALIK GELİŞİM: Son 4 haftadaki ilerleme analizi
+6. MOTİVASYON: Kullanıcıyı motive edici mesaj
 
-Türkçe olarak, samimi bir dil kullan. Emoji kullan ve pozitif ol.
+Türkçe olarak, samimi bir dil kullan. Emoji kullan ve pozitif ol. En son quizi "ilk quiz" olarak adlandırma, "en son quiz" veya "son quiz" olarak adlandır.
 `;
 
     const analysisResponse = await geminiService.makeRequest(analysisPrompt);
     
+    const analysisResult = {
+      message: analysisResponse,
+      weakAreas,
+      recommendations: [],
+      weeklyProgress: weeklyData,
+      totalQuizzes: quizResults.length,
+      averageScore: Math.round(quizResults.reduce((sum, r) => sum + r.score, 0) / quizResults.length)
+    };
+
+    // Analiz sonucunu Firestore'a kaydet
+    try {
+      const analyticsRef = collection(db, 'userAnalytics');
+      await addDoc(analyticsRef, {
+        userId,
+        type: 'quiz_analysis',
+        data: analysisResult,
+        createdAt: new Date(),
+        quizCount: quizResults.length
+      });
+    } catch (saveError) {
+      console.error('Analiz sonucu kaydedilemedi:', saveError);
+    }
+    
     return NextResponse.json({
-      analysis: {
-        message: analysisResponse,
-        weakAreas,
-        recommendations: [],
-        weeklyProgress: weeklyData,
-        totalQuizzes: quizResults.length,
-        averageScore: Math.round(quizResults.reduce((sum, r) => sum + r.score, 0) / quizResults.length)
-      }
+      analysis: analysisResult
     });
 
   } catch (error) {

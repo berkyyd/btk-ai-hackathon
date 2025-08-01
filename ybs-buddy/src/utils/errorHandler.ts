@@ -2,7 +2,7 @@
 export interface AppError {
   message: string;
   code?: string;
-  details?: Record<string, unknown>;
+  details?: Record<string, unknown> | undefined;
   isUserFriendly?: boolean;
 }
 
@@ -15,7 +15,7 @@ export class ApiError extends Error {
     super(message);
     this.name = 'ApiError';
     this.code = code;
-    this.details = details;
+    this.details = details || {};
     this.isUserFriendly = isUserFriendly;
   }
 }

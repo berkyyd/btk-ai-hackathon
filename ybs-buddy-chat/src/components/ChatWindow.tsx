@@ -25,16 +25,19 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
   }, [chatHistory]);
 
   const handleSendMessage = async () => {
-    if (message.trim() === '') return;
+    const currentMessage = message.trim();
+    if (currentMessage === '') return;
 
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
-      content: message,
+      content: currentMessage,
       role: 'user',
       timestamp: new Date()
     };
 
-    setChatHistory((prev) => [...prev, userMessage]);
+    // Mesajı hemen ekle ve ekranda tut
+    const newHistory = [...chatHistory, userMessage];
+    setChatHistory(newHistory);
     setMessage('');
     setIsLoading(true);
     setSources([]);
@@ -46,7 +49,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
-          question: message,
+          question: currentMessage,
           userId: user?.uid 
         }),
       });
@@ -60,6 +63,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({ onClose }) => {
         timestamp: new Date()
       };
 
+      // Bot mesajını mevcut history'ye ekle, kullanıcı mesajını koru
       setChatHistory((prev) => [...prev, botMessage]);
       if (data.sources) {
         setSources(data.sources);

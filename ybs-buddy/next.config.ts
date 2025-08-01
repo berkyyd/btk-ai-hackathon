@@ -35,9 +35,7 @@ const nextConfig: NextConfig = {
     ];
   },
   // API timeout ayarlarını kaldır - müfredat çıkarma işlemi için daha uzun süre
-  experimental: {
-    serverComponentsExternalPackages: ['@google/generative-ai'],
-  },
+  serverExternalPackages: ['@google/generative-ai'],
 };
 
 export default nextConfig; 

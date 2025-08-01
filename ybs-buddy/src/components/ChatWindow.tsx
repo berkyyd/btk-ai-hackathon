@@ -26,12 +26,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   // Chat history'yi yönet
   const chatHistory = externalChatHistory || internalChatHistory;
-  const setChatHistory = (newHistory: ChatMessage[] | ((prev: ChatMessage[]) => ChatMessage[])) => {
+  
+  const addMessage = (newMessage: ChatMessage) => {
+    const updatedHistory = [...chatHistory, newMessage];
     if (onChatHistoryChange) {
-      const updatedHistory = typeof newHistory === 'function' ? newHistory(chatHistory) : newHistory;
       onChatHistoryChange(updatedHistory);
     } else {
-      setInternalChatHistory(typeof newHistory === 'function' ? newHistory : newHistory);
+      setInternalChatHistory(updatedHistory);
     }
   };
 
@@ -54,7 +55,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       timestamp: new Date()
     };
 
-    setChatHistory((prev) => [...prev, userMessage]);
+    // Kullanıcı mesajını hemen ekle
+    addMessage(userMessage);
     setMessage('');
     setIsLoading(true);
     setSources([]);
@@ -67,7 +69,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         },
         body: JSON.stringify({ 
           question: currentMessage,
-          userId: user?.uid || 'anonymous'
+          userId: user?.uid || 'anonymous',
+          previousMessages: chatHistory.slice(-5)
         }),
       });
 
@@ -80,7 +83,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         timestamp: new Date()
       };
 
-      setChatHistory((prev) => [...prev, botMessage]);
+      // Bot mesajını ekle
+      addMessage(botMessage);
+      
       if (data.sources && data.sources.length > 0) {
         setSources(data.sources);
       }
@@ -92,7 +97,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         role: 'assistant',
         timestamp: new Date()
       };
-      setChatHistory((prev) => [...prev, errorMessage]);
+      addMessage(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -115,11 +120,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       });
 
       // Update the message with feedback
-      setChatHistory((prev) =>
-        prev.map((msg) =>
-          msg.id === messageId ? { ...msg, feedback } : msg
-        )
+      const updatedHistory = chatHistory.map((msg) =>
+        msg.id === messageId ? { ...msg, feedback } : msg
       );
+      
+      if (onChatHistoryChange) {
+        onChatHistoryChange(updatedHistory);
+      } else {
+        setInternalChatHistory(updatedHistory);
+      }
     } catch (error) {
       console.error('Error sending feedback:', error);
     }
@@ -136,42 +145,43 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     <div className="fixed bottom-4 right-4 w-96 h-[500px] bg-white rounded-lg shadow-xl flex flex-col z-50">
       {/* Header */}
       <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
-                    <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
-                </svg>
-              </div>
-              <div>
-                <h2 className="text-lg font-semibold">YBS Buddy</h2>
-                <p className="text-xs opacity-90">Akıllı Asistan</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              {onMinimize && (
-                <button 
-                  onClick={onMinimize} 
-                  className="text-white hover:text-gray-200 focus:outline-none transition-colors"
-                  title="Minimize"
-                >
-                  <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
-              )}
-              <button 
-                onClick={onClose} 
-                className="text-white hover:text-gray-200 focus:outline-none transition-colors"
-              >
-                <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
+            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">YBS Buddy</h2>
+            <p className="text-xs opacity-90">Akıllı Asistan</p>
+          </div>
+        </div>
+        <div className="flex items-center space-x-2">
+          {onMinimize && (
+            <button 
+              onClick={onMinimize} 
+              className="text-white hover:text-gray-200 focus:outline-none transition-colors"
+              title="Minimize"
+            >
+              <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          )}
+          <button 
+            onClick={onClose} 
+            className="text-white hover:text-gray-200 focus:outline-none transition-colors"
+          >
+            <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
       <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
+        {/* Welcome message only when no messages */}
         {chatHistory.length === 0 && (
           <div className="text-center text-gray-500 py-8">
             <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
@@ -227,6 +237,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           </div>
         )}
 
+        {/* Show all messages */}
         {chatHistory.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] ${msg.role === 'user' ? 'order-2' : 'order-1'}`}>

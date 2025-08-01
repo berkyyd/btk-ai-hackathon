@@ -5,16 +5,12 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { AuthProvider } from '../contexts/AuthContext';
 import ChatIcon from '../components/ChatIcon';
-import ChatWindow from '../components/ChatWindow';
-import { useState } from 'react';
 
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [isChatOpen, setIsChatOpen] = useState(false);
-
   return (
     <html lang="tr">
       <body className="font-sans">
@@ -27,7 +23,6 @@ export default function RootLayout({
             <Footer />
           </div>
           <ChatIcon />
-          {isChatOpen && <ChatWindow onClose={() => setIsChatOpen(false)} />}
         </AuthProvider>
       </body>
     </html>

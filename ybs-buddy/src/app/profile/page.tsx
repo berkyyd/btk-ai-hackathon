@@ -38,6 +38,13 @@ const ProfilePage = () => {
     type: 'Zorunlu',
     ects: 4
   });
+  
+  // Sayfalama state'leri
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [roleFilter, setRoleFilter] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     if (user && role === 'admin') {
@@ -46,14 +53,29 @@ const ProfilePage = () => {
     
     // Curriculum verilerini yükle
     const curriculum = getCurriculumInfo();
-    setCurriculumData(curriculum as CurriculumData);
-  }, [user, role]);
+    setCurriculumData(curriculum);
+  }, [user, role, currentPage, roleFilter, searchQuery]);
 
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      // Kullanıcı listesi API'si yok, bu yüzden boş array döndürüyoruz
-      setUsers([]);
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        pageSize: '5',
+        role: roleFilter,
+        search: searchQuery
+      });
+      const response = await fetch(`/api/users?${params.toString()}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setUsers(data.data);
+        setTotalPages(data.pagination.totalPages);
+        setTotalUsers(data.pagination.totalUsers);
+      } else {
+        console.error('Kullanıcılar yüklenirken hata:', data.error);
+        alert('Kullanıcılar yüklenirken hata oluştu: ' + (data.error || 'Bilinmeyen hata'));
+      }
     } catch (error) {
       console.error('Kullanıcılar yüklenirken hata:', error);
     } finally {
@@ -63,11 +85,26 @@ const ProfilePage = () => {
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     try {
-      // Rol güncelleme API'si yok, bu yüzden sadece log yazıyoruz
-      console.log('Rol güncelleme:', userId, newRole);
-      alert('Rol güncelleme özelliği henüz aktif değil.');
+      const response = await fetch('/api/users', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId, role: newRole }),
+      });
+
+      const data = await response.json();
+      
+      if (data.success) {
+        // Kullanıcı listesini yenile
+        fetchUsers();
+        alert('Kullanıcı rolü başarıyla güncellendi!');
+      } else {
+        alert('Rol güncellenirken hata oluştu: ' + data.error);
+      }
     } catch (error) {
       console.error('Rol güncelleme hatası:', error);
+      alert('Rol güncellenirken hata oluştu!');
     }
   };
 
@@ -83,6 +120,16 @@ const ProfilePage = () => {
       console.error('Davet kodu oluşturma hatası:', error);
       alert('Davet kodu oluşturulamadı!');
     }
+  };
+
+  const handleSearch = (query: string) => {
+    setSearchQuery(query);
+    setCurrentPage(1); // Arama yapıldığında ilk sayfaya dön
+  };
+
+  const handleFilterChange = (filter: string) => {
+    setRoleFilter(filter);
+    setCurrentPage(1); // Filtre değiştiğinde ilk sayfaya dön
   };
 
   if (authLoading) {
@@ -148,66 +195,145 @@ const ProfilePage = () => {
             
             {/* Kullanıcı Yönetimi */}
             <div className="mb-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-3">Kullanıcı Yönetimi</h3>
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-medium text-gray-900">Kullanıcı Yönetimi</h3>
+                <div className="flex gap-3">
+                  {/* Arama Kutusu */}
+                  <div className="relative">
+                    <input
+                      type="text"
+                      placeholder="İsim veya e-posta ara..."
+                      value={searchQuery}
+                      onChange={(e) => handleSearch(e.target.value)}
+                      className="text-sm border border-gray-300 rounded-md px-3 py-2 pl-8 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  {/* Rol Filtresi */}
+                  <select
+                    value={roleFilter}
+                    onChange={(e) => handleFilterChange(e.target.value)}
+                    className="text-sm border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="">Tüm Roller</option>
+                    <option value="admin">Yönetici</option>
+                    <option value="academician">Akademisyen</option>
+                    <option value="student">Öğrenci</option>
+                  </select>
+                </div>
+              </div>
+              
               {loading ? (
                 <div className="text-center py-4">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
                   <p className="mt-2 text-sm text-gray-600">Kullanıcılar yükleniyor...</p>
                 </div>
               ) : (
-                <div className="overflow-x-auto">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Kullanıcı
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          E-posta
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          Rol
-                        </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          İşlemler
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {users.map((user) => (
-                        <tr key={user.id}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">{user.displayName || 'İsimsiz'}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">{user.email}</div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                              user.role === 'academician' ? 'bg-blue-100 text-blue-800' :
-                              user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
-                              'bg-green-100 text-green-800'
-                            }`}>
-                              {user.role === 'academician' ? 'Akademisyen' :
-                               user.role === 'admin' ? 'Yönetici' : 'Öğrenci'}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <select
-                              value={user.role || 'student'}
-                              onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                              className="text-sm border border-gray-300 rounded-md px-2 py-1"
-                            >
-                              <option value="student">Öğrenci</option>
-                              <option value="academician">Akademisyen</option>
-                              <option value="admin">Yönetici</option>
-                            </select>
-                          </td>
+                <>
+                  <div className="overflow-x-auto border border-gray-200 rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-gray-50">
+                        <tr>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Kullanıcı
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            E-posta
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            Rol
+                          </th>
+                          <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                            İşlemler
+                          </th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {users.length === 0 ? (
+                          <tr>
+                            <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                              <div className="text-lg mb-2">🔍</div>
+                              <p>Kullanıcı bulunamadı</p>
+                              <p className="text-sm mt-1">Arama kriterlerinizi değiştirmeyi deneyin</p>
+                            </td>
+                          </tr>
+                        ) : (
+                          users.map((user) => (
+                            <tr key={user.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-gray-900">{user.displayName || 'İsimsiz'}</div>
+                                <div className="text-xs text-gray-500">ID: {user.id}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm text-gray-900">{user.email}</div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  user.role === 'academician' ? 'bg-blue-100 text-blue-800' :
+                                  user.role === 'admin' ? 'bg-purple-100 text-purple-800' :
+                                  'bg-green-100 text-green-800'
+                                }`}>
+                                  {user.role === 'academician' ? 'Akademisyen' :
+                                   user.role === 'admin' ? 'Yönetici' : 'Öğrenci'}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                <select
+                                  value={user.role || 'student'}
+                                  onChange={(e) => handleRoleChange(user.id, e.target.value)}
+                                  className="text-sm border border-gray-300 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                >
+                                  <option value="student">Öğrenci</option>
+                                  <option value="academician">Akademisyen</option>
+                                  <option value="admin">Yönetici</option>
+                                </select>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                  
+                  {/* Sayfalama ve Bilgi */}
+                  <div className="mt-4 flex justify-between items-center">
+                    <div className="text-sm text-gray-700">
+                      {totalUsers > 0 ? (
+                        <>
+                          Toplam {totalUsers} kullanıcı
+                          {searchQuery && ` (${searchQuery} için arama sonucu)`}
+                          {roleFilter && ` (${roleFilter} rolü)`}
+                          , Sayfa {currentPage} / {totalPages}
+                        </>
+                      ) : (
+                        'Kullanıcı bulunamadı'
+                      )}
+                    </div>
+                    {totalPages > 1 && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                          disabled={currentPage === 1}
+                          className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          ← Önceki
+                        </button>
+                        <button
+                          onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                          disabled={currentPage === totalPages}
+                          className="px-3 py-1 text-sm border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        >
+                          Sonraki →
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
             </div>
 
@@ -248,7 +374,7 @@ const ProfilePage = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="">Dönem seçin</option>
-                {curriculumData.curriculum.map((semester, index) => (
+                {curriculumData?.curriculum?.map((semester, index) => (
                   <option key={index} value={index}>
                     {semester.class}. Sınıf {semester.semester}
                   </option>
@@ -323,7 +449,7 @@ const ProfilePage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {curriculumData.curriculum[parseInt(selectedSemester)]?.courses.map((course, index) => (
+                      {curriculumData?.curriculum?.[parseInt(selectedSemester)]?.courses?.map((course, index) => (
                         <tr key={index} className="border-t hover:bg-gray-50">
                           <td className="p-2">{course.code}</td>
                           <td className="p-2">{course.name}</td>

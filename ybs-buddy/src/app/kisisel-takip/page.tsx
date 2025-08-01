@@ -174,12 +174,12 @@ const KisiselTakipPage = () => {
                       </div>
                       <div>
                         <h3 className="font-semibold text-lg">
-                          {result.quizTitle || 'Quiz Sonucu'}
+                          {result.quizId || 'Quiz Sonucu'}
                         </h3>
                         <p className="text-sm text-gray-600">
-                          {result.correctAnswers}/{result.totalQuestions} doğru • 
+                          {result.score}/{result.totalPoints} puan • 
                           {formatTime(result.timeSpent)} süre • 
-                          {formatDate(result.completedAt)}
+                          {formatDate(new Date(result.completedAt).toISOString())}
                         </p>
                       </div>
                     </div>
@@ -215,7 +215,7 @@ const KisiselTakipPage = () => {
                               </span>
                             </div>
                             
-                            <p className="text-gray-800 mb-2">{question?.question || 'Soru metni bulunamadı'}</p>
+                            <p className="text-gray-800 mb-2">{question?.text || 'Soru metni bulunamadı'}</p>
                             
                             <div className="space-y-1">
                               <div className="text-sm">
