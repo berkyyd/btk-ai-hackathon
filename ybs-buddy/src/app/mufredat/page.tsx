@@ -17,7 +17,7 @@ interface CurriculumSemester {
   class: number;
   semester: string;
   courses: CurriculumCourse[];
-  elective_courses?: CurriculumCourse[];
+  elective_courses?: CurriculumCourse[] | undefined;
 }
 
 interface CurriculumData {
@@ -115,6 +115,11 @@ export default function MufredatPage() {
 
   // Seçmeli ders sayısını hesaplayan fonksiyon
   const getElectiveCourseCount = (semester: CurriculumSemester): number => {
+    // elective_courses undefined olabilir, bu durumda 0 döndür
+    if (!semester.elective_courses) {
+      return 0;
+    }
+    
     // Sınıf ve dönem bazında seçmeli ders sayısını belirle
     if (semester.class === 2) {
       return 1; // 2. sınıf: 1 seçmeli ders
@@ -292,9 +297,9 @@ export default function MufredatPage() {
                          <tr className="bg-blue-50">
                            <td colSpan={4} className="px-6 py-3">
                              <div className="flex items-center justify-between">
-                                                               <span className="text-sm font-semibold text-blue-800">
-                                  Bu dönem {getElectiveCourseCount(semester)} adet seçmeli ders alabilirsiniz:
-                                </span>
+                               <span className="text-sm font-semibold text-blue-800">
+                                 Bu dönem {getElectiveCourseCount(semester)} adet seçmeli ders alabilirsiniz:
+                               </span>
                              </div>
                            </td>
                          </tr>

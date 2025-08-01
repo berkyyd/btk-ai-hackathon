@@ -3,9 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { apiClient } from '../../utils/apiClient';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { auth } from '../../config/firebase';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -13,6 +11,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+  const { login } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,19 +19,9 @@ export default function LoginPage() {
     setError('');
 
     try {
-      // Önce Firebase Auth ile giriş yap
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log('Firebase login successful:', userCredential.user);
-      
-      // Sonra API'yi çağır
-      const response = await apiClient.login(email, password);
-      
-      if (response.success) {
-        // Başarılı giriş - ana sayfaya yönlendir
-        router.push('/');
-      } else {
-        setError(response.error || 'Giriş yapılırken bir hata oluştu');
-      }
+      await login(email, password);
+      // Başarılı giriş - ana sayfaya yönlendir
+      router.push('/');
     } catch (err: any) {
       console.error('Login error:', err);
       if (err.code === 'auth/user-not-found') {

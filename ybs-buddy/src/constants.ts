@@ -190,4 +190,38 @@ export const UI = {
 export const DEV = {
   DEBUG_MODE: process.env.NODE_ENV === 'development',
   LOG_LEVEL: process.env.LOG_LEVEL || 'info'
+} as const
+
+// File size limits for upload
+export const FILE_SIZE_LIMITS = {
+  PDF: 10 * 1024 * 1024, // 10MB
+  IMAGE: 5 * 1024 * 1024, // 5MB
+  TEXT: 1 * 1024 * 1024,  // 1MB
+  PDF_MAX_SIZE: 10 * 1024 * 1024 // 10MB
+} as const
+
+// Progress percentages for upload
+export const PROGRESS_PERCENTAGES = {
+  START: 0,
+  UPLOADING: 25,
+  PROCESSING: 50,
+  ANALYZING: 75,
+  COMPLETE: 100,
+  UPLOAD_START: 0,
+  UPLOAD_MIDDLE: 50,
+  UPLOAD_COMPLETE: 100
+} as const
+
+// Quiz defaults
+export const QUIZ_DEFAULTS = {
+  TIME_LIMIT: 30 * 60, // 30 minutes
+  QUESTIONS_COUNT: 10,
+  PASSING_SCORE: 60,
+  MAX_ATTEMPTS: 3,
+  DEFAULT_QUESTION_COUNT: 10,
+  DEFAULT_TIME_LIMIT: 30 * 60,
+  MIN_QUESTION_COUNT: 5,
+  MAX_QUESTION_COUNT: 50,
+  MIN_TIME_LIMIT: 5 * 60, // 5 minutes
+  MAX_TIME_LIMIT: 120 * 60 // 2 hours
 } as const 
