@@ -19,7 +19,7 @@ interface QuizResult {
   timeSpent: number;
   questions: Array<{
     id: string;
-    text: string;
+    question: string; // text yerine question kullan
     topic?: string;
     correctAnswer: string;
     explanation?: string;
@@ -136,7 +136,7 @@ export async function POST(request: NextRequest) {
           const question = result.questions?.find(q => q.id === answer.questionId);
           if (question) {
             wrongAnswers.push({
-              question: question.text,
+              question: question.question,
               userAnswer: answer.userAnswer,
               correctAnswer: answer.correctAnswer,
               topic: question.topic || 'Genel',

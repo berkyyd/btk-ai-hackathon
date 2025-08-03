@@ -15,7 +15,7 @@ export interface Quiz {
 
 export interface Question {
   id: string
-  text: string
+  question: string // text yerine question kullan
   type: 'multiple-choice' | 'true-false' | 'fill-blank' | 'essay'
   options?: string[]
   correctAnswer?: string | string[]

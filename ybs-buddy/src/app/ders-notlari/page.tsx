@@ -13,6 +13,7 @@ import { doc, getDoc, deleteDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import LoginPrompt from '../../components/LoginPrompt'
 import { getAllCourses, getCoursesByClassAndSemester, getClassAndSemesterOptions, CurriculumCourse } from '../../utils/curriculumUtils'
+import { downloadNoteAsPDF } from '../../utils/pdfUtils'
 
 export default function DersNotlariPage() {
   const { user, role, loading: authLoading } = useAuth();
@@ -932,6 +933,29 @@ export default function DersNotlariPage() {
                    
                    <div className='flex items-center gap-2'>
                      <span className='text-blue-500 text-xs'>Detaylar için tıklayın</span>
+                     
+                     {/* PDF İndirme Butonu */}
+                     <button
+                       onClick={(e) => {
+                         e.stopPropagation();
+                         const courseName = (() => {
+                           const curriculumCourse = curriculumCourses.find(c => c.code === note.courseId);
+                           if (curriculumCourse) return curriculumCourse.name;
+                           const apiCourse = courses.find(c => c.id === note.courseId);
+                           if (apiCourse) return apiCourse.name;
+                           return 'Bilinmeyen Ders';
+                         })();
+                         
+                         const userName = users[note.userId || 'anonymous']?.displayName || 'Bilinmeyen Kullanıcı';
+                         
+                         downloadNoteAsPDF(note, courseName, userName);
+                       }}
+                       className='text-green-600 hover:text-green-700 text-xs px-2 py-1 rounded hover:bg-green-50 transition-colors'
+                       title='PDF İndir'
+                     >
+                       📄 PDF
+                     </button>
+                     
                      {note.userId === user?.uid && (
                        <button
                          onClick={(e) => {
@@ -1134,6 +1158,30 @@ export default function DersNotlariPage() {
                 // Görüntüleme modunda butonlar
                 <>
                   <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 flex-1" onClick={() => setShowSummaryModal(true)}>ÖZETLE</button>
+                  
+                                     {/* PDF İndirme Butonu */}
+                   <button 
+                     className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex-1" 
+                     onClick={() => {
+                       if (selectedNote) {
+                         const courseName = (() => {
+                           const curriculumCourse = curriculumCourses.find(c => c.code === selectedNote.courseId);
+                           if (curriculumCourse) return curriculumCourse.name;
+                           const apiCourse = courses.find(c => c.id === selectedNote.courseId);
+                           if (apiCourse) return apiCourse.name;
+                           return 'Bilinmeyen Ders';
+                         })();
+                         
+                         const userName = users[selectedNote.userId || 'anonymous']?.displayName || 'Bilinmeyen Kullanıcı';
+                         
+                         downloadNoteAsPDF(selectedNote, courseName, userName);
+                       }
+                     }}
+                     title="PDF İndir"
+                   >
+                     📄 PDF İNDİR
+                   </button>
+                  
                   {user && selectedNote?.userId === user.uid && (
                     <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 flex-1" onClick={() => handleEditNote(selectedNote)}>DÜZENLE</button>
                   )}

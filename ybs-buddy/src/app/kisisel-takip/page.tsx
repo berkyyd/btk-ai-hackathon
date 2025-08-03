@@ -215,7 +215,7 @@ const KisiselTakipPage = () => {
                               </span>
                             </div>
                             
-                            <p className="text-gray-800 mb-2">{question?.text || 'Soru metni bulunamadı'}</p>
+                            <p className="text-gray-800 mb-2">{question?.question || question?.text || 'Soru metni bulunamadı'}</p>
                             
                             <div className="space-y-1">
                               <div className="text-sm">
