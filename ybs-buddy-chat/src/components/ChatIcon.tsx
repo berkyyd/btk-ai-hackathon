@@ -1,13 +1,19 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ChatWindow from './ChatWindow';
+import { ChatMessage } from '../types/api';
 
 const ChatIcon: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
 
   const toggleChat = () => {
     setIsOpen(!isOpen);
+  };
+
+  const handleChatHistoryChange = (newHistory: ChatMessage[]) => {
+    setChatHistory(newHistory);
   };
 
   return (
@@ -47,7 +53,13 @@ const ChatIcon: React.FC = () => {
           </svg>
         )}
       </button>
-      {isOpen && <ChatWindow onClose={toggleChat} />}
+      {isOpen && (
+        <ChatWindow 
+          onClose={toggleChat}
+          chatHistory={chatHistory}
+          onChatHistoryChange={handleChatHistoryChange}
+        />
+      )}
     </>
   );
 };

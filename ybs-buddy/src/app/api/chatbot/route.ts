@@ -136,6 +136,12 @@ async function getUserSpecificData(userId: string): Promise<UserData> {
 async function generateSmartAnswer(question: string, data: UserData, userId: string, previousMessages?: ChatMessage[]): Promise<string> {
   const questionLower = question.toLowerCase();
   
+  // Son 3 mesajı al ve context oluştur
+  const recentMessages = previousMessages?.slice(-3) || [];
+  const conversationContext = recentMessages.length > 0 
+    ? `\n\nÖNCEKİ KONUŞMA (Son 3 mesaj):\n${recentMessages.map(msg => `${msg.role === 'user' ? 'Kullanıcı' : 'Asistan'}: ${msg.content}`).join('\n')}`
+    : '';
+
   // Dinamik selamlaşma kontrolü
   if (questionLower.includes('naber') || questionLower.includes('nasılsın') || questionLower.includes('selam') || questionLower.includes('merhaba') || questionLower.includes('hey')) {
     const greetings = [
@@ -155,12 +161,6 @@ async function generateSmartAnswer(question: string, data: UserData, userId: str
   if (questionLower.includes('müfredat') || questionLower.includes('ders') || questionLower.includes('course')) {
     contextType = 'courses';
     
-    // Son 5 mesajı al ve context oluştur
-    const recentMessages = previousMessages?.slice(-5) || [];
-    const conversationContext = recentMessages.length > 0 
-      ? `\n\nÖNCEKİ KONUŞMA:\n${recentMessages.map(msg => `${msg.role === 'user' ? 'Kullanıcı' : 'Asistan'}: ${msg.content}`).join('\n')}`
-      : '';
-
     specificPrompt = `
 SORU TÜRÜ: MÜFREDAT/DERS SORUSU
 KULLANICI: ${data.userInfo?.displayName || 'Kullanıcı'}
@@ -176,6 +176,8 @@ YÖNERGELER:
 - Gerçek verilerden bahset, varsayım yapma
 - Önceki konuşmayı dikkate al ve bağlamı koru
 - Türkçe cevap ver
+- KISA VE ÖZ CEVAP VER (maksimum 2-3 cümle)
+- Sadece sorulan soruya odaklan
 
 CEVAP:`;
   } else if (questionLower.includes('not') || questionLower.includes('note') || questionLower.includes('pdf')) {
@@ -200,6 +202,8 @@ YÖNERGELER:
 - Özetlenmiş notları da dahil et (📝 ÖZET)
 - Gerçek not verilerini kullan, varsayım yapma
 - Türkçe cevap ver
+- KISA VE ÖZ CEVAP VER (maksimum 2-3 cümle)
+- Sadece sorulan soruya odaklan
 
 CEVAP:`;
   } else if (questionLower.includes('özet') || questionLower.includes('summary') || questionLower.includes('summarized')) {
@@ -221,6 +225,8 @@ YÖNERGELER:
 - Eğer özetlenmiş not yoksa "Henüz özetlenmiş notunuz bulunmuyor" de
 - Gerçek özet verilerini kullan, varsayım yapma
 - Türkçe cevap ver
+- KISA VE ÖZ CEVAP VER (maksimum 2-3 cümle)
+- Sadece sorulan soruya odaklan
 
 CEVAP:`;
   } else if (questionLower.includes('sınav') || questionLower.includes('quiz') || questionLower.includes('test') || questionLower.includes('exam')) {
@@ -241,6 +247,8 @@ YÖNERGELER:
 - Eğer sınav sonucu yoksa "Henüz sınav sonucunuz bulunmuyor" de
 - Gerçek sınav verilerini kullan, varsayım yapma
 - Türkçe cevap ver
+- KISA VE ÖZ CEVAP VER (maksimum 2-3 cümle)
+- Sadece sorulan soruya odaklan
 
 CEVAP:`;
   } else if (questionLower.includes('kişisel takip') || questionLower.includes('personal tracking') || questionLower.includes('geçmiş sınavlarım') || questionLower.includes('quiz analizi') || questionLower.includes('sınav geçmişi') || questionLower.includes('performans') || questionLower.includes('başarı') || questionLower.includes('takip')) {
@@ -269,6 +277,8 @@ YÖNERGELER:
 - Geçmiş sınavların detaylarını ver
 - Motive edici ve yapıcı öneriler ver
 - Türkçe cevap ver
+- KISA VE ÖZ CEVAP VER (maksimum 3-4 cümle)
+- Sadece sorulan soruya odaklan
 
 CEVAP:`;
   } else if (questionLower.includes('profilim') || questionLower.includes('profile') || questionLower.includes('profil') || questionLower.includes('kullanıcı bilgileri') || questionLower.includes('hesap')) {
@@ -300,6 +310,8 @@ YÖNERGELER:
 - Kişisel gelişim önerileri sun
 - Motive edici yaklaşım benimse
 - Türkçe cevap ver
+- KISA VE ÖZ CEVAP VER (maksimum 3-4 cümle)
+- Sadece sorulan soruya odaklan
 
 CEVAP:`;
   } else if (questionLower.includes('ders notları') || questionLower.includes('ders notlari') || questionLower.includes('notlar') || questionLower.includes('notes') || questionLower.includes('not ekle') || questionLower.includes('not paylaş')) {
@@ -330,6 +342,8 @@ YÖNERGELER:
 - Akademisyen notlarının önceliğini vurgula
 - Özetlenmiş notların özel durumunu açıkla
 - Türkçe cevap ver
+- KISA VE ÖZ CEVAP VER (maksimum 3-4 cümle)
+- Sadece sorulan soruya odaklan
 
 CEVAP:`;
   } else {
@@ -361,11 +375,16 @@ YÖNERGELER:
 - Not türlerini belirt (Akademisyen/Öğrenci/Özet)
 - Özetlenmiş notları da dahil et
 - Türkçe cevap ver
+- KISA VE ÖZ CEVAP VER (maksimum 2-3 cümle)
+- Sadece sorulan soruya odaklan
 
 CEVAP:`;
   }
 
-  return await geminiService.makeRequest(specificPrompt);
+  // Önceki konuşma context'ini prompt'a ekle
+  const finalPrompt = specificPrompt + conversationContext;
+  
+  return await geminiService.makeRequest(finalPrompt);
 }
 
 // Örnek notları oluşturmak için GET endpoint'i
@@ -438,13 +457,13 @@ export async function POST(request: Request) {
 
     // Eğer hala cevap yoksa, genel asistan prompt'u ile cevap üret
     if (!answer) {
-      // Son 5 mesajı al ve context oluştur
-      const recentMessages = previousMessages?.slice(-5) || [];
+      // Son 3 mesajı al ve context oluştur
+      const recentMessages = previousMessages?.slice(-3) || [];
       const conversationContext = recentMessages.length > 0 
-        ? `\n\nÖNCEKİ KONUŞMA:\n${recentMessages.map(msg => `${msg.role === 'user' ? 'Kullanıcı' : 'Asistan'}: ${msg.content}`).join('\n')}`
+        ? `\n\nÖNCEKİ KONUŞMA (Son 3 mesaj):\n${recentMessages.map(msg => `${msg.role === 'user' ? 'Kullanıcı' : 'Asistan'}: ${msg.content}`).join('\n')}`
         : '';
 
-      const generalPrompt = `Sen YBS Buddy'nin akıllı asistanısın. Kullanıcıdan gelen soruya öğrenci dostu, samimi ve açıklayıcı bir şekilde cevap ver. Eğer selam, naber, nasılsın gibi bir mesaj ise sıcak bir şekilde karşılık ver. Cevabın sade, anlaşılır ve motive edici olsun. Önceki konuşmayı dikkate al ve bağlamı koru.`;
+      const generalPrompt = `Sen YBS Buddy'nin akıllı asistanısın. Kullanıcıdan gelen soruya öğrenci dostu, samimi ve açıklayıcı bir şekilde cevap ver. Eğer selam, naber, nasılsın gibi bir mesaj ise sıcak bir şekilde karşılık ver. Cevabın sade, anlaşılır ve motive edici olsun. Önceki konuşmayı dikkate al ve bağlamı koru. KISA VE ÖZ CEVAP VER (maksimum 2-3 cümle). Sadece sorulan soruya odaklan.`;
       answer = await geminiService.makeRequest(`${generalPrompt}${conversationContext}\n\nSORU: ${question}\n\nCEVAP:`);
       sources = [];
     }
