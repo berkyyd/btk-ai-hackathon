@@ -156,9 +156,9 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   };
 
   return (
-    <div className="fixed bottom-4 right-4 w-96 h-[500px] bg-white rounded-lg shadow-xl flex flex-col z-50">
+    <div className="fixed bottom-4 right-4 w-96 h-[500px] card-glass rounded-lg shadow-xl flex flex-col z-50 border border-primary-700/30">
       {/* Header */}
-      <div className="flex justify-between items-center p-4 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-t-lg">
+      <div className="flex justify-between items-center p-4 primary-gradient-bg text-white rounded-t-lg">
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 bg-white bg-opacity-20 rounded-full flex items-center justify-center">
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -194,28 +194,28 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* Messages */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
+      <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-primary-900/5">
         {/* Welcome message only when no messages */}
         {currentChatHistory.length === 0 && (
-          <div className="text-center text-gray-500 py-8">
-            <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
-              <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+          <div className="text-center text-text-secondary py-8">
+            <div className="w-16 h-16 mx-auto mb-4 bg-primary-900/20 rounded-full flex items-center justify-center border border-primary-700/30">
+              <svg className="w-8 h-8 text-primary-400" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clipRule="evenodd" />
               </svg>
             </div>
-            <p className="text-sm font-medium mb-2">Merhaba! Ben YBS Buddy 👋</p>
-            <p className="text-xs mb-4">Size nasıl yardımcı olabilirim?</p>
+            <p className="text-sm font-medium mb-2 text-text-primary">Merhaba! Ben YBS Buddy 👋</p>
+            <p className="text-xs mb-4 text-text-secondary">Size nasıl yardımcı olabilirim?</p>
             
             {/* Örnek sorular */}
             <div className="space-y-2">
-              <p className="text-xs font-medium text-gray-600 mb-2">Örnek sorular:</p>
+              <p className="text-xs font-medium text-text-muted mb-2">Örnek sorular:</p>
               <div className="grid grid-cols-1 gap-2">
                 <button
                   onClick={() => {
                     setMessage("Müfredatta kaç adet ders var?");
                     setTimeout(() => handleSendMessage(), 100);
                   }}
-                  className="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors text-left"
+                  className="text-xs bg-primary-900/20 text-primary-300 px-3 py-2 rounded-lg hover:bg-primary-800/30 transition-all duration-300 text-left border border-primary-700/30 hover:scale-105"
                 >
                   📚 Müfredatta kaç adet ders var?
                 </button>
@@ -224,7 +224,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     setMessage("Benim notlarım neler?");
                     setTimeout(() => handleSendMessage(), 100);
                   }}
-                  className="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors text-left"
+                  className="text-xs bg-primary-900/20 text-primary-300 px-3 py-2 rounded-lg hover:bg-primary-800/30 transition-all duration-300 text-left border border-primary-700/30 hover:scale-105"
                 >
                   📝 Benim notlarım neler?
                 </button>
@@ -233,7 +233,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     setMessage("Geçmiş sınav sonuçlarım nasıl?");
                     setTimeout(() => handleSendMessage(), 100);
                   }}
-                  className="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors text-left"
+                  className="text-xs bg-primary-900/20 text-primary-300 px-3 py-2 rounded-lg hover:bg-primary-800/30 transition-all duration-300 text-left border border-primary-700/30 hover:scale-105"
                 >
                   📊 Geçmiş sınav sonuçlarım nasıl?
                 </button>
@@ -242,7 +242,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                     setMessage("En yüksek puan aldığım sınav hangisi?");
                     setTimeout(() => handleSendMessage(), 100);
                   }}
-                  className="text-xs bg-blue-50 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors text-left"
+                  className="text-xs bg-primary-900/20 text-primary-300 px-3 py-2 rounded-lg hover:bg-primary-800/30 transition-all duration-300 text-left border border-primary-700/30 hover:scale-105"
                 >
                   🏆 En yüksek puan aldığım sınav hangisi?
                 </button>
@@ -257,12 +257,12 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
             <div className={`max-w-[80%] ${msg.role === 'user' ? 'order-2' : 'order-1'}`}>
               <div className={`p-3 rounded-lg ${
                 msg.role === 'user' 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-white border border-gray-200'
+                  ? 'bg-primary-600 text-white border border-primary-500/30' 
+                  : 'bg-card-light border border-primary-700/30'
               }`}>
                 <p className="text-sm whitespace-pre-wrap">{msg.content}</p>
                 <p className={`text-xs mt-1 ${
-                  msg.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                  msg.role === 'user' ? 'text-primary-200' : 'text-text-muted'
                 }`}>
                   {formatTime(msg.timestamp)}
                 </p>
@@ -273,13 +273,13 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
                 <div className="mt-2 flex space-x-2">
                   <button
                     onClick={() => handleFeedback(msg.id, 'helpful')}
-                    className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded hover:bg-green-200 transition-colors"
+                    className="text-xs bg-green-900/30 text-green-300 px-2 py-1 rounded hover:bg-green-800/40 transition-all duration-300 border border-green-700/30 hover:scale-105"
                   >
                     👍 Yardımcı
                   </button>
                   <button
                     onClick={() => handleFeedback(msg.id, 'not_helpful')}
-                    className="text-xs bg-red-100 text-red-700 px-2 py-1 rounded hover:bg-red-200 transition-colors"
+                    className="text-xs bg-red-900/30 text-red-300 px-2 py-1 rounded hover:bg-red-800/40 transition-all duration-300 border border-red-700/30 hover:scale-105"
                   >
                     👎 Yardımcı Değil
                   </button>
@@ -289,10 +289,10 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
               {/* Show feedback status */}
               {msg.role === 'assistant' && msg.feedback && (
                 <div className="mt-2">
-                  <span className={`text-xs px-2 py-1 rounded ${
+                  <span className={`text-xs px-2 py-1 rounded border ${
                     msg.feedback === 'helpful' 
-                      ? 'bg-green-100 text-green-700' 
-                      : 'bg-red-100 text-red-700'
+                      ? 'bg-green-900/30 text-green-300 border-green-700/30' 
+                      : 'bg-red-900/30 text-red-300 border-red-700/30'
                   }`}>
                     {msg.feedback === 'helpful' ? '👍 Teşekkürler!' : '👎 Geri bildiriminiz için teşekkürler'}
                   </span>
@@ -304,14 +304,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
         {isLoading && (
           <div className="flex justify-start">
-            <div className="bg-white border border-gray-200 p-3 rounded-lg">
+            <div className="bg-card-light border border-primary-700/30 p-3 rounded-lg">
               <div className="flex items-center space-x-2">
                 <div className="flex space-x-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                  <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce"></div>
+                  <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                  <div className="w-2 h-2 bg-primary-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
                 </div>
-                <span className="text-sm text-gray-500">Yazıyor...</span>
+                <span className="text-sm text-text-secondary">Yazıyor...</span>
               </div>
             </div>
           </div>
@@ -319,11 +319,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
         {/* Sources */}
         {sources.length > 0 && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <p className="text-xs font-medium text-blue-800 mb-2">📚 Kaynaklar:</p>
+          <div className="bg-primary-900/20 border border-primary-700/30 rounded-lg p-3">
+            <p className="text-xs font-medium text-primary-300 mb-2">📚 Kaynaklar:</p>
             <div className="space-y-1">
               {sources.map((source, index) => (
-                <p key={index} className="text-xs text-blue-700">• {source}</p>
+                <p key={index} className="text-xs text-primary-200">• {source}</p>
               ))}
             </div>
           </div>
@@ -333,11 +333,11 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-gray-200 bg-white">
+      <div className="p-4 border-t border-primary-800/30 bg-card-light">
         <div className="flex space-x-2">
           <input
             type="text"
-            className="flex-1 border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="flex-1 border border-primary-700/30 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-card-light text-text-primary"
             placeholder="Müfredat, ders notları, sınavlar hakkında soru sorun..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -352,7 +352,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
           <button
             onClick={handleSendMessage}
             disabled={isLoading || message.trim() === ''}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            className="btn-premium px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-opacity-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />

@@ -15,7 +15,7 @@ export default function RootLayout({
     <html lang="tr">
       <body className="font-sans">
         <AuthProvider>
-          <div className='flex flex-col min-h-screen bg-background'>
+          <div className='flex flex-col min-h-screen'>
             <Header />
             <main className='flex-grow mx-auto max-w-7xl w-full px-4 sm:px-6 lg:px-8 py-8'>
               {children}
