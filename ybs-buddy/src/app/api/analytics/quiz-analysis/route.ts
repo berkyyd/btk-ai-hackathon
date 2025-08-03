@@ -69,7 +69,6 @@ export async function POST(request: NextRequest) {
       const snapshot = await getDocs(q);
       quizResults = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })) as QuizResult[];
     } catch (indexError: any) {
-      console.log('Composite index eksik, fallback kullanılıyor...');
       // Index yoksa sadece userId ile sorgula ve client-side sırala
       const q = query(quizResultsRef, where('userId', '==', userId));
       const snapshot = await getDocs(q);

@@ -52,7 +52,7 @@ const QuizAnalysis: React.FC = () => {
             setLastUpdated(new Date(data.createdAt).toLocaleDateString('tr-TR'));
           }
         } catch (indexError) {
-          console.log('Composite index gerekli, analiz bulunamadı...');
+          // Composite index gerekli, analiz bulunamadı
         }
       } catch (error) {
         console.error('Analiz yüklenirken hata:', error);

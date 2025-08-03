@@ -59,8 +59,6 @@ export default function RegisterPage() {
       if (formData.displayName) {
         await updateProfile(user, { displayName: formData.displayName });
       }
-      
-      console.log('Firebase register successful:', user);
 
       let userRole = 'student'; // Varsayılan rol
       let invitationCodeDocRef: DocumentReference | null = null;
@@ -72,7 +70,6 @@ export default function RegisterPage() {
           // Davet kodundan gelen role'ü kullan
           userRole = validationResult.targetRole || 'student';
           invitationCodeDocRef = validationResult.docRef;
-          console.log('Davet kodu ile kayıt - Role:', userRole);
         } else {
           console.warn('Davet kodu geçersiz veya kullanılmış: ', validationResult.error);
           // Davet kodu geçersiz olsa bile kayıt işlemine devam et, rol varsayılan olarak kalır.

@@ -50,8 +50,9 @@ export default function QuizForm({ onSubmit, onCancel, loading, courses }: QuizF
       
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-text mb-2">Sınav Başlığı</label>
+          <label htmlFor="title" className="block text-sm font-medium text-text mb-2">Sınav Başlığı</label>
           <input
+            id="title"
             type="text"
             value={formData.title}
             onChange={(e) => handleInputChange('title', e.target.value)}
@@ -61,8 +62,9 @@ export default function QuizForm({ onSubmit, onCancel, loading, courses }: QuizF
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-text mb-2">Açıklama</label>
+          <label htmlFor="description" className="block text-sm font-medium text-text mb-2">Açıklama</label>
           <textarea
+            id="description"
             value={formData.description}
             onChange={(e) => handleInputChange('description', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -71,8 +73,9 @@ export default function QuizForm({ onSubmit, onCancel, loading, courses }: QuizF
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-text mb-2">Ders</label>
+          <label htmlFor="course" className="block text-sm font-medium text-text mb-2">Ders</label>
           <select
+            id="course"
             value={formData.courseId}
             onChange={(e) => handleInputChange('courseId', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -88,8 +91,9 @@ export default function QuizForm({ onSubmit, onCancel, loading, courses }: QuizF
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-text mb-2">Zorluk</label>
+          <label htmlFor="difficulty" className="block text-sm font-medium text-text mb-2">Zorluk</label>
           <select
+            id="difficulty"
             value={formData.difficulty}
             onChange={(e) => handleInputChange('difficulty', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -102,8 +106,9 @@ export default function QuizForm({ onSubmit, onCancel, loading, courses }: QuizF
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-text mb-2">Soru Sayısı</label>
+          <label htmlFor="questionCount" className="block text-sm font-medium text-text mb-2">Soru Sayısı</label>
           <input
+            id="questionCount"
             type="number"
             value={formData.questionCount}
             onChange={(e) => handleInputChange('questionCount', parseInt(e.target.value) || QUIZ_DEFAULTS.DEFAULT_QUESTION_COUNT)}
@@ -115,8 +120,9 @@ export default function QuizForm({ onSubmit, onCancel, loading, courses }: QuizF
         </div>
         
         <div>
-          <label className="block text-sm font-medium text-text mb-2">Süre (Dakika)</label>
+          <label htmlFor="timeLimit" className="block text-sm font-medium text-text mb-2">Süre (Dakika)</label>
           <input
+            id="timeLimit"
             type="number"
             value={formData.timeLimit}
             onChange={(e) => handleInputChange('timeLimit', parseInt(e.target.value) || QUIZ_DEFAULTS.DEFAULT_TIME_LIMIT)}
@@ -128,8 +134,9 @@ export default function QuizForm({ onSubmit, onCancel, loading, courses }: QuizF
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-text mb-2">Sınav Türü</label>
+          <label htmlFor="examFormat" className="block text-sm font-medium text-text mb-2">Sınav Türü</label>
           <select
+            id="examFormat"
             value={formData.examFormat}
             onChange={(e) => handleInputChange('examFormat', e.target.value)}
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"

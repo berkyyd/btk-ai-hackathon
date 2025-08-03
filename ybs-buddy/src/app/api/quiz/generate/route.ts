@@ -31,7 +31,6 @@ export async function POST(request: NextRequest) {
       notesContent = selectedNotes
         .map((note: any) => `${note.title}\n\n${note.content}`)
         .join('\n\n---\n\n');
-      console.log('Seçilen notlar kullanılıyor:', selectedNotes.length);
     } else {
       // Seçilen dersin notlarını Firestore'dan çek
       try {

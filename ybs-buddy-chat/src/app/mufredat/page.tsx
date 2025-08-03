@@ -38,21 +38,16 @@ export default function MufredatPage() {
       
       const response = await apiClient.getCourses()
       
-      console.log('API Response:', response)
-      
       if (response.success) {
         const data = response.data as any
-        console.log('Courses data:', data)
         if (data && data.courses) {
           setAllCourses(data.courses)
           filterCourses(data.courses)
         } else {
-          console.log('No courses found in response')
           setAllCourses([])
           setCourses([])
         }
       } else {
-        console.log('API Error:', response.error)
         setError(response.error || 'Dersler yüklenirken bir hata oluştu')
       }
     } catch (err) {

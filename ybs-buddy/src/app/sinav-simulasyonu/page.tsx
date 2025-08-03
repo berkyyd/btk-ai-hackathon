@@ -218,10 +218,6 @@ export default function SinavSimulasyonuPage() {
 
   // Sınavı bitir
   const finishQuiz = async () => {
-    console.log('finishQuiz called')
-    console.log('activeQuiz:', activeQuiz)
-    console.log('quizStartTime:', quizStartTime)
-    
     if (!activeQuiz) {
       console.error('Cannot finish quiz: missing activeQuiz')
       return
@@ -239,13 +235,6 @@ export default function SinavSimulasyonuPage() {
     const answers = activeQuiz.questions.map(question => {
       const userAnswer = userAnswers[question.id]
       
-      // Debug için cevap bilgilerini logla
-      console.log('Question:', question.question)
-      console.log('Question type:', question.type)
-      console.log('User answer:', userAnswer)
-      console.log('Correct answer:', question.correctAnswer)
-      console.log('Correct answer type:', typeof question.correctAnswer)
-      
       const isCorrect = (() => {
         if (!userAnswer) return false;
         
@@ -253,7 +242,6 @@ export default function SinavSimulasyonuPage() {
           // Boolean değerleri string'e çevir ve karşılaştır
           const userAnsStr = String(userAnswer).toLowerCase();
           const correctAnsStr = String(question.correctAnswer).toLowerCase();
-          console.log('True/False comparison:', userAnsStr, 'vs', correctAnsStr)
           return userAnsStr === correctAnsStr;
         } else if (question.type === 'multiple_choice') {
           // Çoktan seçmeli sorularda harf eşleşmesi ara
@@ -264,19 +252,16 @@ export default function SinavSimulasyonuPage() {
           const userLetter = userAnsStr.match(/^[A-D]\)/)?.[0]?.replace(')', '') || userAnsStr;
           const correctLetter = correctAnsStr.match(/^[A-D]\)/)?.[0]?.replace(')', '') || correctAnsStr;
           
-          console.log('Multiple choice comparison:', userLetter, 'vs', correctLetter)
           return userLetter === correctLetter;
         } else if (question.type === 'open_ended') {
           // Açık uçlu sorularda daha esnek karşılaştırma
           const userAnsStr = String(userAnswer).toLowerCase().trim();
           const correctAnsStr = String(question.correctAnswer).toLowerCase().trim();
-          console.log('Open ended comparison:', userAnsStr, 'vs', correctAnsStr)
           return userAnsStr === correctAnsStr;
         }
         return false; // Bilinmeyen soru tipi
       })();
       
-      console.log('Is correct:', isCorrect)
       if (isCorrect) correctAnswers++
       
       return {
@@ -878,7 +863,6 @@ export default function SinavSimulasyonuPage() {
                   {currentQuestionIndex === activeQuiz.totalQuestions - 1 ? (
                     <button
                       onClick={() => {
-                        console.log('Finish button clicked')
                         finishQuiz()
                       }}
                       className='px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors'
