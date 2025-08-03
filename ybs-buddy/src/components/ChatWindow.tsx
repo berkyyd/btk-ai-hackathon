@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ChatMessage, ChatbotResponse } from '../types/api';
 import { useAuth } from '../contexts/AuthContext';
 
@@ -24,17 +24,8 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
 
-  // Chat history'yi yönet
-  const chatHistory = externalChatHistory || internalChatHistory;
-  
-  const addMessage = (newMessage: ChatMessage) => {
-    const updatedHistory = [...chatHistory, newMessage];
-    if (onChatHistoryChange) {
-      onChatHistoryChange(updatedHistory);
-    } else {
-      setInternalChatHistory(updatedHistory);
-    }
-  };
+  // Chat history'yi yönet - external varsa onu kullan, yoksa internal'ı
+  const currentChatHistory = externalChatHistory || internalChatHistory;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -42,7 +33,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
 
   useEffect(() => {
     scrollToBottom();
-  }, [chatHistory]);
+  }, [currentChatHistory]);
 
   const handleSendMessage = async () => {
     const currentMessage = message.trim();
@@ -56,7 +47,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
     };
 
     // Kullanıcı mesajını hemen ekle
-    addMessage(userMessage);
+    if (onChatHistoryChange) {
+      // External chat history kullanılıyorsa
+      const newHistory = [...currentChatHistory, userMessage];
+      onChatHistoryChange(newHistory);
+    } else {
+      // Internal chat history kullanılıyorsa
+      setInternalChatHistory(prev => [...prev, userMessage]);
+    }
+    
     setMessage('');
     setIsLoading(true);
     setSources([]);
@@ -70,7 +69,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         body: JSON.stringify({ 
           question: currentMessage,
           userId: user?.uid || 'anonymous',
-          previousMessages: chatHistory.slice(-5)
+          previousMessages: currentChatHistory.slice(-3)
         }),
       });
 
@@ -84,7 +83,14 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       };
 
       // Bot mesajını ekle
-      addMessage(botMessage);
+      if (onChatHistoryChange) {
+        // External chat history kullanılıyorsa - hem kullanıcı hem bot mesajını ekle
+        const newHistory = [...currentChatHistory, userMessage, botMessage];
+        onChatHistoryChange(newHistory);
+      } else {
+        // Internal chat history kullanılıyorsa
+        setInternalChatHistory(prev => [...prev, botMessage]);
+      }
       
       if (data.sources && data.sources.length > 0) {
         setSources(data.sources);
@@ -97,7 +103,15 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         role: 'assistant',
         timestamp: new Date()
       };
-      addMessage(errorMessage);
+      
+      if (onChatHistoryChange) {
+        // External chat history kullanılıyorsa - hem kullanıcı hem hata mesajını ekle
+        const newHistory = [...currentChatHistory, userMessage, errorMessage];
+        onChatHistoryChange(newHistory);
+      } else {
+        // Internal chat history kullanılıyorsa
+        setInternalChatHistory(prev => [...prev, errorMessage]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -120,7 +134,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       });
 
       // Update the message with feedback
-      const updatedHistory = chatHistory.map((msg) =>
+      const updatedHistory = currentChatHistory.map((msg) =>
         msg.id === messageId ? { ...msg, feedback } : msg
       );
       
@@ -182,7 +196,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
       {/* Messages */}
       <div className="flex-1 p-4 overflow-y-auto space-y-4 bg-gray-50">
         {/* Welcome message only when no messages */}
-        {chatHistory.length === 0 && (
+        {currentChatHistory.length === 0 && (
           <div className="text-center text-gray-500 py-8">
             <div className="w-16 h-16 mx-auto mb-4 bg-blue-100 rounded-full flex items-center justify-center">
               <svg className="w-8 h-8 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
@@ -238,7 +252,7 @@ const ChatWindow: React.FC<ChatWindowProps> = ({
         )}
 
         {/* Show all messages */}
-        {chatHistory.map((msg) => (
+        {currentChatHistory.map((msg) => (
           <div key={msg.id} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] ${msg.role === 'user' ? 'order-2' : 'order-1'}`}>
               <div className={`p-3 rounded-lg ${

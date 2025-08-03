@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
     // Eğer retriever ile cevap yoksa veya not bulunamadıysa, Gemini genel asistan prompt'u ile cevap üret
     if (!answer) {
-      const generalPrompt = `Sen YBS Buddy'nin akıllı asistanısın. Kullanıcıdan gelen soruya öğrenci dostu, samimi ve açıklayıcı bir şekilde cevap ver. Eğer selam, naber, nasılsın gibi bir mesaj ise sıcak bir şekilde karşılık ver. Eğer derslerle ilgili bir soruysa, genel bilgi ver. Cevabın sade, anlaşılır ve motive edici olsun.`;
+      const generalPrompt = `Sen YBS Buddy'nin akıllı asistanısın. Kullanıcıdan gelen soruya öğrenci dostu, samimi ve açıklayıcı bir şekilde cevap ver. Eğer selam, naber, nasılsın gibi bir mesaj ise sıcak bir şekilde karşılık ver. Eğer derslerle ilgili bir soruysa, genel bilgi ver. Cevabın sade, anlaşılır ve motive edici olsun. KISA VE ÖZ CEVAP VER (maksimum 2-3 cümle). Sadece sorulan soruya odaklan.`;
       answer = await geminiService.makeRequest(`${generalPrompt}\n\nSORU: ${question}\n\nCEVAP:`);
       sources = [];
     }
