@@ -39,13 +39,17 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 gap-8">
           <div className="flex items-center">
+
             <Link href="/" className="text-2xl font-bold text-primary-400 hover:text-primary-300 transition-colors duration-300 mr-16 focus:outline-none dark:text-primary-400 text-black">
+
               YBS Buddy
             </Link>
           </div>
 
           <nav className="hidden md:flex space-x-16" ref={dropdownRef}>
+
             <Link href="/" className="text-text-secondary hover:text-primary-400 hover:scale-105 transition-all duration-300 font-medium focus:outline-none dark:text-text-secondary text-black">
+
               Ana Sayfa
             </Link>
             
@@ -54,7 +58,9 @@ export default function Header() {
               <button
                 onClick={() => toggleDropdown('education')}
                 onMouseEnter={() => setActiveDropdown('education')}
+
                 className="text-text-secondary hover:text-primary-400 transition-colors duration-300 font-medium flex items-center focus:outline-none dark:text-text-secondary text-black"
+
               >
                 Eğitim
                 <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -63,27 +69,35 @@ export default function Header() {
               </button>
               {activeDropdown === 'education' && (
                 <div 
+
                   className="absolute top-full left-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-[9999]"
+
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
                   <div className="py-1">
                     <Link 
                       href="/mufredat" 
+
                       className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-600 hover:bg-gray-100 transition-colors duration-300 focus:outline-none"
+
                       onClick={() => setActiveDropdown(null)}
                     >
                       📚 Müfredat
                     </Link>
                     <Link 
                       href="/ders-notlari" 
+
                       className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-600 hover:bg-gray-100 transition-colors duration-300 focus:outline-none"
+
                       onClick={() => setActiveDropdown(null)}
                     >
                       📝 Ders Notları
                     </Link>
                     <Link 
                       href="/sinav-simulasyonu" 
+
                       className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-600 hover:bg-gray-100 transition-colors duration-300 focus:outline-none"
+
                       onClick={() => setActiveDropdown(null)}
                     >
                       🎯 Sınav Simülasyonu
@@ -98,7 +112,9 @@ export default function Header() {
               <button
                 onClick={() => toggleDropdown('personal')}
                 onMouseEnter={() => setActiveDropdown('personal')}
+
                 className="text-text-secondary hover:text-primary-400 transition-colors duration-300 font-medium flex items-center focus:outline-none dark:text-text-secondary text-black"
+
               >
                 Kişisel
                 <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -107,7 +123,9 @@ export default function Header() {
               </button>
               {activeDropdown === 'personal' && (
                 <div 
+
                   className="absolute top-full left-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-[9999]"
+
                   onMouseLeave={() => setActiveDropdown(null)}
                 >
                   <div className="py-1">
@@ -115,14 +133,18 @@ export default function Header() {
                       <>
                         <Link 
                           href="/kisisel-takip" 
+
                           className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-600 hover:bg-gray-100 transition-colors duration-300 focus:outline-none"
+
                           onClick={() => setActiveDropdown(null)}
                         >
                           📊 Kişisel Takip
                         </Link>
                         <Link 
                           href="/profile" 
+
                           className="block px-4 py-2 text-sm text-gray-700 hover:text-primary-600 hover:bg-gray-100 transition-colors duration-300 focus:outline-none"
+
                           onClick={() => setActiveDropdown(null)}
                         >
                           👤 Profilim
@@ -130,19 +152,23 @@ export default function Header() {
                       </>
                     ) : (
                       <>
-                        <div className="px-4 py-2 text-sm text-gray-500 border-b border-gray-200">
+                        <div className="px-4 py-2 text-sm text-text-muted border-b border-primary-800/30">
                           Giriş yaparak kişisel özellikleri kullanabilirsiniz
                         </div>
                         <Link 
                           href="/login" 
+
                           className="block px-4 py-2 text-sm text-blue-600 hover:text-white hover:bg-blue-600 transition-colors duration-300 focus:outline-none"
+
                           onClick={() => setActiveDropdown(null)}
                         >
                           🔑 Giriş Yap
                         </Link>
                         <Link 
                           href="/register" 
+
                           className="block px-4 py-2 text-sm text-green-600 hover:text-white hover:bg-green-600 transition-colors duration-300 focus:outline-none"
+
                           onClick={() => setActiveDropdown(null)}
                         >
                           📝 Kayıt Ol
@@ -156,6 +182,7 @@ export default function Header() {
           </nav>
 
           <div className="flex items-center space-x-8">
+
             {/* Theme Toggle Button */}
             <button
               onClick={toggleTheme}
@@ -177,6 +204,7 @@ export default function Header() {
               <div className="flex items-center space-x-2">
                 <div className="loading-spinner"></div>
                 <span className="text-sm text-text-secondary dark:text-text-secondary text-black">Yükleniyor...</span>
+
               </div>
             ) : isAuthenticated && user ? (
               <div className="flex items-center space-x-6">
@@ -184,7 +212,9 @@ export default function Header() {
                   <div className="p-2 rounded-full bg-primary-900/30 text-text-primary text-sm font-medium hover:bg-primary-800/40 transition-colors duration-300 border border-primary-700/30">
                     {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
                   </div>
+
                   <span className="text-sm text-text-secondary dark:text-text-secondary text-black">
+
                     Merhaba, {user.displayName || user.email || 'Kullanıcı'}
                   </span>
                 </div>
