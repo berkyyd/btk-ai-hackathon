@@ -116,8 +116,6 @@ jspm_packages/
 firebase-debug.log
 firebase-debug.*.log
 
-<<<<<<< HEAD
-=======
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
@@ -129,4 +127,3 @@ firebase-debug.*.log
 *.sln
 *.sw?
 .next
->>>>>>> 6a3dc9a29efac6230c979ba4642734c8a27c828a
