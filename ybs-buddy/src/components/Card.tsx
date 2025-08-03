@@ -3,7 +3,7 @@ import type { CardProps } from '../types'
 
 const Card: React.FC<CardProps> = ({ children, className }) => {
   return (
-    <div className={`bg-card p-6 rounded-lg shadow-md ${className}`}>
+    <div className={`card-glass p-6 rounded-lg ${className}`}>
       {children}
     </div>
   )

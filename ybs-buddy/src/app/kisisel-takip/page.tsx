@@ -104,8 +104,8 @@ const KisiselTakipPage = () => {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-gray-600">Yükleniyor...</p>
+          <div className="loading-spinner mb-4"></div>
+          <p className="text-text-secondary">Yükleniyor...</p>
         </div>
       </div>
     );
@@ -127,15 +127,15 @@ const KisiselTakipPage = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto py-8 px-4">
+    <div className="min-h-screen max-w-6xl mx-auto py-8 px-4">
       <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-gray-800 mb-2">Kişisel Takip</h1>
-        <p className="text-gray-600">Gelişiminizi takip edin ve performansınızı analiz edin</p>
+        <h1 className="text-4xl font-bold text-text-primary mb-2">Kişisel Takip</h1>
+        <p className="text-text-secondary">Gelişiminizi takip edin ve performansınızı analiz edin</p>
       </div>
 
       {/* Quiz Analizi */}
       <Card className="mb-8">
-        <h2 className="text-3xl font-bold text-text mb-6 text-center border-b-2 border-primary pb-3">
+        <h2 className="text-3xl font-bold text-text-primary mb-6 text-center border-b-2 border-primary-500 pb-3">
           📊 Quiz Analizi & Gelişim Takibi
         </h2>
         <QuizAnalysis />
@@ -143,40 +143,40 @@ const KisiselTakipPage = () => {
 
       {/* Geçmiş Sınavlarım */}
       <Card>
-        <h2 className="text-3xl font-bold text-text mb-6 text-center border-b-2 border-primary pb-3">
+        <h2 className="text-3xl font-bold text-text-primary mb-6 text-center border-b-2 border-primary-500 pb-3">
           📝 Geçmiş Sınavlarım
         </h2>
         
         {loadingResults ? (
           <div className="text-center py-8">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
-            <p className="text-gray-600">Sınav sonuçları yükleniyor...</p>
+            <div className="loading-spinner mb-4"></div>
+            <p className="text-text-secondary">Sınav sonuçları yükleniyor...</p>
           </div>
         ) : quizResults.length === 0 ? (
           <div className="text-center py-8">
             <div className="text-4xl mb-4">📝</div>
-            <p className="text-gray-600 mb-2">Henüz hiç sınav çözmemişsiniz.</p>
-            <p className="text-gray-500 text-sm">Sınav simülasyonu sayfasından quiz oluşturup çözerek burada sonuçlarınızı görebilirsiniz.</p>
+            <p className="text-text-secondary mb-2">Henüz hiç sınav çözmemişsiniz.</p>
+            <p className="text-text-muted text-sm">Sınav simülasyonu sayfasından quiz oluşturup çözerek burada sonuçlarınızı görebilirsiniz.</p>
           </div>
         ) : (
           <div className="space-y-4">
             {quizResults.map((result) => (
-              <div key={result.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div key={result.id} className="card-glass border border-primary-700/30 rounded-lg p-4 hover:shadow-glow-blue transition-all duration-400">
                 <details className="group">
-                  <summary className="flex items-center justify-between cursor-pointer p-2 hover:bg-gray-50 rounded">
+                  <summary className="flex items-center justify-between cursor-pointer p-2 hover:bg-primary-900/20 rounded transition-colors">
                     <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
-                        result.score >= 80 ? 'bg-green-500' :
-                        result.score >= 60 ? 'bg-yellow-500' :
-                        'bg-red-500'
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold border ${
+                        result.score >= 80 ? 'bg-green-600 border-green-500/30' :
+                        result.score >= 60 ? 'bg-yellow-600 border-yellow-500/30' :
+                        'bg-red-600 border-red-500/30'
                       }`}>
                         {result.score}
                       </div>
                       <div>
-                        <h3 className="font-semibold text-lg">
+                        <h3 className="font-semibold text-lg text-text-primary">
                           {result.quizId || 'Quiz Sonucu'}
                         </h3>
-                        <p className="text-sm text-gray-600">
+                        <p className="text-sm text-text-secondary">
                           {result.score}/{result.totalPoints} puan • 
                           {formatTime(result.timeSpent)} süre • 
                           {formatDate(new Date(result.completedAt).toISOString())}
@@ -184,44 +184,44 @@ const KisiselTakipPage = () => {
                       </div>
                     </div>
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm text-gray-500 group-open:hidden">Detayları göster</span>
-                      <span className="text-sm text-gray-500 hidden group-open:inline">Gizle</span>
+                      <span className="text-sm text-text-muted group-open:hidden">Detayları göster</span>
+                      <span className="text-sm text-text-muted hidden group-open:inline">Gizle</span>
                       <button
                         onClick={(e) => {
                           e.preventDefault();
                           handleDeleteQuizResult(result.id, result.score);
                         }}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium ml-4"
+                        className="text-red-400 hover:text-red-300 text-sm font-medium ml-4 transition-colors"
                       >
                         🗑️ Sil
                       </button>
                     </div>
                   </summary>
                   
-                  <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="mt-4 p-4 bg-primary-900/10 rounded-lg border border-primary-700/30">
                     {result.answers && result.answers.length > 0 ? (
                       result.answers.map((answer, index) => {
                         const question = result.questions?.[index];
                         return (
-                          <div key={answer.questionId} className="mb-4 p-3 bg-white rounded border">
+                          <div key={answer.questionId} className="mb-4 p-3 bg-card-light rounded border border-primary-700/30">
                             <div className="flex items-start justify-between mb-2">
-                              <span className="font-medium text-gray-700">
+                              <span className="font-medium text-text-primary">
                                 Soru {index + 1}:
                               </span>
-                              <span className={`px-2 py-1 text-xs font-semibold rounded ${
-                                answer.isCorrect ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                              <span className={`px-2 py-1 text-xs font-semibold rounded border ${
+                                answer.isCorrect ? 'bg-green-900/30 text-green-300 border-green-700/30' : 'bg-red-900/30 text-red-300 border-red-700/30'
                               }`}>
                                 {answer.isCorrect ? 'DOĞRU' : 'YANLIŞ'}
                               </span>
                             </div>
                             
-                            <p className="text-gray-800 mb-2">{question?.question || question?.text || 'Soru metni bulunamadı'}</p>
+                            <p className="text-text-secondary mb-2">{question?.question || question?.text || 'Soru metni bulunamadı'}</p>
                             
                             <div className="space-y-1">
                               <div className="text-sm">
-                                <span className="font-medium">Sizin cevabınız:</span>
+                                <span className="font-medium text-text-secondary">Sizin cevabınız:</span>
                                 <span className={`ml-2 ${
-                                  answer.isCorrect ? 'text-green-700' : 'text-red-700'
+                                  answer.isCorrect ? 'text-green-400' : 'text-red-400'
                                 }`}>
                                   {String(answer.userAnswer)}
                                 </span>
@@ -229,8 +229,8 @@ const KisiselTakipPage = () => {
                               
                               {!answer.isCorrect && question?.correctAnswer && (
                                 <div className="text-sm">
-                                  <span className="font-medium">Doğru cevap:</span>
-                                  <span className="ml-2 text-green-700">
+                                  <span className="font-medium text-text-secondary">Doğru cevap:</span>
+                                  <span className="ml-2 text-green-400">
                                     {(() => {
                                       if (typeof question.correctAnswer === 'boolean') {
                                         return question.correctAnswer ? 'Doğru' : 'Yanlış';
@@ -244,9 +244,9 @@ const KisiselTakipPage = () => {
                             
                             {/* Açıklama */}
                             {question?.explanation && (
-                              <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                                <span className="font-medium text-blue-700">Açıklama:</span>
-                                <p className="text-blue-600 mt-1 italic">{question.explanation}</p>
+                              <div className="mt-3 p-3 bg-primary-900/20 rounded-lg border border-primary-700/30">
+                                <span className="font-medium text-primary-300">Açıklama:</span>
+                                <p className="text-primary-200 mt-1 italic">{question.explanation}</p>
                               </div>
                             )}
                           </div>
@@ -255,8 +255,8 @@ const KisiselTakipPage = () => {
                     ) : (
                       <div className="text-center py-8">
                         <div className="text-4xl mb-4">📝</div>
-                        <p className="text-gray-600 mb-2">Bu quiz eski formatta kaydedilmiş.</p>
-                        <p className="text-gray-500 text-sm">Yeni quiz çözerek detaylı raporları görebilirsiniz.</p>
+                        <p className="text-text-secondary mb-2">Bu quiz eski formatta kaydedilmiş.</p>
+                        <p className="text-text-muted text-sm">Yeni quiz çözerek detaylı raporları görebilirsiniz.</p>
                       </div>
                     )}
                   </div>

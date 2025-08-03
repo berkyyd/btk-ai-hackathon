@@ -10,79 +10,87 @@ html {
 body {
   font-family: 'Inter', sans-serif;
   line-height: 1.6;
-  background-color: #f8fafc; /* slate-50 */
-  color: #0f172a; /* navy-900 */
-  transition:
-    color 0.7s,
-    background-color 0.7s;
-}
-
-.dark body {
-  background-color: #0f172a; /* slate-900 */
-  color: #f8fafc; /* slate-50 */
+  background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #312e81 100%);
+  color: #f8fafc;
+  transition: all 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 100vh;
 }
 
 /* Başlıkların Satır Yüksekliği */
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
+h1, h2, h3, h4, h5, h6 {
   line-height: 1.2;
+  color: #f8fafc;
+  font-weight: 600;
 }
 
 /* clamp() fonksiyonları ile Responsive Tipografi */
 .text-heading-xl {
   font-size: clamp(2.5rem, 5vw, 4rem);
-}
-.text-body-lg {
-  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: #f8fafc;
 }
 
-/* Primary Gradient CSS Değişkeni */
+.text-body-lg {
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  color: #cbd5e1;
+}
+
+/* Mavi-Mor Gradient CSS Değişkenleri */
 .primary-gradient-bg {
-  background: linear-gradient(135deg, #334155, #0ea5e9, #0d9488);
+  background: linear-gradient(135deg, #3730a3 0%, #6366f1 50%, #8b5cf6 100%);
 }
 
 .accent-gradient-bg {
-  background: linear-gradient(135deg, #0ea5e9, #14b8a6, #8b5cf6);
+  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
+}
+
+.hover-gradient-bg {
+  background: linear-gradient(135deg, #4338ca 0%, #7c3aed 50%, #9333ea 100%);
 }
 
 /* Glassmorphism Kart Temel Stili */
 .card-glass {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(30, 41, 59, 0.3);
   backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.2);
   border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #f8fafc;
 }
 
-.dark .card-glass {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+.card-glass:hover {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 25px 50px rgba(15, 23, 42, 0.4);
+  transform: translateY(-2px);
 }
 
 /* Premium Buton Temel Stili */
 .btn-premium {
-  background: linear-gradient(135deg, #334155, #0ea5e9, #0d9488);
-  color: #fff;
+  background: linear-gradient(135deg, #3730a3 0%, #6366f1 50%, #8b5cf6 100%);
+  color: #f8fafc;
   font-weight: 600;
   padding: 0.75rem 2rem;
   border-radius: 0.75rem;
-  box-shadow: 0 10px 20px rgba(14, 165, 233, 0.15);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 10px 20px rgba(99, 102, 241, 0.3);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.btn-premium:hover {
+  background: linear-gradient(135deg, #4338ca 0%, #7c3aed 50%, #9333ea 100%);
+  box-shadow: 0 15px 30px rgba(99, 102, 241, 0.4);
+  transform: translateY(-2px);
+  color: #ffffff;
 }
 
 /* Teknolojik Arkaplan Efektleri */
 .background-pattern {
-  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%238b5cf6' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
 }
 
 /* Navbar Stilleri */
@@ -98,34 +106,29 @@ h6 {
   justify-content: space-between;
   height: 56px;
   backdrop-filter: blur(24px);
-  background: rgba(255, 255, 255, 0.15);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.dark .navbar-glass {
-  background: rgba(15, 23, 42, 0.15);
+  background: rgba(15, 23, 42, 0.8);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2);
 }
 
 /* Notion-Style Editor için temel stiller */
 .notion-editor-wrapper {
-  background: #fff;
+  background: rgba(30, 41, 59, 0.6);
   padding: 1.5rem;
   border-radius: 0.5rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) inset;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) inset;
   min-height: 400px;
-}
-
-.dark .notion-editor-wrapper {
-  background: #1e293b;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  color: #f8fafc;
 }
 
 /* Feature Kartları */
 .feature-card {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(30, 41, 59, 0.3);
   backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.2);
   border-radius: 24px;
-  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.1);
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.3);
   padding: 1.5rem;
   text-align: center;
   display: flex;
@@ -133,11 +136,104 @@ h6 {
   align-items: center;
   justify-content: center;
   transform: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #f8fafc;
+}
+
+.feature-card:hover {
+  background: rgba(30, 41, 59, 0.4);
+  border-color: rgba(139, 92, 246, 0.4);
+  box-shadow: 0 25px 50px rgba(15, 23, 42, 0.4);
+  transform: translateY(-4px);
 }
 
 .feature-card-icon {
-  color: #0ea5e9;
+  color: #8b5cf6;
   font-size: 3rem;
   margin-bottom: 1rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-card:hover .feature-card-icon {
+  color: #a855f7;
+  transform: scale(1.1);
+}
+
+/* Link stilleri */
+a {
+  color: #8b5cf6;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  text-decoration: none;
+}
+
+a:hover {
+  color: #a855f7;
+  text-decoration: underline;
+}
+
+/* Input stilleri */
+input, textarea, select {
+  background: rgba(30, 41, 59, 0.6);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  color: #f8fafc;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: #8b5cf6;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+  background: rgba(30, 41, 59, 0.8);
+}
+
+/* Placeholder stilleri */
+input::placeholder, textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* Scrollbar stilleri */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 41, 59, 0.3);
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #7c3aed, #a855f7);
+}
+
+/* Selection stilleri */
+::selection {
+  background: rgba(139, 92, 246, 0.3);
+  color: #f8fafc;
+}
+
+/* Focus stilleri */
+*:focus {
+  outline: 2px solid rgba(139, 92, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Loading animasyonu */
+.loading-spinner {
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  border-top: 2px solid #8b5cf6;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
