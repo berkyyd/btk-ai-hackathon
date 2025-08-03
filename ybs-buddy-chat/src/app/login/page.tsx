@@ -22,7 +22,6 @@ export default function LoginPage() {
     try {
       // Önce Firebase Auth ile giriş yap
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      console.log('Firebase login successful:', userCredential.user);
       
       // Sonra API'yi çağır
       const response = await apiClient.login(email, password);

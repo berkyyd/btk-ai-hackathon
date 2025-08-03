@@ -52,20 +52,16 @@ export default function DersNotlariPage() {
       
       const response = await apiClient.getNotes() // Parametre göndermiyoruz
       
-      console.log('Notes API Response:', response)
       if (response.success && response.data) {
         const data = response.data as any
-        console.log('Notes data:', data)
         if (data && data.notes) {
           setAllNotes(data.notes) // Tüm notları sakla
           filterNotes(data.notes) // Hemen filtrele
         } else {
-          console.log('No notes found in response')
           setAllNotes([])
           setNotes([])
         }
       } else {
-        console.log('API Error:', response.error)
         setError(response.error || 'Notlar yüklenirken bir hata oluştu')
       }
     } catch (err) {

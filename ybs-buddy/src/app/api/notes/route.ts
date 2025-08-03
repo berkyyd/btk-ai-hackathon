@@ -140,8 +140,6 @@ export async function PUT(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const noteId = searchParams.get('id');
     
-    console.log('PUT request - noteId:', noteId);
-    
     if (!noteId) {
       return NextResponse.json(
         { error: 'Not ID\'si gereklidir' },
@@ -151,8 +149,6 @@ export async function PUT(request: NextRequest) {
 
     const requestBody = await request.json();
     const { title, content, tags, isPublic } = requestBody;
-    
-    console.log('PUT request - body:', { title, content, tags, isPublic });
 
     // Firestore'da notu güncelle
     const noteRef = doc(db, 'notes', noteId);
@@ -163,8 +159,6 @@ export async function PUT(request: NextRequest) {
       isPublic: isPublic || false,
       updatedAt: new Date().toISOString(),
     });
-
-    console.log('Note updated successfully:', noteId);
 
     return NextResponse.json({
       success: true,

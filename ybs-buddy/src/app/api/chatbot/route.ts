@@ -12,7 +12,6 @@ async function createCompositeIndex(): Promise<boolean> {
   try {
     // Index oluşturma isteği gönder
     const indexUrl = 'https://console.firebase.google.com/v1/r/project/ybs-buddy/firestore/indexes?create_composite=ClFwcm9qZWN0cy95YnMtYnVkZHkvZGF0YWJhc2VzLyhkZWZhdWx0KS9jb2xsZWN0aW9uR3JvdXBzL3N1bW1hcml6ZWROb3Rlcy9pbmRleGVzL18QARoKCgZ1c2VySWQQARoNCgljcmVhdGVkQXQQAhoMCghfX25hbWVfXxAC';
-    console.log('Composite index oluşturmak için şu linke gidin:', indexUrl);
     return false; // Index henüz hazır değil
   } catch (error) {
     console.error('Index oluşturma hatası:', error);

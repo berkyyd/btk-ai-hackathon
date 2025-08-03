@@ -172,12 +172,10 @@ export default function SinavSimulasyonuPage() {
       const userAnswer = userAnswers[question.id]
       const isCorrect = (() => {
         if (question.type === 'true_false') {
-          console.log(`Question ID: ${question.id}, Type: ${question.type}, User Answer: ${userAnswer}, Correct Answer: ${question.correctAnswer}`);
           return String(userAnswer) === String(question.correctAnswer);
         } else if (question.type === 'multiple_choice' || question.type === 'open_ended') {
           const userAnsTrimmed = String(userAnswer).toLowerCase().trim();
           const correctAnsTrimmed = String(question.correctAnswer).toLowerCase().trim();
-          console.log(`Question ID: ${question.id}, Type: ${question.type}, User Answer (trimmed): '${userAnsTrimmed}', Correct Answer (trimmed): '${correctAnsTrimmed}'`);
           return userAnsTrimmed === correctAnsTrimmed;
         }
         return false; // Bilinmeyen soru tipi

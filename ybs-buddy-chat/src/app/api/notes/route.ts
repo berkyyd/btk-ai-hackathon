@@ -10,13 +10,10 @@ export async function GET(request: NextRequest) {
     const courseId = searchParams.get('courseId');
     const search = searchParams.get('search');
 
-    console.log('Notes API Request params:', { classYear, semester, courseId, search });
-
     // Tüm notları getir (client-side filtering için)
     const notesRef = collection(db, 'notes');
     let q = query(notesRef, orderBy('createdAt', 'desc'));
 
-    console.log('Executing Firestore query...');
     const querySnapshot = await getDocs(q);
     const notes: any[] = [];
 
@@ -27,9 +24,6 @@ export async function GET(request: NextRequest) {
         class: doc.data().classYear, // classYear'ı class olarak eşle
       });
     });
-
-    console.log('Found notes:', notes.length);
-    console.log('Notes data sent to frontend:', notes);
 
     return NextResponse.json({
       success: true,
@@ -50,7 +44,6 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   try {
     const requestBody = await request.json();
-    console.log('Received raw request body for new note:', requestBody);
     const { title, content, courseId, classYear, semester, tags, isPublic, fileUrl, role, userId } = requestBody;
 
     // Validation

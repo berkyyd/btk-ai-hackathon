@@ -218,10 +218,6 @@ export default function SinavSimulasyonuPage() {
 
   // Sınavı bitir
   const finishQuiz = async () => {
-    console.log('finishQuiz called')
-    console.log('activeQuiz:', activeQuiz)
-    console.log('quizStartTime:', quizStartTime)
-    
     if (!activeQuiz) {
       console.error('Cannot finish quiz: missing activeQuiz')
       return
@@ -239,13 +235,6 @@ export default function SinavSimulasyonuPage() {
     const answers = activeQuiz.questions.map(question => {
       const userAnswer = userAnswers[question.id]
       
-      // Debug için cevap bilgilerini logla
-      console.log('Question:', question.question)
-      console.log('Question type:', question.type)
-      console.log('User answer:', userAnswer)
-      console.log('Correct answer:', question.correctAnswer)
-      console.log('Correct answer type:', typeof question.correctAnswer)
-      
       const isCorrect = (() => {
         if (!userAnswer) return false;
         
@@ -253,7 +242,6 @@ export default function SinavSimulasyonuPage() {
           // Boolean değerleri string'e çevir ve karşılaştır
           const userAnsStr = String(userAnswer).toLowerCase();
           const correctAnsStr = String(question.correctAnswer).toLowerCase();
-          console.log('True/False comparison:', userAnsStr, 'vs', correctAnsStr)
           return userAnsStr === correctAnsStr;
         } else if (question.type === 'multiple_choice') {
           // Çoktan seçmeli sorularda harf eşleşmesi ara
@@ -264,19 +252,16 @@ export default function SinavSimulasyonuPage() {
           const userLetter = userAnsStr.match(/^[A-D]\)/)?.[0]?.replace(')', '') || userAnsStr;
           const correctLetter = correctAnsStr.match(/^[A-D]\)/)?.[0]?.replace(')', '') || correctAnsStr;
           
-          console.log('Multiple choice comparison:', userLetter, 'vs', correctLetter)
           return userLetter === correctLetter;
         } else if (question.type === 'open_ended') {
           // Açık uçlu sorularda daha esnek karşılaştırma
           const userAnsStr = String(userAnswer).toLowerCase().trim();
           const correctAnsStr = String(question.correctAnswer).toLowerCase().trim();
-          console.log('Open ended comparison:', userAnsStr, 'vs', correctAnsStr)
           return userAnsStr === correctAnsStr;
         }
         return false; // Bilinmeyen soru tipi
       })();
       
-      console.log('Is correct:', isCorrect)
       if (isCorrect) correctAnswers++
       
       return {
@@ -497,8 +482,8 @@ export default function SinavSimulasyonuPage() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mb-4"></div>
-          <p className="text-gray-600">Yükleniyor...</p>
+          <div className="loading-spinner mb-4"></div>
+          <p className="text-text-secondary">Yükleniyor...</p>
         </div>
       </div>
     );
@@ -521,24 +506,24 @@ export default function SinavSimulasyonuPage() {
   }
 
   return (
-    <div className='py-8'>
+    <div className='py-8 min-h-screen'>
       <section className='text-center mb-16 animate-fadeIn'>
-        <h1 className='text-5xl font-extrabold text-text leading-tight mb-4'>
+        <h1 className='text-5xl font-extrabold text-text-primary leading-tight mb-4'>
           Sınav Simülasyonu
         </h1>
-        <p className='text-lg text-text-light max-w-3xl mx-auto leading-relaxed'>
+        <p className='text-lg text-text-secondary max-w-3xl mx-auto leading-relaxed'>
           Gerçek sınav deneyimi yaşayın ve bilgilerinizi test edin.
         </p>
       </section>
 
       {/* Quiz Oluşturma Formu */}
       {user && (
-        <Card className='mb-8'>
+        <Card className='mb-8 card-glass'>
           <div className='flex justify-between items-center mb-4'>
-            <h3 className='text-xl font-bold text-text'>Quiz Oluştur</h3>
+            <h3 className='text-xl font-bold text-text-primary'>Quiz Oluştur</h3>
             <button
               onClick={() => setShowCreateForm(!showCreateForm)}
-              className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors'
+              className='px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors border border-primary-500/30'
             >
               {showCreateForm ? 'İptal' : 'Yeni Quiz'}
             </button>
@@ -548,11 +533,11 @@ export default function SinavSimulasyonuPage() {
           <form onSubmit={handleCreateQuiz} className='space-y-4'>
             <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
               <div>
-                <label className='block text-sm font-medium text-text mb-2'>Sınıf</label>
+                <label className='block text-sm font-medium text-text-secondary mb-2'>Sınıf</label>
                 <select
                   value={curriculumFilters.selectedClass}
                   onChange={(e) => handleCurriculumFilterChange('selectedClass', parseInt(e.target.value))}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                 >
                   <option value={1}>1. Sınıf</option>
                   <option value={2}>2. Sınıf</option>
@@ -562,11 +547,11 @@ export default function SinavSimulasyonuPage() {
               </div>
               
               <div>
-                <label className='block text-sm font-medium text-text mb-2'>Dönem</label>
+                <label className='block text-sm font-medium text-text-secondary mb-2'>Dönem</label>
                 <select
                   value={curriculumFilters.selectedSemester}
                   onChange={(e) => handleCurriculumFilterChange('selectedSemester', e.target.value)}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                 >
                   {getClassAndSemesterOptions()
                     .filter(option => option.class === curriculumFilters.selectedClass)
@@ -579,7 +564,7 @@ export default function SinavSimulasyonuPage() {
               </div>
               
               <div>
-                <label className='block text-sm font-medium text-text mb-2'>Ders</label>
+                <label className='block text-sm font-medium text-text-secondary mb-2'>Ders</label>
                 <select
                   value={curriculumFilters.selectedCourse}
                   onChange={(e) => {
@@ -597,7 +582,7 @@ export default function SinavSimulasyonuPage() {
                       }
                     }
                   }}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                 >
                   <option value=''>Ders Seçin</option>
                   {getCoursesByClassAndSemester(curriculumFilters.selectedClass, curriculumFilters.selectedSemester).map(course => (
@@ -613,25 +598,23 @@ export default function SinavSimulasyonuPage() {
 
             <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
               <div>
-                <label className='block text-sm font-medium text-text mb-2'>Quiz Başlığı</label>
+                <label className='block text-sm font-medium text-text-secondary mb-2'>Quiz Başlığı</label>
                 <input
                   type='text'
                   value={newQuiz.title}
                   onChange={(e) => setNewQuiz(prev => ({ ...prev, title: e.target.value }))}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                   placeholder='Örn: Veri Tabanı Final Sınavı'
                   required
                 />
               </div>
               
-
-              
               <div>
-                <label className='block text-sm font-medium text-text mb-2'>Zorluk Seviyesi</label>
+                <label className='block text-sm font-medium text-text-secondary mb-2'>Zorluk Seviyesi</label>
                 <select
                   value={newQuiz.difficulty}
                   onChange={(e) => setNewQuiz(prev => ({ ...prev, difficulty: e.target.value as any }))}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                 >
                   <option value='easy'>Kolay</option>
                   <option value='medium'>Orta</option>
@@ -640,12 +623,12 @@ export default function SinavSimulasyonuPage() {
               </div>
               
               <div>
-                <label className='block text-sm font-medium text-text mb-2'>Soru Sayısı</label>
+                <label className='block text-sm font-medium text-text-secondary mb-2'>Soru Sayısı</label>
                 <input
                   type='number'
                   value={newQuiz.questionCount || ''}
                   onChange={(e) => setNewQuiz(prev => ({ ...prev, questionCount: parseInt(e.target.value) || 10 }))}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                   min='5'
                   max='50'
                   required
@@ -653,12 +636,12 @@ export default function SinavSimulasyonuPage() {
               </div>
               
               <div>
-                <label className='block text-sm font-medium text-text mb-2'>Süre (Dakika)</label>
+                <label className='block text-sm font-medium text-text-secondary mb-2'>Süre (Dakika)</label>
                 <input
                   type='number'
                   value={newQuiz.timeLimit || ''}
                   onChange={(e) => setNewQuiz(prev => ({ ...prev, timeLimit: parseInt(e.target.value) || 30 }))}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                   min='5'
                   max='120'
                   required
@@ -666,11 +649,11 @@ export default function SinavSimulasyonuPage() {
               </div>
 
               <div>
-                <label className='block text-sm font-medium text-text mb-2'>Sınav Türü</label>
+                <label className='block text-sm font-medium text-text-secondary mb-2'>Sınav Türü</label>
                 <select
                   value={newQuiz.examFormat}
                   onChange={(e) => setNewQuiz(prev => ({ ...prev, examFormat: e.target.value as any }))}
-                  className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                  className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                   required
                 >
                   <option value='test'>Test (Çoktan Seçmeli)</option>
@@ -680,73 +663,73 @@ export default function SinavSimulasyonuPage() {
               </div>
             </div>
             
-                         {/* Not Seçimi */}
-             <div>
-               <label className='block text-sm font-medium text-text mb-2'>
-                 Not Seçimi {(() => {
-                   const academicianNotes = filteredNotes.filter(note => note.role === 'academician')
-                   if (academicianNotes.length > 0) {
-                     return '(Önerilen: Akademisyen Notları)'
-                   } else {
-                     return '(Herkese Açık ve Kişisel Notlar)'
-                   }
-                 })()}
-               </label>
-              <div className='max-h-60 overflow-y-auto border border-gray-300 rounded-md p-2'>
+            {/* Not Seçimi */}
+            <div>
+              <label className='block text-sm font-medium text-text-secondary mb-2'>
+                Not Seçimi {(() => {
+                  const academicianNotes = filteredNotes.filter(note => note.role === 'academician')
+                  if (academicianNotes.length > 0) {
+                    return '(Önerilen: Akademisyen Notları)'
+                  } else {
+                    return '(Herkese Açık ve Kişisel Notlar)'
+                  }
+                })()}
+              </label>
+              <div className='max-h-60 overflow-y-auto border border-primary-700/30 rounded-md p-2 bg-card-light'>
                 {!newQuiz.courseId ? (
-                  <p className='text-gray-500 text-sm'>Önce bir ders seçin</p>
+                  <p className='text-text-muted text-sm'>Önce bir ders seçin</p>
                 ) : !Array.isArray(filteredNotes) || filteredNotes.length === 0 ? (
-                  <p className='text-gray-500 text-sm'>Bu derse ait not bulunmuyor.</p>
+                  <p className='text-text-muted text-sm'>Bu derse ait not bulunmuyor.</p>
                 ) : (
                   <div className='space-y-2'>
-                                         {filteredNotes.map((note) => (
-                       <label key={note.id} className={`flex items-center space-x-2 cursor-pointer hover:bg-gray-50 p-2 rounded ${
-                         note.role === 'academician' ? 'bg-blue-50 border border-blue-200' : ''
-                       }`}>
-                         <input
-                           type='checkbox'
-                           checked={selectedNotes.includes(note.id)}
-                           onChange={(e) => {
-                             if (e.target.checked) {
-                               setSelectedNotes(prev => [...prev, note.id])
-                             } else {
-                               setSelectedNotes(prev => prev.filter(id => id !== note.id))
-                             }
-                           }}
-                           className='rounded border-gray-300 text-blue-600 focus:ring-blue-500'
-                         />
-                         <div className='flex-1'>
-                           <div className='flex items-center gap-2'>
-                             <div className='font-medium text-sm'>{note.title}</div>
-                             {note.role === 'academician' && (
-                               <span className='text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded'>
-                                 🎓 Akademisyen
-                               </span>
-                             )}
-                           </div>
-                           <div className='text-xs text-gray-500'>
-                             {curriculumCourses.find(c => c.code === note.courseId)?.name || 'Bilinmeyen Ders'} - 
-                             {note.classYear}. Sınıf {note.semester}
-                           </div>
-                         </div>
-                       </label>
-                     ))}
+                    {filteredNotes.map((note) => (
+                      <label key={note.id} className={`flex items-center space-x-2 cursor-pointer hover:bg-primary-900/20 p-2 rounded transition-colors ${
+                        note.role === 'academician' ? 'bg-primary-900/20 border border-primary-700/30' : ''
+                      }`}>
+                        <input
+                          type='checkbox'
+                          checked={selectedNotes.includes(note.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedNotes(prev => [...prev, note.id])
+                            } else {
+                              setSelectedNotes(prev => prev.filter(id => id !== note.id))
+                            }
+                          }}
+                          className='rounded border-primary-700/30 text-primary-600 focus:ring-primary-500 bg-card-light'
+                        />
+                        <div className='flex-1'>
+                          <div className='flex items-center gap-2'>
+                            <div className='font-medium text-sm text-text-primary'>{note.title}</div>
+                            {note.role === 'academician' && (
+                              <span className='text-xs bg-primary-900/30 text-primary-300 px-2 py-1 rounded border border-primary-700/30'>
+                                🎓 Akademisyen
+                              </span>
+                            )}
+                          </div>
+                          <div className='text-xs text-text-muted'>
+                            {curriculumCourses.find(c => c.code === note.courseId)?.name || 'Bilinmeyen Ders'} - 
+                            {note.classYear}. Sınıf {note.semester}
+                          </div>
+                        </div>
+                      </label>
+                    ))}
                   </div>
                 )}
               </div>
               {selectedNotes.length > 0 && (
-                <p className='text-sm text-blue-600 mt-2'>
+                <p className='text-sm text-primary-400 mt-2'>
                   {selectedNotes.length} not seçildi
                 </p>
               )}
             </div>
             
             <div>
-              <label className='block text-sm font-medium text-text mb-2'>Açıklama</label>
+              <label className='block text-sm font-medium text-text-secondary mb-2'>Açıklama</label>
               <textarea
                 value={newQuiz.description}
                 onChange={(e) => setNewQuiz(prev => ({ ...prev, description: e.target.value }))}
-                className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+                className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                 rows={3}
                 placeholder='Quiz hakkında açıklama...'
               />
@@ -756,14 +739,14 @@ export default function SinavSimulasyonuPage() {
               <button
                 type='button'
                 onClick={() => setShowCreateForm(false)}
-                className='px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors'
+                className='px-4 py-2 border border-primary-700/30 text-text-secondary rounded-md hover:bg-primary-900/20 transition-colors'
               >
                 İptal
               </button>
               <button
                 type='submit'
                 disabled={creatingQuiz}
-                className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors disabled:opacity-50'
+                className='px-4 py-2 bg-secondary-600 text-white rounded-md hover:bg-secondary-700 transition-colors disabled:opacity-50 border border-secondary-500/30'
               >
                 {creatingQuiz ? 'Oluşturuluyor...' : 'Quiz Oluştur'}
               </button>
@@ -775,22 +758,22 @@ export default function SinavSimulasyonuPage() {
 
       
       {error && (
-        <div className='mb-8 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded'>
+        <div className='mb-8 bg-red-900/20 border border-red-700/30 text-red-300 px-4 py-3 rounded'>
           {error}
         </div>
       )}
 
       {/* Aktif Sınav */}
       {activeQuiz && (
-        <Card className='mb-8'>
+        <Card className='mb-8 card-glass'>
           <div className='flex justify-between items-center mb-4'>
-            <h3 className='text-xl font-bold text-text'>{activeQuiz.title}</h3>
+            <h3 className='text-xl font-bold text-text-primary'>{activeQuiz.title}</h3>
             <div className='flex items-center space-x-4'>
-              <span className='text-sm text-gray-600'>
+              <span className='text-sm text-text-secondary'>
                 Soru {currentQuestionIndex + 1} / {activeQuiz.totalQuestions}
               </span>
               {quizStartTime && (
-                <span className='text-sm text-gray-600'>
+                <span className='text-sm text-text-secondary'>
                   Süre: {formatTime(elapsedTime)}
                 </span>
               )}
@@ -799,8 +782,8 @@ export default function SinavSimulasyonuPage() {
 
           {activeQuiz.questions[currentQuestionIndex] && (
             <div className='space-y-4'>
-              <div className='bg-gray-50 p-4 rounded-lg'>
-                <h4 className='font-semibold text-lg mb-4'>
+              <div className='bg-primary-900/10 p-4 rounded-lg border border-primary-700/30'>
+                <h4 className='font-semibold text-lg mb-4 text-text-primary'>
                   {activeQuiz.questions[currentQuestionIndex]?.question || 'Soru yükleniyor...'}
                 </h4>
                 
@@ -880,7 +863,6 @@ export default function SinavSimulasyonuPage() {
                   {currentQuestionIndex === activeQuiz.totalQuestions - 1 ? (
                     <button
                       onClick={() => {
-                        console.log('Finish button clicked')
                         finishQuiz()
                       }}
                       className='px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors'
@@ -938,40 +920,44 @@ export default function SinavSimulasyonuPage() {
       )}
 
       {/* Quiz Listesi */}
-      <Card>
-        <h2 className='text-3xl font-bold text-text mb-6 text-center border-b-2 border-primary pb-3'>
+      <Card className="card-glass">
+        <h2 className='text-3xl font-bold text-text-primary mb-6 text-center border-b-2 border-primary-500 pb-3'>
           Mevcut Quizler ({quizzes.length})
         </h2>
         
         {loading ? (
           <div className='text-center py-8'>
-            <div className='inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500'></div>
-            <p className='mt-2 text-text-light'>Yükleniyor...</p>
+            <div className='loading-spinner'></div>
+            <p className='mt-2 text-text-secondary'>Yükleniyor...</p>
           </div>
         ) : quizzes.length === 0 ? (
           <div className='text-center py-8'>
-            <p className='text-text-light'>Henüz quiz bulunmuyor. Yeni bir quiz oluşturun!</p>
+            <p className='text-text-secondary'>Henüz quiz bulunmuyor. Yeni bir quiz oluşturun!</p>
           </div>
         ) : (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
             {quizzes.map((quiz) => (
-              <div key={quiz.id} className='border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow'>
+              <div key={quiz.id} className='card-glass border border-primary-700/30 rounded-lg p-4 hover:shadow-glow-blue transition-all duration-400'>
                 <div className='flex justify-between items-start mb-2'>
-                  <h3 className='font-bold text-lg text-text line-clamp-2'>{quiz.title}</h3>
-                  <span className={`px-2 py-1 text-xs rounded ${getDifficultyColor(quiz.difficulty)}`}>
+                  <h3 className='font-bold text-lg text-text-primary line-clamp-2'>{quiz.title}</h3>
+                  <span className={`px-2 py-1 text-xs rounded border ${
+                    quiz.difficulty === 'easy' ? 'bg-green-900/30 text-green-300 border-green-700/30' :
+                    quiz.difficulty === 'medium' ? 'bg-yellow-900/30 text-yellow-300 border-yellow-700/30' :
+                    'bg-red-900/30 text-red-300 border-red-700/30'
+                  }`}>
                     {quiz.difficulty === 'easy' ? 'Kolay' : quiz.difficulty === 'medium' ? 'Orta' : 'Zor'}
                   </span>
                 </div>
                 
-                                 <p className='text-sm text-gray-600 mb-2'>
-                   {curriculumCourses.find(c => c.code === quiz.courseId)?.name || 'Bilinmeyen Ders'}
-                 </p>
+                <p className='text-sm text-text-secondary mb-2'>
+                  {curriculumCourses.find(c => c.code === quiz.courseId)?.name || 'Bilinmeyen Ders'}
+                </p>
                 
-                <p className='text-sm text-gray-600 line-clamp-2 mb-3'>
+                <p className='text-sm text-text-secondary line-clamp-2 mb-3'>
                   {quiz.description}
                 </p>
                 
-                <div className='flex justify-between text-sm text-gray-500 mb-3'>
+                <div className='flex justify-between text-sm text-text-muted mb-3'>
                   <span>{quiz.totalQuestions} Soru</span>
                   <span>{quiz.timeLimit} Dakika</span>
                   <span>{new Date(quiz.createdAt).toLocaleDateString('tr-TR')}</span>
@@ -979,7 +965,7 @@ export default function SinavSimulasyonuPage() {
                 
                 <button
                   onClick={() => startQuiz(quiz)}
-                  className='w-full px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors'
+                  className='w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors border border-primary-500/30'
                 >
                   Sınavı Başlat
                 </button>

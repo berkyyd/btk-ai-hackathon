@@ -8,9 +8,6 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     let extractedText = formData.get('extractedText') as string || '';
 
-    console.log('API: Received file:', file ? file.name : 'No file');
-    console.log('API: Received extractedText length:', extractedText.length);
-
     if (!file) {
       console.error('API: No file received.');
       return NextResponse.json({ error: 'Dosya bulunamadı.' }, { status: 400 });
@@ -37,7 +34,6 @@ export async function POST(request: NextRequest) {
         (snapshot) => {
           // Yükleme ilerlemesini burada takip edebilirsiniz
           const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-          console.log('Upload is ' + progress + '% done');
         },
         (error) => {
           console.error('Dosya yükleme hatası:', error);
@@ -50,7 +46,6 @@ export async function POST(request: NextRequest) {
     });
 
     const downloadURL = await getDownloadURL(uploadTask.snapshot.ref);
-    console.log('API: File uploaded successfully, URL:', downloadURL);
 
     return NextResponse.json({ 
       success: true, 

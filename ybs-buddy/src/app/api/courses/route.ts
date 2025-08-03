@@ -9,8 +9,6 @@ export async function GET(request: NextRequest) {
     const semester = searchParams.get('semester');
     const courseType = searchParams.get('courseType');
 
-    console.log('API Request params:', { classYear, semester, courseType });
-
     // Firestore'dan dersleri getir
     const coursesRef = collection(db, 'courses');
     let q = query(coursesRef);
@@ -18,7 +16,6 @@ export async function GET(request: NextRequest) {
     // Tüm dersleri getir, filtreleme client-side'da yapılacak
     q = query(coursesRef);
 
-    console.log('Executing Firestore query...');
     const querySnapshot = await getDocs(q);
     const courses: any[] = [];
 
@@ -28,8 +25,6 @@ export async function GET(request: NextRequest) {
         ...doc.data(),
       });
     });
-
-    console.log('Found courses:', courses.length);
 
     return NextResponse.json({
       success: true,
