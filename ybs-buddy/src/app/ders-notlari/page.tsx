@@ -9,7 +9,7 @@ import { Course } from '../../types/course'
 import FileUpload from '../../components/FileUpload'
 import { SUMMARY_PROMPTS } from '../../utils/summaryPrompts';
 import SummaryModal from '../../components/SummaryModal';
-import { doc, getDoc, deleteDoc } from 'firebase/firestore';
+import { doc, getDoc, deleteDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../../config/firebase';
 import LoginPrompt from '../../components/LoginPrompt'
 import { getAllCourses, getCoursesByClassAndSemester, getClassAndSemesterOptions, CurriculumCourse } from '../../utils/curriculumUtils'
@@ -31,7 +31,8 @@ export default function DersNotlariPage() {
     classYear: '',
     semester: '',
     courseId: '',
-    search: ''
+    search: '',
+    role: '' // Akademisyen-öğrenci filtresi
   })
 
   // Müfredat filtreleri
@@ -69,6 +70,10 @@ export default function DersNotlariPage() {
 
   // Notlar-Özetlerim toggle state'i
   const [showMySummaries, setShowMySummaries] = useState(false)
+  
+  // Favoriler state'i
+  const [favorites, setFavorites] = useState<string[]>([])
+  const [showFavorites, setShowFavorites] = useState(false)
 
   // Notları yükle
   const loadNotes = async () => {
@@ -84,7 +89,8 @@ export default function DersNotlariPage() {
           const notesWithClass = apiData.data.map((note: any) => ({
             ...note,
             class: note.class || 1,
-            semester: note.semester || 'Güz'
+            semester: note.semester || 'Güz',
+            role: note.role || 'student' // Varsayılan rol olarak 'student' ayarla
           }));
           setAllNotes(notesWithClass)
           
@@ -170,11 +176,45 @@ export default function DersNotlariPage() {
     }
   }
 
+  // Favorileri yükle
+  const loadFavorites = async () => {
+    if (!user) return
+    try {
+      const userDoc = await getDoc(doc(db, 'users', user.uid))
+      if (userDoc.exists()) {
+        const userData = userDoc.data()
+        setFavorites(userData.favorites || [])
+      }
+    } catch (err) {
+      console.error('Favoriler yükleme hatası:', err)
+    }
+  }
+
+  // Favori ekleme/çıkarma
+  const toggleFavorite = async (noteId: string) => {
+    if (!user) return
+    try {
+      const newFavorites = favorites.includes(noteId)
+        ? favorites.filter(id => id !== noteId)
+        : [...favorites, noteId]
+      
+      setFavorites(newFavorites)
+      
+      // Firestore'da güncelle
+      await updateDoc(doc(db, 'users', user.uid), {
+        favorites: newFavorites
+      })
+    } catch (err) {
+      console.error('Favori güncelleme hatası:', err)
+    }
+  }
+
   // İlk yükleme
   useEffect(() => {
     loadCourses()
     loadCurriculumCourses()
     loadNotes()
+    loadFavorites()
     
     // URL parametrelerini kontrol et
     const urlParams = new URLSearchParams(window.location.search)
@@ -211,12 +251,17 @@ export default function DersNotlariPage() {
     if (allNotes.length > 0) {
       filterNotes(allNotes)
     }
-  }, [filters, allNotes, showMySummaries])
+  }, [filters, allNotes, showMySummaries, showFavorites])
 
   // Client-side filtering logic
   const filterNotes = (notesToFilter: Note[]) => {
     let filtered = notesToFilter
 
+    // Favoriler filtresi
+    if (showFavorites && user) {
+      filtered = filtered.filter(note => favorites.includes(note.id))
+    }
+    
     // Kullanıcının kendi özetlerini gösterme filtresi
     if (showMySummaries && user) {
       const beforeFilter = filtered.length
@@ -251,8 +296,19 @@ export default function DersNotlariPage() {
       const searchLower = filters.search.toLowerCase()
       filtered = filtered.filter(note => 
         note.title.toLowerCase().includes(searchLower) ||
-        note.content.toLowerCase().includes(searchLower)
+        note.content.toLowerCase().includes(searchLower) ||
+        // Kullanıcı adı ile arama
+        (users[note.userId || 'anonymous']?.displayName || '').toLowerCase().includes(searchLower)
       )
+    }
+    
+    // Rol filtresi (Akademisyen-Öğrenci)
+    if (filters.role) {
+      filtered = filtered.filter(note => {
+        // Eğer notun role alanı yoksa, varsayılan olarak 'student' kabul et
+        const noteRole = note.role || 'student'
+        return noteRole === filters.role
+      })
     }
     
     // Akademisyen notlarını önce göster
@@ -318,7 +374,7 @@ export default function DersNotlariPage() {
         isPDF: !!uploadedFile,
         extractedText: extractedText || null,
         fileSize: uploadedFile?.size || null,
-        role: role || 'student',
+        role: role || 'student', // Kullanıcının rolünü kullan
         userId: user?.uid || 'anonymous'
       });
       
@@ -541,16 +597,17 @@ export default function DersNotlariPage() {
           Paylaşılan ders notlarına kolayca erişin ve kendi notlarınızı ekleyin.
         </p>
         
-        {/* Notlar-Özetler Toggle Butonu */}
+        {/* Notlar-Özetler-Favoriler Toggle Butonu */}
         {user && (
           <div className='flex justify-center mt-6'>
             <div className='flex bg-primary-900/30 rounded-lg p-1 border border-primary-700/30'>
               <button
                 onClick={() => {
                   setShowMySummaries(false)
+                  setShowFavorites(false)
                 }}
                 className={`px-6 py-2 rounded-md transition-all duration-300 font-medium ${
-                  !showMySummaries
+                  !showMySummaries && !showFavorites
                     ? 'bg-primary-600 text-white shadow-sm' 
                     : 'text-text-secondary hover:text-text-primary'
                 }`}
@@ -560,6 +617,7 @@ export default function DersNotlariPage() {
               <button
                 onClick={() => {
                   setShowMySummaries(true)
+                  setShowFavorites(false)
                 }}
                 className={`px-6 py-2 rounded-md transition-all duration-300 font-medium ${
                   showMySummaries
@@ -569,6 +627,19 @@ export default function DersNotlariPage() {
               >
                 📝 Özetler
               </button>
+              <button
+                onClick={() => {
+                  setShowMySummaries(false)
+                  setShowFavorites(true)
+                }}
+                className={`px-6 py-2 rounded-md transition-all duration-300 font-medium ${
+                  showFavorites
+                    ? 'bg-amber-600 text-white shadow-sm' 
+                    : 'text-text-secondary hover:text-text-primary'
+                }`}
+              >
+                ⭐ Favoriler
+              </button>
             </div>
           </div>
         )}
@@ -576,7 +647,7 @@ export default function DersNotlariPage() {
 
       {/* Filtreler */}
       <Card className='mb-8 card-glass'>
-        <div className='grid grid-cols-1 md:grid-cols-5 gap-4'>
+        <div className='grid grid-cols-1 md:grid-cols-6 gap-4'>
           <div>
             <label className='block text-sm font-medium text-text-secondary mb-2'>Sınıf</label>
             <select
@@ -630,9 +701,22 @@ export default function DersNotlariPage() {
               type='text'
               value={filters.search}
               onChange={(e) => handleFilterChange('search', e.target.value)}
-              placeholder='Not başlığı veya içeriği...'
+              placeholder='Not başlığı, içeriği veya yazar adı...'
               className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
             />
+          </div>
+          
+          <div>
+            <label className='block text-sm font-medium text-text-secondary mb-2'>Rol Filtresi</label>
+            <select
+              value={filters.role}
+              onChange={(e) => handleFilterChange('role', e.target.value)}
+              className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
+            >
+              <option value=''>Tüm Roller</option>
+              <option value='academician'>🎓 Akademisyen</option>
+              <option value='student'>👨‍🎓 Öğrenci</option>
+            </select>
           </div>
           
           {user && (
@@ -794,7 +878,7 @@ export default function DersNotlariPage() {
       {/* Notlar Listesi */}
       <Card className="card-glass">
         <h2 className='text-3xl font-bold text-text-primary mb-6 text-center border-b-2 border-primary-500 pb-3'>
-          Notlar ({notes.length})
+          {showFavorites ? '⭐ Favoriler' : showMySummaries ? '📝 Özetler' : '📚 Notlar'} ({notes.length})
         </h2>
         
         {loading ? (
@@ -804,7 +888,14 @@ export default function DersNotlariPage() {
           </div>
         ) : notes.length === 0 ? (
           <div className='text-center py-8'>
-            <p className='text-text-secondary'>Henüz not bulunmuyor.</p>
+            <p className='text-text-secondary'>
+              {showFavorites 
+                ? 'Henüz favori notunuz bulunmuyor. Notları favorilere ekleyebilirsiniz.' 
+                : showMySummaries 
+                  ? 'Henüz özet notunuz bulunmuyor.' 
+                  : 'Henüz not bulunmuyor.'
+              }
+            </p>
           </div>
         ) : (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
@@ -819,21 +910,26 @@ export default function DersNotlariPage() {
                 onClick={() => handleNoteClick(note)}
               >
                 {/* Akademisyen/Öğrenci/Özet notu etiketi */}
-                <div className='flex items-center gap-2 mb-2'>
+                <div className='flex items-center justify-between mb-2'>
                   <span className={`font-semibold text-sm ${
                     note.title.startsWith('Özet:')
                       ? 'text-secondary-400'
-                      : note.role === 'academician' 
+                      : (note.role || 'student') === 'academician' 
                         ? 'text-primary-400' 
                         : 'text-secondary-400'
                   }`}>
                     {note.title.startsWith('Özet:') 
                       ? '📝 ÖZET' 
-                      : note.role === 'academician' 
+                      : (note.role || 'student') === 'academician' 
                         ? '🎓 Akademisyen Notu' 
                         : '👨‍🎓 Öğrenci Notu'
                     }
                   </span>
+                  
+                  {/* Favori göstergesi */}
+                  {user && favorites.includes(note.id) && (
+                    <span className='text-amber-400 text-sm' title='Favori Not'>⭐</span>
+                  )}
                 </div>
                
                 {/* Not başlığı */}
@@ -900,6 +996,7 @@ export default function DersNotlariPage() {
                   <span>📅 {note.class}. Sınıf</span>
                   <span>📖 {note.semester}</span>
                   <span>📝 {formatDate((note.createdAt instanceof Date ? note.createdAt.toISOString() : note.createdAt))}</span>
+                  <span className='text-xs'>🎭 {note.role || 'student'}</span>
                 </div>
                 
                 {/* PDF bilgisi */}
@@ -923,9 +1020,24 @@ export default function DersNotlariPage() {
                 
                 {/* Alt bilgiler */}
                 <div className='flex justify-between items-center text-sm text-text-muted'>
-                  <div className='flex space-x-4'>
-                    <span>❤️ {note.likes}</span>
-                    <span>⭐ {note.favorites}</span>
+                  <div className='flex items-center gap-2'>
+                    {/* Favori Butonu - Sol alt köşe */}
+                    {user && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleFavorite(note.id);
+                        }}
+                        className={`text-lg transition-colors ${
+                          favorites.includes(note.id)
+                            ? 'text-amber-400 hover:text-amber-300'
+                            : 'text-text-muted hover:text-amber-400'
+                        }`}
+                        title={favorites.includes(note.id) ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
+                      >
+                        {favorites.includes(note.id) ? '⭐' : '☆'}
+                      </button>
+                    )}
                   </div>
                   
                   <div className='flex items-center gap-2'>
