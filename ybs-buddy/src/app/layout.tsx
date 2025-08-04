@@ -16,6 +16,7 @@ export default function RootLayout({
     <html lang="tr">
       <body className="font-sans">
         <AuthProvider>
+
           <ThemeProvider>
             <div className='flex flex-col min-h-screen'>
               <Header />
@@ -26,6 +27,7 @@ export default function RootLayout({
             </div>
             <ChatIcon />
           </ThemeProvider>
+
         </AuthProvider>
       </body>
     </html>
