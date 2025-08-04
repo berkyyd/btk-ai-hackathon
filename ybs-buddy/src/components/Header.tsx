@@ -181,9 +181,9 @@ export default function Header() {
             ) : isAuthenticated && user ? (
               <div className="flex items-center space-x-6">
                 <div className="flex items-center space-x-4">
-                  <div className="p-2 rounded-full bg-primary-900/30 text-text-primary text-sm font-medium hover:bg-primary-800/40 transition-colors duration-300 border border-primary-700/30">
+                  <Link href="/profile" className="p-2 rounded-full bg-primary-900/30 text-text-primary text-sm font-medium hover:bg-primary-800/40 transition-colors duration-300 border border-primary-700/30 cursor-pointer">
                     {user.displayName?.charAt(0).toUpperCase() || user.email?.charAt(0).toUpperCase() || 'U'}
-                  </div>
+                  </Link>
                   <span className="text-sm text-text-secondary dark:text-text-secondary text-black">
                     Merhaba, {user.displayName || user.email || 'Kullanıcı'}
                   </span>
