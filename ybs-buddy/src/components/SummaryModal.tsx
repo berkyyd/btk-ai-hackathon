@@ -129,9 +129,10 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ open, onClose, note, user, 
           <div className="mb-4">
             <h3 className="font-bold mb-2">Özet</h3>
             <div className="mb-4" style={{ maxHeight: 400, overflowY: 'auto' }}>
-              {/* SummaryRenderer component was removed, so this will be empty or a placeholder */}
-              {/* For now, we'll just display the raw summary result */}
-              <p>{summaryResult}</p>
+              <div 
+                className="prose prose-sm max-w-none"
+                dangerouslySetInnerHTML={{ __html: summaryResult }}
+              />
             </div>
             <button
               className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 w-full"

@@ -394,14 +394,23 @@ export default function SinavSimulasyonuPage() {
   // Ders seçimi değiştiğinde notları filtrele
   useEffect(() => {
     if (newQuiz.courseId && Array.isArray(notes)) {
-      // Önce akademisyen notlarını bul
+      // Önce akademisyen notlarını bul (admin notları hariç)
       const academicianNotes = notes.filter(note => 
         note.courseId === newQuiz.courseId && note.role === 'academician'
       )
       
-      // Akademisyen notu varsa sadece onları göster
+      // Akademisyen notu varsa onları göster, ama favori notları da ekle
       if (academicianNotes.length > 0) {
-        setFilteredNotes(academicianNotes)
+        // Akademisyen notları + kullanıcının favori notları (aynı ders için)
+        const userFavoriteNotes = notes.filter(note => 
+          note.courseId === newQuiz.courseId && 
+          note.userId === user?.uid && 
+          (note.role === 'student' || note.role === 'admin') // Öğrenci ve admin notları
+        )
+        
+        // Akademisyen notları + favori öğrenci/admin notları
+        const allAvailableNotes = [...academicianNotes, ...userFavoriteNotes]
+        setFilteredNotes(allAvailableNotes)
       } else {
         // Akademisyen notu yoksa herkese açık notlar ve kullanıcının kendi notlarını göster
         const availableNotes = notes.filter(note => 
@@ -668,8 +677,9 @@ export default function SinavSimulasyonuPage() {
               <label className='block text-sm font-medium text-text-secondary mb-2'>
                 Not Seçimi {(() => {
                   const academicianNotes = filteredNotes.filter(note => note.role === 'academician')
+                  const studentNotes = filteredNotes.filter(note => note.role === 'student' || note.role === 'admin')
                   if (academicianNotes.length > 0) {
-                    return '(Önerilen: Akademisyen Notları)'
+                    return `(Akademisyen Notları + Favori Öğrenci Notları - ${academicianNotes.length} akademisyen, ${studentNotes.length} öğrenci)`
                   } else {
                     return '(Herkese Açık ve Kişisel Notlar)'
                   }
@@ -704,6 +714,11 @@ export default function SinavSimulasyonuPage() {
                             {note.role === 'academician' && (
                               <span className='text-xs bg-primary-900/30 text-primary-300 px-2 py-1 rounded border border-primary-700/30'>
                                 🎓 Akademisyen
+                              </span>
+                            )}
+                            {(note.role === 'student' || note.role === 'admin') && (
+                              <span className='text-xs bg-secondary-900/30 text-secondary-300 px-2 py-1 rounded border border-secondary-700/30'>
+                                👨‍🎓 Favori Öğrenci Notu
                               </span>
                             )}
                           </div>

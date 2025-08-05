@@ -86,7 +86,20 @@ export class GeminiService {
           break;
       }
 
+      // İngilizce dersler için dil kontrolü
+      const isEnglishCourse = request.courseId.toLowerCase().includes('ingilizce') || 
+                             request.courseId.toLowerCase().includes('english') ||
+                             request.courseId.toLowerCase().includes('yabancı dil');
+      
+      let languageInstruction = '';
+      if (isEnglishCourse) {
+        languageInstruction = `IMPORTANT: ALL QUESTIONS, OPTIONS, EXPLANATIONS, AND CORRECT ANSWERS MUST BE ENTIRELY IN ENGLISH. DO NOT USE ANY TURKISH WORDS OR SENTENCES. ONLY ENGLISH!\n\n`;
+      } else {
+        languageInstruction = 'SORULAR TÜRKÇE OLARAK HAZIRLANMALIDIR. Tüm sorular, seçenekler, açıklamalar Türkçe olmalıdır.';
+      }
+
       const prompt = `
+        ${isEnglishCourse ? languageInstruction : ''}
         YBS (Yönetim Bilişim Sistemleri) bölümü için ${request.questionCount} adet ${request.difficulty} zorlukta soru oluştur.
         
         Ders: ${request.courseId}
@@ -94,25 +107,28 @@ export class GeminiService {
         Soru Türleri: ${questionTypes.join(', ')}
         Süre: ${request.timeLimit} dakika
         
+        ${languageInstruction}
+        
         ${request.notesContent ? `Not İçeriği:\n${request.notesContent}\n\nBu notlara dayalı sorular oluştur.` : ''}
         
         Soru formatları:
-        ${questionTypes.includes('multiple_choice') ? '- Çoktan seçmeli sorular (A, B, C, D seçenekleri)' : ''}
-        ${questionTypes.includes('true_false') ? '- Doğru/Yanlış soruları' : ''}
-        ${questionTypes.includes('open_ended') ? '- Açık uçlu sorular' : ''}
+        ${questionTypes.includes('multiple_choice') ? (isEnglishCourse ? '- Multiple choice questions (Options: A, B, C, D)' : '- Çoktan seçmeli sorular (A, B, C, D seçenekleri)') : ''}
+        ${questionTypes.includes('true_false') ? (isEnglishCourse ? '- True/False questions' : '- Doğru/Yanlış soruları') : ''}
+        ${questionTypes.includes('open_ended') ? (isEnglishCourse ? '- Open-ended questions' : '- Açık uçlu sorular') : ''}
         
         SADECE JSON formatında yanıt ver, markdown kullanma. Her soru için:
         {
-          "id": "soru_id",
-          "question": "Soru metni",
+          "id": "question_id",
+          "question": "Question text",
           "type": "multiple_choice|true_false|open_ended",
-          "options": ["A) Seçenek1", "B) Seçenek2", "C) Seçenek3", "D) Seçenek4"] (sadece multiple_choice için),
-          "correctAnswer": "Doğru cevap",
-          "explanation": "Açıklama",
+          "options": ["A) Option1", "B) Option2", "C) Option3", "D) Option4"] (only for multiple_choice),
+          "correctAnswer": "Correct answer",
+          "explanation": "Explanation",
           "difficulty": "${request.difficulty}"
         }
         
         Tüm soruları bir array içinde döndür. Sadece JSON, başka hiçbir şey yazma.
+        ${isEnglishCourse ? '\nREMEMBER: ABSOLUTELY EVERYTHING MUST BE IN ENGLISH. DO NOT USE TURKISH.' : ''}
       `;
       
       const response = await this.makeGeminiRequest(prompt);
@@ -204,13 +220,17 @@ export class GeminiService {
         
         PDF Base64 verisi: ${base64Data}
         
-        Lütfen:
-        1. Tüm metni çıkar
-        2. Formatı koru
-        3. Türkçe karakterleri düzgün göster
-        4. Sayfa numaralarını belirt
+        ÖNEMLİ KURALLAR:
+        1. Sadece PDF'deki orijinal metni çıkar
+        2. Hiçbir çeviri yapma - metni olduğu gibi bırak
+        3. İngilizce metinleri Türkçe'ye çevirme
+        4. Türkçe metinleri İngilizce'ye çevirme
+        5. Sadece metin çıkar, yorum ekleme
+        6. Formatı koru (paragraflar, satırlar, tablolar)
+        7. Türkçe karakterleri düzgün göster
+        8. Sayfa numaralarını belirt
         
-        Sadece çıkarılan metni döndür, başka açıklama ekleme.
+        PDF'de ne varsa onu olduğu gibi çıkar. Sadece çıkarılan metni döndür, başka açıklama ekleme.
       `;
       const extractedText = await this.makeGeminiRequest(prompt, this.summaryApiKey);
       return extractedText;

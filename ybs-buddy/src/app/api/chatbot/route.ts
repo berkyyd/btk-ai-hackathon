@@ -123,6 +123,45 @@ async function getUserSpecificData(userId: string): Promise<UserData> {
       } as unknown as UserInfo;
     }
 
+    if (data.userInfo && data.userInfo.favorites && Array.isArray(data.userInfo.favorites)) {
+      const favoriteNotes: any[] = [];
+      // Notes koleksiyonunda ara
+      if (data.userInfo.favorites.length > 0) {
+        const notesRef = collection(db, 'notes');
+        const notesSnapshot = await getDocs(notesRef);
+        notesSnapshot.forEach(docSnap => {
+          if (data.userInfo.favorites.includes(docSnap.id)) {
+            const note = docSnap.data();
+            favoriteNotes.push({
+              id: docSnap.id,
+              type: 'note',
+              title: note.title,
+              content: note.content,
+              ...note
+            });
+          }
+        });
+        // SummarizedNotes koleksiyonunda ara
+        const summarizedRef = collection(db, 'summarizedNotes');
+        const summarizedSnapshot = await getDocs(summarizedRef);
+        summarizedSnapshot.forEach(docSnap => {
+          if (data.userInfo.favorites.includes(docSnap.id)) {
+            const note = docSnap.data();
+            favoriteNotes.push({
+              id: docSnap.id,
+              type: 'summarizedNote',
+              title: note.originalTitle || note.title,
+              content: note.summary,
+              ...note
+            });
+          }
+        });
+      }
+      data.favoriteNotes = favoriteNotes;
+    } else {
+      data.favoriteNotes = [];
+    }
+
   } catch (error) {
     console.error('Error fetching user-specific data:', error);
     // Hata durumunda boş veri döndür
@@ -189,8 +228,8 @@ SORU: ${question}
 KULLANICININ NOTLARI:
 ${JSON.stringify(data.notes, null, 2)}
 
-KULLANICININ ÖZETLENMİŞ NOTLARI:
-${JSON.stringify(data.summarizedNotes, null, 2)}
+KULLANICININ FAVORİ NOTLARI:
+${JSON.stringify(data.favoriteNotes, null, 2)}
 
 YÖNERGELER:
 - Sadece kullanıcının kendi notlarını kullan
@@ -214,6 +253,9 @@ SORU: ${question}
 
 KULLANICININ ÖZETLENMİŞ NOTLARI:
 ${JSON.stringify(data.summarizedNotes, null, 2)}
+
+KULLANICININ FAVORİ NOTLARI:
+${JSON.stringify(data.favoriteNotes, null, 2)}
 
 YÖNERGELER:
 - Sadece kullanıcının özetlenmiş notlarını kullan
@@ -266,6 +308,9 @@ ${JSON.stringify(data.notes, null, 2)}
 KULLANICININ ÖZETLENMİŞ NOTLARI:
 ${JSON.stringify(data.summarizedNotes, null, 2)}
 
+KULLANICININ FAVORİ NOTLARI:
+${JSON.stringify(data.favoriteNotes, null, 2)}
+
 YÖNERGELER:
 - Kişisel Takip özelliği hakkında detaylı bilgi ver
 - Kullanıcının sınav performansını analiz et
@@ -299,6 +344,9 @@ ${JSON.stringify(data.summarizedNotes, null, 2)}
 KULLANICININ SINAV SONUÇLARI:
 ${JSON.stringify(data.quizResults, null, 2)}
 
+KULLANICININ FAVORİ NOTLARI:
+${JSON.stringify(data.favoriteNotes, null, 2)}
+
 YÖNERGELER:
 - Profilim sayfası özelliklerini açıkla
 - Kullanıcının not istatistiklerini ver
@@ -328,6 +376,9 @@ ${JSON.stringify(data.summarizedNotes, null, 2)}
 
 MÜFREDAT BİLGİLERİ:
 ${JSON.stringify(data.courses, null, 2)}
+
+KULLANICININ FAVORİ NOTLARI:
+${JSON.stringify(data.favoriteNotes, null, 2)}
 
 YÖNERGELER:
 - Ders Notları sayfası özelliklerini açıkla
@@ -366,6 +417,9 @@ ${JSON.stringify(data.summarizedNotes, null, 2)}
 
 KULLANICININ SINAV SONUÇLARI:
 ${JSON.stringify(data.quizResults, null, 2)}
+
+KULLANICININ FAVORİ NOTLARI:
+${JSON.stringify(data.favoriteNotes, null, 2)}
 
 YÖNERGELER:
 - Samimi ve motive edici cevap ver
@@ -468,11 +522,12 @@ export async function POST(request: Request) {
     }
 
     // Chat mesajını oluştur
+    const istanbulNow = () => new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Istanbul' });
     const chatMessage: ChatMessage = {
       id: Date.now().toString(),
       content: answer || '',
       role: 'assistant',
-      timestamp: new Date(),
+      timestamp: istanbulNow(),
       feedback: null
     };
 
@@ -483,7 +538,7 @@ export async function POST(request: Request) {
           id: (Date.now() - 1).toString(),
           content: question,
           role: 'user',
-          timestamp: new Date()
+          timestamp: istanbulNow()
         },
         chatMessage
       ]);
@@ -513,11 +568,12 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Message ID, feedback and user ID are required' }, { status: 400 });
     }
 
+    const istanbulNow = () => new Date().toLocaleString('sv-SE', { timeZone: 'Europe/Istanbul' });
     await saveChatFeedback({
       messageId,
       feedback,
       userId,
-      timestamp: new Date()
+      timestamp: istanbulNow()
     });
 
     return NextResponse.json({ success: true });

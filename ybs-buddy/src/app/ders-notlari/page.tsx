@@ -1247,7 +1247,10 @@ export default function DersNotlariPage() {
                   <div className="border-t border-primary-800/30 pt-4">
                     <h3 className="font-semibold text-lg mb-2 text-text-primary">Not İçeriği</h3>
                     <div className="bg-primary-900/10 rounded-lg p-4 max-h-60 overflow-y-auto border border-primary-700/30">
-                      <pre className="whitespace-pre-wrap text-sm leading-relaxed text-text-secondary">{selectedNote.content}</pre>
+                      <div 
+                        className="text-sm leading-relaxed text-text-secondary"
+                        dangerouslySetInnerHTML={{ __html: selectedNote.content }}
+                      />
                     </div>
                   </div>
                   

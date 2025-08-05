@@ -29,6 +29,7 @@
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "baseUrl": ".",
+    "typeRoots": ["./src/types", "./node_modules/@types"],
     "paths": {
       "@/*": ["./src/*"],
       "@/components/*": ["./src/components/*"],
