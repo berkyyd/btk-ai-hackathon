@@ -138,23 +138,29 @@ const KisiselTakipPage = () => {
         </p>
       </div>
 
+
       {/* Quiz Analizi - Sadece öğrenci ve admin için */}
       {(role === 'student' || role === 'admin') && (
+
         <Card className="mb-8">
           <h2 className="text-3xl font-bold text-text-primary mb-6 text-center border-b-2 border-primary-500 pb-3">
             📊 Quiz Analizi & Gelişim Takibi
           </h2>
+
           <p className="text-center text-text-secondary mb-4">
             {role === 'admin'
               ? 'Admin olarak kendi sınavlarınızı ve gelişiminizi burada analiz edebilirsiniz.'
               : 'Gelişiminizi takip edin ve performansınızı analiz edin.'}
           </p>
+
           <QuizAnalysis />
         </Card>
       )}
       
       {/* Akademisyenler için bilgi mesajı */}
+
       {/* role === 'academician' && (
+-
         <Card className="mb-8">
           <div className="text-center py-8">
             <div className="text-4xl mb-4">🎓</div>
@@ -171,7 +177,9 @@ const KisiselTakipPage = () => {
             </div>
           </div>
         </Card>
+
       ) */}
+
 
       {/* Geçmiş Sınavlarım */}
       <Card>
