@@ -130,16 +130,48 @@ const KisiselTakipPage = () => {
     <div className="min-h-screen max-w-6xl mx-auto py-8 px-4">
       <div className="text-center mb-8">
         <h1 className="text-4xl font-bold text-text-primary mb-2">Kişisel Takip</h1>
-        <p className="text-text-secondary">Gelişiminizi takip edin ve performansınızı analiz edin</p>
+        <p className="text-text-secondary">
+          {role === 'academician' 
+            ? 'Akademisyen özelliklerini kullanın'
+            : 'Gelişiminizi takip edin ve performansınızı analiz edin'
+          }
+        </p>
       </div>
 
-      {/* Quiz Analizi */}
-      <Card className="mb-8">
-        <h2 className="text-3xl font-bold text-text-primary mb-6 text-center border-b-2 border-primary-500 pb-3">
-          📊 Quiz Analizi & Gelişim Takibi
-        </h2>
-        <QuizAnalysis />
-      </Card>
+      {/* Quiz Analizi - Sadece öğrenci ve admin için */}
+      {(role === 'student' || role === 'admin') && (
+        <Card className="mb-8">
+          <h2 className="text-3xl font-bold text-text-primary mb-6 text-center border-b-2 border-primary-500 pb-3">
+            📊 Quiz Analizi & Gelişim Takibi
+          </h2>
+          <p className="text-center text-text-secondary mb-4">
+            {role === 'admin'
+              ? 'Admin olarak kendi sınavlarınızı ve gelişiminizi burada analiz edebilirsiniz.'
+              : 'Gelişiminizi takip edin ve performansınızı analiz edin.'}
+          </p>
+          <QuizAnalysis />
+        </Card>
+      )}
+      
+      {/* Akademisyenler için bilgi mesajı */}
+      {/* role === 'academician' && (
+        <Card className="mb-8">
+          <div className="text-center py-8">
+            <div className="text-4xl mb-4">🎓</div>
+            <h2 className="text-2xl font-bold text-text-primary mb-4">Akademisyen Paneli</h2>
+            <p className="text-text-secondary mb-4">
+              Bu sayfa öğrenciler için tasarlanmıştır. Akademisyenler için gelişim takibi analizi mevcut değildir.
+            </p>
+            <div className="bg-primary-900/20 border border-primary-700/30 rounded-lg p-4 max-w-md mx-auto">
+              <h3 className="font-semibold text-primary-300 mb-2">Akademisyen Özellikleri:</h3>
+              <ul className="text-sm text-text-secondary space-y-1">
+                <li>• Ders notları oluşturma ve paylaşma</li>
+                <li>• Quiz oluşturma ve yönetme</li>
+              </ul>
+            </div>
+          </div>
+        </Card>
+      ) */}
 
       {/* Geçmiş Sınavlarım */}
       <Card>
@@ -155,8 +187,18 @@ const KisiselTakipPage = () => {
         ) : quizResults.length === 0 ? (
           <div className="text-center py-8">
             <div className="text-4xl mb-4">📝</div>
-            <p className="text-text-secondary mb-2">Henüz hiç sınav çözmemişsiniz.</p>
-            <p className="text-text-muted text-sm">Sınav simülasyonu sayfasından quiz oluşturup çözerek burada sonuçlarınızı görebilirsiniz.</p>
+            <p className="text-text-secondary mb-2">
+              {role === 'academician' 
+                ? 'Henüz hiç sınav oluşturmamışsınız.'
+                : 'Henüz hiç sınav çözmemişsiniz.'
+              }
+            </p>
+            <p className="text-text-muted text-sm">
+              {role === 'academician'
+                ? 'Sınav simülasyonu sayfasından quiz oluşturarak burada sonuçlarını görebilirsiniz.'
+                : 'Sınav simülasyonu sayfasından quiz oluşturup çözerek burada sonuçlarınızı görebilirsiniz.'
+              }
+            </p>
           </div>
         ) : (
           <div className="space-y-4">

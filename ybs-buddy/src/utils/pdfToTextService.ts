@@ -70,7 +70,18 @@ export class PdfToTextService {
       throw new Error('Gemini API anahtarı yapılandırılmamış');
     }
     const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro-latest' });
-    const prompt = 'Bu PDF dosyasının içindeki metni çıkar. Sadece metni ver, başka bir yorum veya özet yapma.';
+    const prompt = `Bu PDF dosyasının içindeki metni çıkar. 
+
+ÖNEMLİ KURALLAR:
+1. Sadece PDF'deki orijinal metni çıkar
+2. Hiçbir çeviri yapma - metni olduğu gibi bırak
+3. İngilizce metinleri Türkçe'ye çevirme
+4. Türkçe metinleri İngilizce'ye çevirme
+5. Sadece metin çıkar, yorum ekleme
+6. Formatı koru (paragraflar, satırlar, tablolar)
+7. Sayfa numaralarını belirt
+
+PDF'de ne varsa onu olduğu gibi çıkar.`;
     const pdfFilePart = {
       inlineData: {
         data: base64Data,

@@ -35,6 +35,15 @@ export interface UserData {
   quizResults: QuizResult[];
   summarizedNotes: SummarizedNote[];
   userInfo: UserInfo | null;
+  favoriteNotes: FavoriteNote[]; // <-- eklendi
+}
+
+export interface FavoriteNote {
+  id: string;
+  type: 'note' | 'summarizedNote';
+  title: string;
+  content: string;
+  [key: string]: any;
 }
 
 export interface CurriculumData {

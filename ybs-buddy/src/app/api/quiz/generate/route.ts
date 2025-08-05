@@ -15,13 +15,53 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Ders adını al (gerçek uygulamada veritabanından çekilir)
-    const courseNames: { [key: string]: string } = {
+    // Ders adını al - courseId zaten ders adı olabilir veya müfredattan çekilebilir
+    let courseName = courseId;
+    
+    // Eğer courseId bir kod ise (örn: YDI1101), müfredattan ders adını bul
+    if (courseId.length <= 10 && courseId.match(/^[A-Z]{2,3}\d{4}$/)) {
+      // Müfredat dosyasından ders adını bul
+      try {
+        const curriculum = await import('../../../data/curriculum.json');
+        for (const semester of curriculum.default.curriculum) {
+          for (const course of semester.courses) {
+            if (course.code === courseId) {
+              courseName = course.name;
+              break;
+            }
+          }
+          if (courseName !== courseId) break;
+        }
+      } catch (err) {
+        console.error('Müfredat dosyası okunamadı:', err);
+        // Fallback: courseId'yi ders adı olarak kullan
+        courseName = courseId;
+      }
+    }
+    
+    // Fallback ders adları
+    const fallbackCourseNames: { [key: string]: string } = {
       'course1': 'Veri Tabanı Yönetimi',
       'course2': 'Programlama',
       'course3': 'Web Teknolojileri'
     };
-    const courseName = courseNames[courseId] || 'Bilinmeyen Ders';
+    
+    if (fallbackCourseNames[courseId]) {
+      courseName = fallbackCourseNames[courseId];
+    }
+    
+    // İngilizce derslerde ders adını İngilizce yap
+    if (courseName.toLowerCase().includes('ingilizce') || 
+        courseName.toLowerCase().includes('english') ||
+        courseName.toLowerCase().includes('yabancı dil')) {
+      if (courseName.includes('Yabancı Dil I')) {
+        courseName = 'Foreign Language I (English)';
+      } else if (courseName.includes('Yabancı Dil II')) {
+        courseName = 'Foreign Language II (English)';
+      } else if (courseName.includes('Mesleki İngilizce')) {
+        courseName = 'Professional English';
+      }
+    }
 
     // Seçilen notları kullan veya dersin tüm notlarını çek
     let notesContent = '';
