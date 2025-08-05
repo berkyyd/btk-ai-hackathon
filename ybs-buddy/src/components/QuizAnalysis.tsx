@@ -89,9 +89,9 @@ const QuizAnalysis: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <Card className="p-6">
+     if (loading) {
+     return (
+       <Card className="p-6 border-2 border-primary-700/30">
         <div className="flex items-center justify-center py-8">
           <div className="loading-spinner"></div>
           <span className="ml-3 text-text-secondary">Quiz analizi yükleniyor...</span>
@@ -100,9 +100,9 @@ const QuizAnalysis: React.FC = () => {
     );
   }
 
-  if (!analysis) {
-    return (
-      <Card className="p-6">
+     if (!analysis) {
+     return (
+       <Card className="p-6 border-2 border-primary-700/30">
         <div className="text-center py-8">
           <div className="text-text-muted mb-4">
             <svg className="w-16 h-16 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -114,7 +114,7 @@ const QuizAnalysis: React.FC = () => {
           <button
             onClick={triggerAnalysis}
             disabled={analyzing}
-            className="btn-premium px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center mx-auto"
+            className="px-6 py-3 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-lg hover:from-blue-700 hover:to-blue-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center mx-auto border border-blue-500/30 shadow-lg hover:shadow-xl"
           >
             {analyzing ? (
               <>
@@ -122,7 +122,7 @@ const QuizAnalysis: React.FC = () => {
                 Analiz Yapılıyor...
               </>
             ) : (
-              '📊 Analiz Yap'
+              'Analiz Yap'
             )}
           </button>
         </div>
@@ -133,41 +133,71 @@ const QuizAnalysis: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Genel İstatistikler */}
-      <Card className="p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-semibold text-text-primary">📊 Quiz Analizi</h3>
-          <div className="text-sm text-text-secondary">
-            Son güncelleme: {lastUpdated}
-            <br />
-            <span className="text-xs text-text-muted">Mevcut quiz verilerinize göre analiz edildi</span>
+      <Card className="p-6 border-2 border-primary-700/30">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+              <span className="text-white text-lg">📊</span>
+            </div>
+            <h3 className="text-xl font-bold text-gray-900">Quiz Analizi</h3>
+          </div>
+          <div className="text-right">
+            <div className="text-sm text-gray-600 font-medium">
+              Son güncelleme: {lastUpdated}
+            </div>
+            <div className="text-xs text-gray-500">
+              Mevcut quiz verilerinize göre analiz edildi
+            </div>
           </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-primary-900/20 border border-primary-700/30 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-primary-400">{analysis.totalQuizzes}</div>
-            <div className="text-sm text-primary-300">Toplam Quiz</div>
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/60 p-4 rounded-xl shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">📝</span>
+              </div>
+              <div className="text-2xl font-bold text-blue-700">{analysis.totalQuizzes}</div>
+            </div>
+            <div className="text-sm text-blue-600 font-medium">Toplam Quiz</div>
           </div>
-          <div className="bg-green-900/20 border border-green-700/30 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-green-400">{analysis.averageScore}%</div>
-            <div className="text-sm text-green-300">Ortalama Başarı</div>
+          
+          <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200/60 p-4 rounded-xl shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">📈</span>
+              </div>
+              <div className="text-2xl font-bold text-green-700">{analysis.averageScore}%</div>
+            </div>
+            <div className="text-sm text-green-600 font-medium">Ortalama Başarı</div>
           </div>
-          <div className="bg-secondary-900/20 border border-secondary-700/30 p-4 rounded-lg">
-            <div className="text-2xl font-bold text-secondary-400">{analysis.weakAreas.length}</div>
-            <div className="text-sm text-secondary-300">Zayıf Alan</div>
+          
+          <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 p-4 rounded-xl shadow-sm hover:shadow-md hover:scale-[1.01] transition-all duration-200">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">⚠️</span>
+              </div>
+              <div className="text-2xl font-bold text-amber-700">{analysis.weakAreas.length}</div>
+            </div>
+            <div className="text-sm text-amber-600 font-medium">Zayıf Alan</div>
           </div>
         </div>
 
         {/* Haftalık Gelişim */}
         {analysis.weeklyProgress && analysis.weeklyProgress.length > 0 && (
           <div className="mb-6">
-            <h4 className="text-lg font-semibold text-text-primary mb-3">📈 Haftalık Gelişim</h4>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center">
+                <span className="text-white text-sm">📈</span>
+              </div>
+              <h4 className="text-lg font-bold text-gray-900">Haftalık Gelişim</h4>
+            </div>
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               {analysis.weeklyProgress.map((week, index) => (
-                <div key={index} className="bg-primary-900/10 border border-primary-700/30 p-3 rounded-lg text-center">
-                  <div className="text-lg font-semibold text-text-primary">{week.avgScore}%</div>
-                  <div className="text-xs text-text-secondary">{week.quizCount} quiz</div>
-                  <div className="text-xs text-text-muted">Hafta {week.week}</div>
+                <div key={index} className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/60 p-3 rounded-xl text-center shadow-sm hover:shadow-md hover:scale-[1.005] transition-all duration-200">
+                  <div className="text-lg font-bold text-purple-700">{week.avgScore}%</div>
+                  <div className="text-xs text-purple-600 font-medium">{week.quizCount} quiz</div>
+                  <div className="text-xs text-purple-500">Hafta {week.week}</div>
                 </div>
               ))}
             </div>
@@ -177,16 +207,21 @@ const QuizAnalysis: React.FC = () => {
 
       {/* Zayıf Alanlar */}
       {analysis.weakAreas.length > 0 && (
-        <Card className="p-6">
-          <h4 className="text-lg font-semibold text-text-primary mb-4">⚠️ Zayıf Alanlar</h4>
+        <Card className="p-6 border-2 border-primary-700/30">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-8 h-8 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center">
+              <span className="text-white text-sm">⚠️</span>
+            </div>
+            <h4 className="text-lg font-bold text-gray-900">Zayıf Alanlar</h4>
+          </div>
           <div className="space-y-3">
             {analysis.weakAreas.map((area, index) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-red-900/20 rounded-lg border border-red-700/30">
-                <div className="flex items-center">
-                  <div className="w-3 h-3 bg-red-400 rounded-full mr-3"></div>
-                  <span className="font-medium text-text-primary">{area.topic}</span>
+              <div key={index} className="flex items-center justify-between p-4 bg-gradient-to-br from-red-50 to-pink-50 rounded-xl border border-red-200/60 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-3 h-3 bg-gradient-to-br from-red-500 to-pink-600 rounded-full"></div>
+                  <span className="font-medium text-gray-800">{area.topic}</span>
                 </div>
-                <div className="text-sm text-red-400 font-semibold">
+                <div className="text-sm text-red-600 font-bold bg-red-100 px-3 py-1 rounded-full">
                   {area.errorCount} hata
                 </div>
               </div>
@@ -196,10 +231,15 @@ const QuizAnalysis: React.FC = () => {
       )}
 
       {/* AI Analizi */}
-      <Card className="p-6">
-        <h4 className="text-lg font-semibold text-text-primary mb-4">🤖 AI Analizi</h4>
-        <div className="prose prose-sm max-w-none">
-          <div className="whitespace-pre-wrap text-text-secondary leading-relaxed">
+      <Card className="p-6 border-2 border-primary-700/30">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-8 h-8 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+            <span className="text-white text-sm">🤖</span>
+          </div>
+          <h4 className="text-lg font-bold text-gray-900">AI Analizi</h4>
+        </div>
+        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 border border-indigo-200/60 rounded-xl p-4">
+          <div className="whitespace-pre-wrap text-gray-700 leading-relaxed">
             {analysis.message}
           </div>
         </div>
@@ -210,15 +250,18 @@ const QuizAnalysis: React.FC = () => {
         <button
           onClick={triggerAnalysis}
           disabled={analyzing}
-          className="btn-premium px-6 py-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center mx-auto"
+          className="px-8 py-3 bg-gradient-to-r from-indigo-600 to-purple-700 text-white rounded-xl hover:from-indigo-700 hover:to-purple-800 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center mx-auto border border-indigo-500/30 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
         >
           {analyzing ? (
             <>
-              <div className="loading-spinner mr-2"></div>
+              <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
               Analiz Yapılıyor...
             </>
           ) : (
-            '🔄 Analizi Yenile'
+            <>
+              <span className="mr-2">🔄</span>
+              Analizi Yenile
+            </>
           )}
         </button>
       </div>

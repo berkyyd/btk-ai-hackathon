@@ -1,104 +1,116 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    "./src/pages/**/*.{js,ts,jsx,tsx}",
-    "./src/components/**/*.{js,ts,jsx,tsx}",
-    "./src/app/**/*.{js,ts,jsx,tsx}",
+    './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/components/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
   ],
   theme: {
     extend: {
+      fontFamily: {
+        'inter': ['Inter', 'system-ui', 'sans-serif'],
+      },
       colors: {
-        // Mavi-mor renk paleti - koyu tonlar
-        primary: {
-          50: '#f0f4ff',
-          100: '#e0e7ff',
-          200: '#c7d2fe',
-          300: '#a5b4fc',
-          400: '#818cf8',
-          500: '#6366f1',
-          600: '#4f46e5',
-          700: '#4338ca',
-          800: '#3730a3',
-          900: '#312e81',
-          950: '#1e1b4b',
+        // Primary Blue System
+        'primary': {
+          50: '#dbeafe',
+          100: '#bfdbfe',
+          200: '#93c5fd',
+          300: '#60a5fa',
+          400: '#3b82f6',
+          500: '#1e40af',
+          600: '#1d4ed8',
+          700: '#1e3a8a',
+          800: '#1e293b',
+          900: '#0f172a',
         },
-        secondary: {
-          50: '#faf5ff',
-          100: '#f3e8ff',
-          200: '#e9d5ff',
-          300: '#d8b4fe',
-          400: '#c084fc',
-          500: '#a855f7',
-          600: '#9333ea',
-          700: '#7c3aed',
-          800: '#6b21a8',
-          900: '#581c87',
-          950: '#3b0764',
+        // Neutral Gray Scale
+        'gray': {
+          50: '#f8fafc',
+          100: '#f1f5f9',
+          200: '#e2e8f0',
+          300: '#cbd5e1',
+          400: '#94a3b8',
+          500: '#64748b',
+          600: '#475569',
+          700: '#334155',
+          800: '#1e293b',
+          900: '#0f172a',
         },
-        background: {
-          light: '#0f172a', // slate-900
-          dark: '#020617', // slate-950
+        // Accent Colors
+        'success': {
+          50: '#ecfdf5',
+          100: '#d1fae5',
+          200: '#a7f3d0',
+          300: '#6ee7b7',
+          400: '#34d399',
+          500: '#10b981',
+          600: '#059669',
+          700: '#047857',
+          800: '#065f46',
+          900: '#064e3b',
         },
-        card: {
-          light: '#1e293b', // slate-800
-          dark: '#0f172a', // slate-900
+        'warning': {
+          50: '#fffbeb',
+          100: '#fef3c7',
+          200: '#fde68a',
+          300: '#fcd34d',
+          400: '#fbbf24',
+          500: '#f59e0b',
+          600: '#d97706',
+          700: '#b45309',
+          800: '#92400e',
+          900: '#78350f',
         },
-        text: {
-          primary: '#f8fafc', // slate-50
-          secondary: '#cbd5e1', // slate-300
-          muted: '#94a3b8', // slate-400
-        },
-        accent: {
-          blue: '#3b82f6', // blue-500
-          purple: '#8b5cf6', // violet-500
-          indigo: '#6366f1', // indigo-500
+        'error': {
+          50: '#fef2f2',
+          100: '#fee2e2',
+          200: '#fecaca',
+          300: '#fca5a5',
+          400: '#f87171',
+          500: '#ef4444',
+          600: '#dc2626',
+          700: '#b91c1c',
+          800: '#991b1b',
+          900: '#7f1d1d',
         },
       },
-      fontFamily: {
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+      spacing: {
+        'xs': '8px',
+        'sm': '16px',
+        'md': '24px',
+        'lg': '32px',
+        'xl': '48px',
+        '2xl': '64px',
+        '3xl': '96px',
+      },
+      fontSize: {
+        'h1': ['48px', { lineHeight: '1.2', fontWeight: '700' }],
+        'h2': ['36px', { lineHeight: '1.2', fontWeight: '600' }],
+        'h3': ['24px', { lineHeight: '1.2', fontWeight: '600' }],
+        'h4': ['20px', { lineHeight: '1.2', fontWeight: '500' }],
+        'body-large': ['18px', { lineHeight: '1.6', fontWeight: '400' }],
+        'body': ['16px', { lineHeight: '1.6', fontWeight: '400' }],
+        'small': ['14px', { lineHeight: '1.5', fontWeight: '400' }],
+        'caption': ['12px', { lineHeight: '1.4', fontWeight: '500' }],
+      },
+      borderRadius: {
+        'xl': '12px',
+        '2xl': '16px',
       },
       boxShadow: {
-        'glass-light': '0 20px 40px rgba(15, 23, 42, 0.2)',
-        'glass-dark': '0 20px 40px rgba(0, 0, 0, 0.4)',
-        'glow-blue': '0 0 20px rgba(59, 130, 246, 0.3)',
-        'glow-purple': '0 0 20px rgba(139, 92, 246, 0.3)',
-      },
-      transitionTimingFunction: {
-        'ease-in-out-smooth': 'cubic-bezier(0.4, 0, 0.2, 1)',
+        'soft': '0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06)',
+        'medium': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+        'large': '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+        'xl': '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       },
       transitionDuration: {
-        '700': '700ms',
+        'fast': '150ms',
+        'normal': '200ms',
+        'slow': '300ms',
       },
-      keyframes: {
-        fadeIn: {
-          '0%': { opacity: '0' },
-          '100%': { opacity: '1' },
-        },
-        slideUp: {
-          '0%': { transform: 'translateY(20px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
-        },
-        scaleIn: {
-          '0%': { transform: 'scale(0.9)', opacity: '0' },
-          '100%': { transform: 'scale(1)', opacity: '1' },
-        },
-        float: {
-          '0%': { transform: 'translateY(0px)' },
-          '50%': { transform: 'translateY(-10px)' },
-          '100%': { transform: 'translateY(0px)' },
-        },
-        glow: {
-          '0%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.3)' },
-          '50%': { boxShadow: '0 0 20px rgba(59, 130, 246, 0.5)' },
-          '100%': { boxShadow: '0 0 5px rgba(59, 130, 246, 0.3)' },
-        },
-      },
-      animation: {
-        fadeIn: 'fadeIn 0.5s ease-out forwards',
-        slideUp: 'slideUp 0.6s ease-out forwards',
-        scaleIn: 'scaleIn 0.4s ease-out forwards',
-        float: 'float 4s ease-in-out infinite',
-        glow: 'glow 2s ease-in-out infinite',
+      maxWidth: {
+        'container': '1280px',
       },
     },
   },

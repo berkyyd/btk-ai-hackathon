@@ -8,15 +8,19 @@ export interface TextExtractionResult {
 }
 
 export class PdfToTextService {
-  private genAI: GoogleGenerativeAI;
+  private genAI: GoogleGenerativeAI | null = null;
   private apiKey: string;
 
   constructor() {
-    this.apiKey = process.env.NEXT_PUBLIC_GEMINI_SUMMARY_API_KEY || '';
+    this.apiKey = process.env.NEXT_PUBLIC_GEMINI_SUMMARY_API_KEY || process.env.GEMINI_SUMMARY_API_KEY || '';
     if (!this.apiKey) {
-      console.warn('NEXT_PUBLIC_GEMINI_SUMMARY_API_KEY environment variable is not set');
+      console.warn('Gemini API key for PDF processing is not set. PDF text extraction will not work.');
     }
-    this.genAI = new GoogleGenerativeAI(this.apiKey);
+    
+    // Only create genAI if we have a valid API key
+    if (this.apiKey) {
+      this.genAI = new GoogleGenerativeAI(this.apiKey);
+    }
   }
 
   async extractTextFromFile(file: File): Promise<TextExtractionResult> {
@@ -24,6 +28,14 @@ export class PdfToTextService {
       if (typeof window === 'undefined') {
         throw new Error('PDF işleme sadece browser ortamında desteklenir');
       }
+      
+      if (!this.apiKey || !this.genAI) {
+        return {
+          success: false,
+          error: 'PDF işleme için Gemini API anahtarı yapılandırılmamış. Lütfen .env dosyasında NEXT_PUBLIC_GEMINI_SUMMARY_API_KEY değişkenini ayarlayın.'
+        };
+      }
+      
       const arrayBuffer = await file.arrayBuffer();
       const uint8Array = new Uint8Array(arrayBuffer);
       const header = new TextDecoder().decode(uint8Array.slice(0, 1024));
@@ -66,7 +78,7 @@ export class PdfToTextService {
   }
 
   private async extractTextWithGemini(fileName: string, base64Data: string): Promise<string> {
-    if (!this.apiKey) {
+    if (!this.apiKey || !this.genAI) {
       throw new Error('Gemini API anahtarı yapılandırılmamış');
     }
     const model = this.genAI.getGenerativeModel({ model: 'gemini-1.5-pro-latest' });

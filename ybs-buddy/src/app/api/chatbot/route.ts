@@ -462,7 +462,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { question, userId, context, previousMessages }: ChatbotRequest = await request.json();
+    const { question, userId, userName, context, previousMessages }: ChatbotRequest = await request.json();
 
     if (!question) {
       return NextResponse.json({ error: 'Question is required' }, { status: 400 });
@@ -474,6 +474,14 @@ export async function POST(request: Request) {
 
     // Kullanıcıya özel veri kaynaklarını çek
     const userData = await getUserSpecificData(userId);
+    
+    // userName varsa userInfo'ya ekle
+    if (userName && !userData.userInfo?.displayName) {
+      userData.userInfo = {
+        ...userData.userInfo,
+        displayName: userName
+      };
+    }
     
     // Tüm notları çek (eski retriever için - sadece kullanıcının notları)
     const allNotes = await getLectureNotes();

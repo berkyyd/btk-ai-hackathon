@@ -500,22 +500,24 @@ export default function SinavSimulasyonuPage() {
 
   if (!user) {
     return (
-      <LoginPrompt
-        title="Sınav Simülasyonu Sayfasına Erişim"
-        description="Sınav simülasyonları oluşturmak ve gerçek sınav deneyimi yaşamak için giriş yapmanız gerekiyor."
-        features={[
-          "Kişiselleştirilmiş sınav oluşturma",
-          "Not bazlı soru üretimi",
-          "Gerçek zamanlı sınav deneyimi",
-          "Detaylı sonuç analizi",
-          "Geçmiş sınav raporları"
-        ]}
-      />
+      <div style={{ marginTop: '72px' }}>
+        <LoginPrompt
+          title="Sınav Simülasyonu Sayfasına Erişim"
+          description="Sınav simülasyonları oluşturmak ve gerçek sınav deneyimi yaşamak için giriş yapmanız gerekiyor."
+          features={[
+            "Kişiselleştirilmiş sınav oluşturma",
+            "Not bazlı soru üretimi",
+            "Gerçek zamanlı sınav deneyimi",
+            "Detaylı sonuç analizi",
+            "Geçmiş sınav raporları"
+          ]}
+        />
+      </div>
     );
   }
 
   return (
-    <div className='py-8 min-h-screen'>
+    <div className='py-8 min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50' style={{ marginTop: '72px' }}>
       <section className='text-center mb-16 animate-fadeIn'>
         <h1 className='text-5xl font-extrabold text-text-primary leading-tight mb-4'>
           Sınav Simülasyonu
@@ -527,20 +529,28 @@ export default function SinavSimulasyonuPage() {
 
       {/* Quiz Oluşturma Formu */}
       {user && (
-        <Card className='mb-8 card-glass'>
-          <div className='flex justify-between items-center mb-4'>
-            <h3 className='text-xl font-bold text-text-primary'>Quiz Oluştur</h3>
+         <Card className='mb-8 card-glass max-w-4xl mx-auto border-2 border-primary-700/30'>
+          <div className='flex justify-between items-center mb-6'>
+            <div>
+              <h3 className='text-2xl font-bold text-text-primary'>📝 Quiz Oluştur</h3>
+              <p className='text-text-secondary text-sm'>Notlarınızdan yapay zeka ile özel sınav oluşturun</p>
+            </div>
             <button
               onClick={() => setShowCreateForm(!showCreateForm)}
-              className='px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors border border-primary-500/30'
+              className='px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-300 border border-primary-500/30 shadow-lg hover:shadow-xl'
             >
-              {showCreateForm ? 'İptal' : 'Yeni Quiz'}
+              {showCreateForm ? '✕ İptal' : '➕ Yeni Quiz'}
             </button>
           </div>
 
           {showCreateForm && (
-          <form onSubmit={handleCreateQuiz} className='space-y-4'>
-            <div className='grid grid-cols-1 md:grid-cols-4 gap-4'>
+          <form onSubmit={handleCreateQuiz} className='space-y-6'>
+            {/* Ders Seçimi - Kompakt */}
+            <div className='bg-primary-900/10 p-4 rounded-lg border border-primary-700/30'>
+              <h4 className='font-semibold text-lg mb-4 text-text-primary flex items-center'>
+                🎓 Ders Seçimi
+              </h4>
+              <div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
               <div>
                 <label className='block text-sm font-medium text-text-secondary mb-2'>Sınıf</label>
                 <select
@@ -578,7 +588,6 @@ export default function SinavSimulasyonuPage() {
                   value={curriculumFilters.selectedCourse}
                   onChange={(e) => {
                     handleCurriculumFilterChange('selectedCourse', e.target.value)
-                    // Seçilen müfredat dersini quiz'e uygula
                     if (e.target.value) {
                       const selectedCourse = getCoursesByClassAndSemester(curriculumFilters.selectedClass, curriculumFilters.selectedSemester)
                         .find(course => course.code === e.target.value)
@@ -601,11 +610,15 @@ export default function SinavSimulasyonuPage() {
                   ))}
                 </select>
               </div>
-              
-
+              </div>
             </div>
 
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+            {/* Quiz Ayarları - Kompakt */}
+            <div className='bg-secondary-900/10 p-4 rounded-lg border border-secondary-700/30'>
+              <h4 className='font-semibold text-lg mb-4 text-text-primary flex items-center'>
+                ⚙️ Quiz Ayarları
+              </h4>
+              <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>
               <div>
                 <label className='block text-sm font-medium text-text-secondary mb-2'>Quiz Başlığı</label>
                 <input
@@ -625,9 +638,9 @@ export default function SinavSimulasyonuPage() {
                   onChange={(e) => setNewQuiz(prev => ({ ...prev, difficulty: e.target.value as any }))}
                   className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                 >
-                  <option value='easy'>Kolay</option>
-                  <option value='medium'>Orta</option>
-                  <option value='hard'>Zor</option>
+                    <option value='easy'>🟢 Kolay</option>
+                    <option value='medium'>🟡 Orta</option>
+                    <option value='hard'>🔴 Zor</option>
                 </select>
               </div>
               
@@ -665,37 +678,48 @@ export default function SinavSimulasyonuPage() {
                   className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
                   required
                 >
-                  <option value='test'>Test (Çoktan Seçmeli)</option>
-                  <option value='classic'>Klasik (Açık Uçlu)</option>
-                  <option value='mixed'>Karışık (Test, Klasik, D/Y, Boşluk Doldurma)</option>
+                    <option value='test'>📝 Test (Çoktan Seçmeli)</option>
+                    <option value='classic'>✍️ Klasik (Açık Uçlu)</option>
+                    <option value='mixed'>🎯 Karışık (Test, Klasik, D/Y, Boşluk)</option>
                 </select>
+                </div>
               </div>
             </div>
             
-            {/* Not Seçimi */}
-            <div>
-              <label className='block text-sm font-medium text-text-secondary mb-2'>
-                Not Seçimi {(() => {
+            {/* Not Seçimi - İyileştirilmiş */}
+            <div className='bg-accent-900/10 p-4 rounded-lg border border-accent-700/30'>
+              <h4 className='font-semibold text-lg mb-4 text-text-primary flex items-center'>
+                📚 Not Seçimi
+                <span className='ml-2 text-sm font-normal text-text-secondary'>
+                  {(() => {
                   const academicianNotes = filteredNotes.filter(note => note.role === 'academician')
                   const studentNotes = filteredNotes.filter(note => note.role === 'student' || note.role === 'admin')
                   if (academicianNotes.length > 0) {
-                    return `(Akademisyen Notları + Favori Öğrenci Notları - ${academicianNotes.length} akademisyen, ${studentNotes.length} öğrenci)`
+                      return `(${academicianNotes.length} akademisyen, ${studentNotes.length} öğrenci notu)`
                   } else {
-                    return '(Herkese Açık ve Kişisel Notlar)'
+                      return '(Herkese açık ve kişisel notlar)'
                   }
                 })()}
-              </label>
-              <div className='max-h-60 overflow-y-auto border border-primary-700/30 rounded-md p-2 bg-card-light'>
+                </span>
+              </h4>
+              
+              <div className='max-h-80 overflow-y-auto border border-accent-700/30 rounded-lg p-3 bg-card-light'>
                 {!newQuiz.courseId ? (
-                  <p className='text-text-muted text-sm'>Önce bir ders seçin</p>
+                  <div className='text-center py-8'>
+                    <div className='text-4xl mb-2'>📖</div>
+                    <p className='text-text-secondary'>Önce bir ders seçin</p>
+                  </div>
                 ) : !Array.isArray(filteredNotes) || filteredNotes.length === 0 ? (
-                  <p className='text-text-muted text-sm'>Bu derse ait not bulunmuyor.</p>
+                  <div className='text-center py-8'>
+                    <div className='text-4xl mb-2'>📝</div>
+                    <p className='text-text-secondary'>Bu derse ait not bulunmuyor</p>
+                  </div>
                 ) : (
-                  <div className='space-y-2'>
+                  <div className='space-y-3'>
                     {filteredNotes.map((note) => (
-                      <label key={note.id} className={`flex items-center space-x-2 cursor-pointer hover:bg-primary-900/20 p-2 rounded transition-colors ${
-                        note.role === 'academician' ? 'bg-primary-900/20 border border-primary-700/30' : ''
-                      }`}>
+                      <label key={note.id} className={`flex items-start space-x-3 cursor-pointer hover:bg-accent-900/10 p-3 rounded-lg transition-all duration-200 border ${
+                        note.role === 'academician' ? 'bg-primary-900/20 border-primary-700/30' : 'border-accent-700/20'
+                      } ${selectedNotes.includes(note.id) ? 'ring-2 ring-accent-500' : ''}`}>
                         <input
                           type='checkbox'
                           checked={selectedNotes.includes(note.id)}
@@ -706,25 +730,32 @@ export default function SinavSimulasyonuPage() {
                               setSelectedNotes(prev => prev.filter(id => id !== note.id))
                             }
                           }}
-                          className='rounded border-primary-700/30 text-primary-600 focus:ring-primary-500 bg-card-light'
+                          className='mt-1 rounded border-accent-700/30 text-accent-600 focus:ring-accent-500 bg-card-light'
                         />
-                        <div className='flex-1'>
-                          <div className='flex items-center gap-2'>
-                            <div className='font-medium text-sm text-text-primary'>{note.title}</div>
+                        <div className='flex-1 min-w-0'>
+                          <div className='flex items-center gap-2 mb-1'>
+                            <div className='font-medium text-sm text-text-primary truncate'>{note.title}</div>
                             {note.role === 'academician' && (
-                              <span className='text-xs bg-primary-900/30 text-primary-300 px-2 py-1 rounded border border-primary-700/30'>
+                              <span className='text-xs bg-primary-900/30 text-primary-300 px-2 py-1 rounded-full border border-primary-700/30 flex-shrink-0'>
                                 🎓 Akademisyen
                               </span>
                             )}
                             {(note.role === 'student' || note.role === 'admin') && (
-                              <span className='text-xs bg-secondary-900/30 text-secondary-300 px-2 py-1 rounded border border-secondary-700/30'>
-                                👨‍🎓 Favori Öğrenci Notu
+                              <span className='text-xs bg-secondary-900/30 text-secondary-300 px-2 py-1 rounded-full border border-secondary-700/30 flex-shrink-0'>
+                                👨‍🎓 Öğrenci
                               </span>
                             )}
                           </div>
-                          <div className='text-xs text-text-muted'>
-                            {curriculumCourses.find(c => c.code === note.courseId)?.name || 'Bilinmeyen Ders'} - 
-                            {note.classYear}. Sınıf {note.semester}
+                          <div className='text-xs text-text-muted flex items-center gap-2'>
+                            <span>{curriculumCourses.find(c => c.code === note.courseId)?.name || 'Bilinmeyen Ders'}</span>
+                            <span>•</span>
+                            <span>{note.classYear}. Sınıf {note.semester}</span>
+                            {note.fileSize && (
+                              <>
+                                <span>•</span>
+                                <span>{(note.fileSize / 1024 / 1024).toFixed(1)} MB</span>
+                              </>
+                            )}
                           </div>
                         </div>
                       </label>
@@ -732,38 +763,63 @@ export default function SinavSimulasyonuPage() {
                   </div>
                 )}
               </div>
+              
               {selectedNotes.length > 0 && (
-                <p className='text-sm text-primary-400 mt-2'>
-                  {selectedNotes.length} not seçildi
-                </p>
+                <div className='mt-3 p-3 bg-accent-900/20 rounded-lg border border-accent-700/30'>
+                  <div className='flex items-center justify-between'>
+                    <span className='text-sm text-accent-300'>
+                      ✅ {selectedNotes.length} not seçildi
+                    </span>
+                    <button
+                      type='button'
+                      onClick={() => setSelectedNotes([])}
+                      className='text-xs text-accent-400 hover:text-accent-300 transition-colors'
+                    >
+                      Temizle
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
             
-            <div>
-              <label className='block text-sm font-medium text-text-secondary mb-2'>Açıklama</label>
+            {/* Açıklama ve Butonlar */}
+            <div className='bg-gradient-900/10 p-4 rounded-lg border border-gradient-700/30'>
+              <h4 className='font-semibold text-lg mb-4 text-text-primary flex items-center'>
+                📝 Açıklama
+              </h4>
               <textarea
                 value={newQuiz.description}
                 onChange={(e) => setNewQuiz(prev => ({ ...prev, description: e.target.value }))}
-                className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
+                className='w-full px-4 py-3 border border-gradient-700/30 rounded-lg focus:outline-none focus:ring-2 focus:ring-gradient-500 bg-card-light text-text-primary resize-none'
                 rows={3}
-                placeholder='Quiz hakkında açıklama...'
+                placeholder='Quiz hakkında açıklama ekleyin (isteğe bağlı)...'
               />
             </div>
             
-            <div className='flex justify-end space-x-4'>
+            <div className='flex justify-end space-x-4 pt-4'>
               <button
                 type='button'
                 onClick={() => setShowCreateForm(false)}
-                className='px-4 py-2 border border-primary-700/30 text-text-secondary rounded-md hover:bg-primary-900/20 transition-colors'
+                className='px-6 py-3 border border-primary-700/30 text-text-secondary rounded-lg hover:bg-primary-900/20 transition-all duration-200 hover:border-primary-600'
               >
-                İptal
+                ✕ İptal
               </button>
               <button
                 type='submit'
-                disabled={creatingQuiz}
-                className='px-4 py-2 bg-secondary-600 text-white rounded-md hover:bg-secondary-700 transition-colors disabled:opacity-50 border border-secondary-500/30'
-              >
-                {creatingQuiz ? 'Oluşturuluyor...' : 'Quiz Oluştur'}
+                 disabled={creatingQuiz || selectedNotes.length === 0}
+                 className='px-8 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-300 disabled:opacity-50 border border-green-500/30 shadow-lg hover:shadow-xl flex items-center gap-2'
+               >
+                 {creatingQuiz ? (
+                   <>
+                     <div className='w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin'></div>
+                     Oluşturuluyor...
+                   </>
+                 ) : (
+                   <>
+                     <span>🚀</span>
+                     Quiz Oluştur
+                   </>
+                 )}
               </button>
             </div>
           </form>
@@ -778,125 +834,182 @@ export default function SinavSimulasyonuPage() {
         </div>
       )}
 
-      {/* Aktif Sınav */}
+      {/* Aktif Sınav - Modal Tasarım */}
       {activeQuiz && (
-        <Card className='mb-8 card-glass'>
-          <div className='flex justify-between items-center mb-4'>
-            <h3 className='text-xl font-bold text-text-primary'>{activeQuiz.title}</h3>
-            <div className='flex items-center space-x-4'>
-              <span className='text-sm text-text-secondary'>
-                Soru {currentQuestionIndex + 1} / {activeQuiz.totalQuestions}
-              </span>
-              {quizStartTime && (
-                <span className='text-sm text-text-secondary'>
-                  Süre: {formatTime(elapsedTime)}
-                </span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl max-w-5xl w-full mx-4 relative flex flex-col max-h-[95vh] border border-white/20">
+            {/* Header */}
+            <div className="flex items-center justify-between px-8 py-6 border-b border-gray-200/60 sticky top-0 bg-white/80 backdrop-blur-sm z-10 rounded-t-3xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                  <span className="text-white text-xl">📝</span>
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-gray-900 line-clamp-2">
+                    {activeQuiz.title}
+                  </h2>
+                  <p className="text-sm text-gray-600 mt-1">
+                    {curriculumCourses.find(c => c.code === activeQuiz.courseId)?.name || 'Bilinmeyen Ders'}
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
+                      <span className="text-blue-700 font-medium">Soru {currentQuestionIndex + 1} / {activeQuiz.totalQuestions}</span>
+                    </div>
+                    {quizStartTime && (
+                      <div className="bg-green-100 px-3 py-1 rounded-full border border-green-200">
+                        <span className="text-green-700 font-medium">⏱️ {formatTime(elapsedTime)}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="mt-2">
+                    <span className={`px-3 py-1 text-xs rounded-full border font-medium ${
+                      activeQuiz.difficulty === 'easy' ? 'bg-green-100 text-green-700 border-green-200' :
+                      activeQuiz.difficulty === 'medium' ? 'bg-yellow-100 text-yellow-700 border-yellow-200' :
+                      'bg-red-100 text-red-700 border-red-200'
+                    }`}>
+                      {activeQuiz.difficulty === 'easy' ? '🟢 Kolay' : activeQuiz.difficulty === 'medium' ? '🟡 Orta' : '🔴 Zor'}
+                    </span>
+                  </div>
+                </div>
+                
+                <button 
+                  className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-800 transition-all duration-300" 
+                  onClick={cancelQuiz}
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            {/* Scrollable Content */}
+            <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+              {activeQuiz.questions[currentQuestionIndex] && (
+                <div className="space-y-6">
+                  {/* Soru Başlığı */}
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center shadow-lg">
+                      <span className="text-white font-bold text-lg">{currentQuestionIndex + 1}</span>
+                    </div>
+                    <h3 className="text-xl font-bold text-gray-900">Soru</h3>
+                  </div>
+                  
+                  {/* Soru Metni */}
+                  <div className="bg-gradient-to-br from-gray-50 to-blue-50 border border-gray-200/60 rounded-2xl p-6">
+                    <p className="text-lg text-gray-800 leading-relaxed">
+                      {activeQuiz.questions[currentQuestionIndex]?.question || 'Soru yükleniyor...'}
+                    </p>
+                  </div>
+                  
+                  {/* Cevap Seçenekleri */}
+                  {activeQuiz.questions[currentQuestionIndex]?.type === 'multiple_choice' && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-800 mb-4">Cevap seçeneklerinden birini seçin:</h4>
+                      <div className="grid gap-3">
+                        {activeQuiz.questions[currentQuestionIndex]?.options?.map((option, index) => (
+                          <label key={index} className="flex items-center space-x-4 cursor-pointer p-4 rounded-xl border border-gray-200 hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 bg-white">
+                            <input
+                              type="radio"
+                              name={`question-${activeQuiz.questions[currentQuestionIndex]?.id}`}
+                              value={option}
+                              checked={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] === option}
+                              onChange={(e) => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', e.target.value)}
+                              className="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500"
+                            />
+                            <span className="text-gray-800 font-medium">{option}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {activeQuiz.questions[currentQuestionIndex]?.type === 'true_false' && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-800 mb-4">Doğru mu yanlış mı?</h4>
+                      <div className="grid grid-cols-2 gap-4">
+                        <label className="flex items-center space-x-4 cursor-pointer p-4 rounded-xl border border-green-200 hover:bg-green-50 hover:border-green-300 transition-all duration-200 bg-white">
+                          <input
+                            type="radio"
+                            name={`question-${activeQuiz.questions[currentQuestionIndex]?.id}`}
+                            value="true"
+                            checked={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] === true}
+                            onChange={() => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', true)}
+                            className="w-5 h-5 text-green-600 border-gray-300 focus:ring-green-500"
+                          />
+                          <span className="text-gray-800 font-medium">✅ Doğru</span>
+                        </label>
+                        <label className="flex items-center space-x-4 cursor-pointer p-4 rounded-xl border border-red-200 hover:bg-red-50 hover:border-red-300 transition-all duration-200 bg-white">
+                          <input
+                            type="radio"
+                            name={`question-${activeQuiz.questions[currentQuestionIndex]?.id}`}
+                            value="false"
+                            checked={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] === false}
+                            onChange={() => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', false)}
+                            className="w-5 h-5 text-red-600 border-gray-300 focus:ring-red-500"
+                          />
+                          <span className="text-gray-800 font-medium">❌ Yanlış</span>
+                        </label>
+                      </div>
+                    </div>
+                  )}
+
+                  {activeQuiz.questions[currentQuestionIndex]?.type === 'open_ended' && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold text-gray-800 mb-4">Cevabınızı yazın:</h4>
+                      <textarea
+                        value={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] as string || ''}
+                        onChange={(e) => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', e.target.value)}
+                        className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-800 resize-none"
+                        rows={6}
+                        placeholder="Cevabınızı buraya detaylı bir şekilde yazın..."
+                      />
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+            
+            {/* Actions */}
+            <div className="flex gap-3 border-t border-gray-200/60 px-8 py-6 bg-white/80 backdrop-blur-sm sticky bottom-0 rounded-b-3xl">
+              <button
+                onClick={prevQuestion}
+                disabled={currentQuestionIndex === 0}
+                className="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition-all duration-300 border border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                ← Önceki
+              </button>
+              
+              <button
+                onClick={cancelQuiz}
+                className="flex-1 bg-red-100 text-red-700 font-semibold py-3 px-6 rounded-xl hover:bg-red-200 transition-all duration-300 border border-red-200 flex items-center justify-center gap-2"
+              >
+                🚫 İptal Et
+              </button>
+              
+              {currentQuestionIndex === activeQuiz.totalQuestions - 1 ? (
+                <button
+                  onClick={() => finishQuiz()}
+                  className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 border border-green-500/30 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                >
+                  ✅ Sınavı Bitir
+                </button>
+              ) : (
+                <button
+                  onClick={nextQuestion}
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-indigo-800 transition-all duration-300 border border-blue-500/30 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                >
+                  Sonraki →
+                </button>
               )}
             </div>
           </div>
-
-          {activeQuiz.questions[currentQuestionIndex] && (
-            <div className='space-y-4'>
-              <div className='bg-primary-900/10 p-4 rounded-lg border border-primary-700/30'>
-                <h4 className='font-semibold text-lg mb-4 text-text-primary'>
-                  {activeQuiz.questions[currentQuestionIndex]?.question || 'Soru yükleniyor...'}
-                </h4>
-                
-                {activeQuiz.questions[currentQuestionIndex]?.type === 'multiple_choice' && (
-                  <div className='space-y-2'>
-                    {activeQuiz.questions[currentQuestionIndex]?.options?.map((option, index) => (
-                      <label key={index} className='flex items-center space-x-2 cursor-pointer'>
-                        <input
-                          type='radio'
-                          name={`question-${activeQuiz.questions[currentQuestionIndex]?.id}`}
-                          value={option}
-                          checked={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] === option}
-                          onChange={(e) => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', e.target.value)}
-                          className='text-blue-600'
-                        />
-                        <span>{option}</span>
-                      </label>
-                    ))}
-                  </div>
-                )}
-
-                {activeQuiz.questions[currentQuestionIndex]?.type === 'true_false' && (
-                  <div className='space-y-2'>
-                    <label className='flex items-center space-x-2 cursor-pointer'>
-                      <input
-                        type='radio'
-                        name={`question-${activeQuiz.questions[currentQuestionIndex]?.id}`}
-                        value='true'
-                        checked={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] === true}
-                        onChange={() => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', true)}
-                        className='text-blue-600'
-                      />
-                      <span>Doğru</span>
-                    </label>
-                    <label className='flex items-center space-x-2 cursor-pointer'>
-                      <input
-                        type='radio'
-                        name={`question-${activeQuiz.questions[currentQuestionIndex]?.id}`}
-                        value='false'
-                        checked={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] === false}
-                        onChange={() => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', false)}
-                        className='text-blue-600'
-                      />
-                      <span>Yanlış</span>
-                    </label>
-                  </div>
-                )}
-
-                {activeQuiz.questions[currentQuestionIndex]?.type === 'open_ended' && (
-                  <textarea
-                    value={userAnswers[activeQuiz.questions[currentQuestionIndex]?.id || ''] as string || ''}
-                    onChange={(e) => handleAnswer(activeQuiz.questions[currentQuestionIndex]?.id || '', e.target.value)}
-                    className='w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
-                    rows={4}
-                    placeholder='Cevabınızı buraya yazın...'
-                  />
-                )}
-              </div>
-
-              <div className='flex justify-between'>
-                <button
-                  onClick={prevQuestion}
-                  disabled={currentQuestionIndex === 0}
-                  className='px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors disabled:opacity-50'
-                >
-                  Önceki
-                </button>
-                
-                <div className='flex space-x-2'>
-                  <button
-                    onClick={cancelQuiz}
-                    className='px-4 py-2 border border-red-300 text-red-700 rounded-md hover:bg-red-50 transition-colors'
-                  >
-                    İptal Et
-                  </button>
-                  
-                  {currentQuestionIndex === activeQuiz.totalQuestions - 1 ? (
-                    <button
-                      onClick={() => {
-                        finishQuiz()
-                      }}
-                      className='px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 transition-colors'
-                    >
-                      Sınavı Bitir
-                    </button>
-                  ) : (
-                    <button
-                      onClick={nextQuestion}
-                      className='px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors'
-                    >
-                      Sonraki
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-        </Card>
+        </div>
       )}
 
       {/* Sınav Sonuçları */}
@@ -934,53 +1047,84 @@ export default function SinavSimulasyonuPage() {
         </Card>
       )}
 
-      {/* Quiz Listesi */}
-      <Card className="card-glass">
-        <h2 className='text-3xl font-bold text-text-primary mb-6 text-center border-b-2 border-primary-500 pb-3'>
-          Mevcut Quizler ({quizzes.length})
+      {/* Quiz Listesi - İyileştirilmiş */}
+      <Card className="card-glass max-w-6xl mx-auto border-2 border-primary-700/30">
+        <div className='text-center mb-8'>
+          <h2 className='text-3xl font-bold text-text-primary mb-2'>
+            📚 Mevcut Quizler
         </h2>
+          <p className='text-text-secondary'>
+            Oluşturduğunuz sınavlar ve geçmiş quizleriniz
+          </p>
+          <div className='mt-4 inline-flex items-center gap-2 bg-primary-900/20 px-4 py-2 rounded-full border border-primary-700/30'>
+            <span className='text-primary-300 font-medium'>{quizzes.length}</span>
+            <span className='text-text-secondary text-sm'>quiz bulundu</span>
+          </div>
+        </div>
         
         {loading ? (
-          <div className='text-center py-8'>
-            <div className='loading-spinner'></div>
-            <p className='mt-2 text-text-secondary'>Yükleniyor...</p>
+          <div className='text-center py-12'>
+            <div className='loading-spinner mb-4'></div>
+            <p className='text-text-secondary'>Quizler yükleniyor...</p>
           </div>
         ) : quizzes.length === 0 ? (
-          <div className='text-center py-8'>
-            <p className='text-text-secondary'>Henüz quiz bulunmuyor. Yeni bir quiz oluşturun!</p>
+          <div className='text-center py-12'>
+            <div className='text-6xl mb-4'>📝</div>
+            <h3 className='text-xl font-semibold text-text-primary mb-2'>Henüz Quiz Yok</h3>
+            <p className='text-text-secondary mb-6'>İlk quizinizi oluşturmak için yukarıdaki "Yeni Quiz" butonunu kullanın</p>
+            <button
+              onClick={() => setShowCreateForm(true)}
+              className='px-6 py-3 bg-gradient-to-r from-primary-600 to-primary-700 text-white rounded-lg hover:from-primary-700 hover:to-primary-800 transition-all duration-300 border border-primary-500/30 shadow-lg hover:shadow-xl'
+            >
+              ➕ İlk Quizimi Oluştur
+            </button>
           </div>
         ) : (
           <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
             {quizzes.map((quiz) => (
-              <div key={quiz.id} className='card-glass border border-primary-700/30 rounded-lg p-4 hover:shadow-glow-blue transition-all duration-400'>
-                <div className='flex justify-between items-start mb-2'>
-                  <h3 className='font-bold text-lg text-text-primary line-clamp-2'>{quiz.title}</h3>
-                  <span className={`px-2 py-1 text-xs rounded border ${
+              <div key={quiz.id} className='card-glass border border-primary-700/30 rounded-xl p-6 hover:shadow-glow-blue transition-all duration-400 hover:scale-[1.02]'>
+                <div className='flex justify-between items-start mb-4'>
+                  <div className='flex-1 min-w-0'>
+                    <h3 className='font-bold text-lg text-text-primary line-clamp-2 mb-2'>{quiz.title}</h3>
+                    <p className='text-sm text-text-secondary mb-3'>
+                      {curriculumCourses.find(c => c.code === quiz.courseId)?.name || 'Bilinmeyen Ders'}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 text-xs rounded-full border flex-shrink-0 ${
                     quiz.difficulty === 'easy' ? 'bg-green-900/30 text-green-300 border-green-700/30' :
                     quiz.difficulty === 'medium' ? 'bg-yellow-900/30 text-yellow-300 border-yellow-700/30' :
                     'bg-red-900/30 text-red-300 border-red-700/30'
                   }`}>
-                    {quiz.difficulty === 'easy' ? 'Kolay' : quiz.difficulty === 'medium' ? 'Orta' : 'Zor'}
+                    {quiz.difficulty === 'easy' ? '🟢 Kolay' : quiz.difficulty === 'medium' ? '🟡 Orta' : '🔴 Zor'}
                   </span>
                 </div>
                 
-                <p className='text-sm text-text-secondary mb-2'>
-                  {curriculumCourses.find(c => c.code === quiz.courseId)?.name || 'Bilinmeyen Ders'}
-                </p>
-                
-                <p className='text-sm text-text-secondary line-clamp-2 mb-3'>
+                {quiz.description && (
+                  <p className='text-sm text-text-secondary line-clamp-2 mb-4'>
                   {quiz.description}
                 </p>
+                )}
                 
-                <div className='flex justify-between text-sm text-text-muted mb-3'>
-                  <span>{quiz.totalQuestions} Soru</span>
-                  <span>{quiz.timeLimit} Dakika</span>
-                  <span>{new Date(quiz.createdAt).toLocaleDateString('tr-TR')}</span>
+                <div className='grid grid-cols-3 gap-2 mb-4 text-xs'>
+                  <div className='text-center p-2 bg-primary-900/20 rounded-lg border border-primary-700/20'>
+                    <div className='font-semibold text-primary-300'>{quiz.totalQuestions}</div>
+                    <div className='text-text-muted'>Soru</div>
+                  </div>
+                  <div className='text-center p-2 bg-secondary-900/20 rounded-lg border border-secondary-700/20'>
+                    <div className='font-semibold text-secondary-300'>{quiz.timeLimit}</div>
+                    <div className='text-text-muted'>Dakika</div>
+                  </div>
+                  <div className='text-center p-2 bg-accent-900/20 rounded-lg border border-accent-700/20'>
+                    <div className='font-semibold text-accent-300'>
+                      {new Date(quiz.createdAt).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit' })}
+                    </div>
+                    <div className='text-text-muted'>Tarih</div>
+                  </div>
                 </div>
                 
                 <button
                   onClick={() => startQuiz(quiz)}
-                  className='w-full px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 transition-colors border border-primary-500/30'
+                    className='w-full px-4 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all duration-300 border border-green-500/30 shadow-lg hover:shadow-xl'
                 >
                   Sınavı Başlat
                 </button>

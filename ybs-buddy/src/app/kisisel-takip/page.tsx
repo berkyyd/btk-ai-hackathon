@@ -102,7 +102,7 @@ const KisiselTakipPage = () => {
   // Giriş kontrolü
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ marginTop: '72px' }}>
         <div className="text-center">
           <div className="loading-spinner mb-4"></div>
           <p className="text-text-secondary">Yükleniyor...</p>
@@ -113,209 +113,236 @@ const KisiselTakipPage = () => {
 
   if (!user) {
     return (
-      <LoginPrompt
-        title="Kişisel Takip Sayfasına Erişim"
-        description="Kişisel gelişiminizi takip etmek ve sınav geçmişinizi incelemek için giriş yapmanız gerekiyor."
-        features={[
-          "Geçmiş sınav sonuçlarınızı görüntüleme",
-          "Detaylı quiz analizi ve performans grafikleri",
-          "Gelişim takibi ve istatistikler",
-          "Chatbot ile kişisel rehberlik"
-        ]}
-      />
+      <div style={{ marginTop: '72px' }}>
+        <LoginPrompt
+          title="Kişisel Takip Sayfasına Erişim"
+          description="Kişisel gelişiminizi takip etmek ve sınav geçmişinizi incelemek için giriş yapmanız gerekiyor."
+          features={[
+            "Geçmiş sınav sonuçlarınızı görüntüleme",
+            "Detaylı quiz analizi ve performans grafikleri",
+            "Gelişim takibi ve istatistikler",
+            "Chatbot ile kişisel rehberlik"
+          ]}
+        />
+      </div>
     );
   }
 
   return (
-    <div className="min-h-screen max-w-6xl mx-auto py-8 px-4">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-text-primary mb-2">Kişisel Takip</h1>
-        <p className="text-text-secondary">
-          {role === 'academician' 
-            ? 'Akademisyen özelliklerini kullanın'
-            : 'Gelişiminizi takip edin ve performansınızı analiz edin'
-          }
-        </p>
-      </div>
-
-
-      {/* Quiz Analizi - Sadece öğrenci ve admin için */}
-      {(role === 'student' || role === 'admin') && (
-
-        <Card className="mb-8">
-          <h2 className="text-3xl font-bold text-text-primary mb-6 text-center border-b-2 border-primary-500 pb-3">
-            📊 Quiz Analizi & Gelişim Takibi
-          </h2>
-
-          <p className="text-center text-text-secondary mb-4">
-            {role === 'admin'
-              ? 'Admin olarak kendi sınavlarınızı ve gelişiminizi burada analiz edebilirsiniz.'
-              : 'Gelişiminizi takip edin ve performansınızı analiz edin.'}
-          </p>
-
-          <QuizAnalysis />
-        </Card>
-      )}
-      
-      {/* Akademisyenler için bilgi mesajı */}
-
-      {/* role === 'academician' && (
--
-        <Card className="mb-8">
-          <div className="text-center py-8">
-            <div className="text-4xl mb-4">🎓</div>
-            <h2 className="text-2xl font-bold text-text-primary mb-4">Akademisyen Paneli</h2>
-            <p className="text-text-secondary mb-4">
-              Bu sayfa öğrenciler için tasarlanmıştır. Akademisyenler için gelişim takibi analizi mevcut değildir.
-            </p>
-            <div className="bg-primary-900/20 border border-primary-700/30 rounded-lg p-4 max-w-md mx-auto">
-              <h3 className="font-semibold text-primary-300 mb-2">Akademisyen Özellikleri:</h3>
-              <ul className="text-sm text-text-secondary space-y-1">
-                <li>• Ders notları oluşturma ve paylaşma</li>
-                <li>• Quiz oluşturma ve yönetme</li>
-              </ul>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50" style={{ marginTop: '72px' }}>
+      <div className="max-w-7xl mx-auto py-8 px-4">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center gap-3 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+              <span className="text-white text-xl">📊</span>
             </div>
+            <h1 className="text-5xl font-extrabold text-gray-900 leading-tight">
+              Kişisel Takip
+            </h1>
           </div>
-        </Card>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            {role === 'academician' 
+              ? 'Akademisyen özelliklerini kullanın ve öğrenci gelişimlerini takip edin'
+              : 'Gelişiminizi takip edin ve performansınızı analiz edin'
+            }
+          </p>
+        </div>
 
-      ) */}
+        {/* Quiz Analizi - Sadece öğrenci ve admin için */}
+        {(role === 'student' || role === 'admin') && (
+          <Card className="mb-8 bg-white/95 backdrop-blur-sm border-2 border-primary-700/30 rounded-3xl shadow-xl">
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <span className="text-white text-lg">📈</span>
+                </div>
+                <h2 className="text-3xl font-bold text-gray-900">
+                  Quiz Analizi & Gelişim Takibi
+                </h2>
+              </div>
+              <p className="text-gray-600 max-w-2xl mx-auto">
+                {role === 'admin'
+                  ? 'Admin olarak kendi sınavlarınızı ve gelişiminizi burada analiz edebilirsiniz.'
+                  : 'Gelişiminizi takip edin ve performansınızı analiz edin.'}
+              </p>
+            </div>
 
-
-      {/* Geçmiş Sınavlarım */}
-      <Card>
-        <h2 className="text-3xl font-bold text-text-primary mb-6 text-center border-b-2 border-primary-500 pb-3">
-          📝 Geçmiş Sınavlarım
-        </h2>
+            <QuizAnalysis />
+          </Card>
+        )}
         
-        {loadingResults ? (
-          <div className="text-center py-8">
-            <div className="loading-spinner mb-4"></div>
-            <p className="text-text-secondary">Sınav sonuçları yükleniyor...</p>
-          </div>
-        ) : quizResults.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="text-4xl mb-4">📝</div>
-            <p className="text-text-secondary mb-2">
-              {role === 'academician' 
-                ? 'Henüz hiç sınav oluşturmamışsınız.'
-                : 'Henüz hiç sınav çözmemişsiniz.'
-              }
-            </p>
-            <p className="text-text-muted text-sm">
-              {role === 'academician'
-                ? 'Sınav simülasyonu sayfasından quiz oluşturarak burada sonuçlarını görebilirsiniz.'
-                : 'Sınav simülasyonu sayfasından quiz oluşturup çözerek burada sonuçlarınızı görebilirsiniz.'
-              }
+        {/* Geçmiş Sınavlarım */}
+        <Card className="bg-white/95 backdrop-blur-sm border-2 border-primary-700/30 rounded-3xl shadow-xl">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center shadow-lg">
+                <span className="text-white text-lg">📝</span>
+              </div>
+              <h2 className="text-3xl font-bold text-gray-900">
+                Geçmiş Sınavlarım
+              </h2>
+            </div>
+            <p className="text-gray-600">
+              Çözdüğünüz tüm sınavların detaylı sonuçları ve analizleri
             </p>
           </div>
-        ) : (
-          <div className="space-y-4">
-            {quizResults.map((result) => (
-              <div key={result.id} className="card-glass border border-primary-700/30 rounded-lg p-4 hover:shadow-glow-blue transition-all duration-400">
-                <details className="group">
-                  <summary className="flex items-center justify-between cursor-pointer p-2 hover:bg-primary-900/20 rounded transition-colors">
-                    <div className="flex items-center space-x-4">
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold border ${
-                        result.score >= 80 ? 'bg-green-600 border-green-500/30' :
-                        result.score >= 60 ? 'bg-yellow-600 border-yellow-500/30' :
-                        'bg-red-600 border-red-500/30'
-                      }`}>
-                        {result.score}
+          
+          {loadingResults ? (
+            <div className="text-center py-12">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full mb-4">
+                <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              </div>
+              <p className="text-gray-600 font-medium">Sınav sonuçları yükleniyor...</p>
+            </div>
+          ) : quizResults.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="w-20 h-20 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-6">
+                <span className="text-3xl">📝</span>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">
+                {role === 'academician' 
+                  ? 'Henüz hiç sınav oluşturmamışsınız'
+                  : 'Henüz hiç sınav çözmemişsiniz'
+                }
+              </h3>
+              <p className="text-gray-600 max-w-md mx-auto">
+                {role === 'academician'
+                  ? 'Sınav simülasyonu sayfasından quiz oluşturarak burada sonuçlarını görebilirsiniz.'
+                  : 'Sınav simülasyonu sayfasından quiz oluşturup çözerek burada sonuçlarınızı görebilirsiniz.'}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {quizResults.map((result) => (
+                <div key={result.id} className="bg-gradient-to-br from-gray-50 to-blue-50 border border-gray-200/60 rounded-2xl p-6 hover:shadow-md hover:scale-[1.01] transition-all duration-200">
+                  <details className="group">
+                    <summary className="flex items-center justify-between cursor-pointer p-4 hover:bg-white/30 rounded-xl transition-all duration-200">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white font-bold text-xl shadow-lg ${
+                          result.score >= 80 ? 'bg-gradient-to-br from-green-500 to-emerald-600' :
+                          result.score >= 60 ? 'bg-gradient-to-br from-yellow-500 to-orange-600' :
+                          'bg-gradient-to-br from-red-500 to-pink-600'
+                        }`}>
+                          {result.score}
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-lg text-gray-900 mb-1">
+                            {result.quizId || 'Quiz Sonucu'}
+                          </h3>
+                          <div className="flex items-center gap-4 text-sm text-gray-600">
+                            <span className="flex items-center gap-1">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                              {result.score}/{result.totalPoints} puan
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
+                              {formatTime(result.timeSpent)} süre
+                            </span>
+                            <span className="flex items-center gap-1">
+                              <span className="w-2 h-2 bg-purple-500 rounded-full"></span>
+                              {formatDate(new Date(result.completedAt).toISOString())}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-semibold text-lg text-text-primary">
-                          {result.quizId || 'Quiz Sonucu'}
-                        </h3>
-                        <p className="text-sm text-text-secondary">
-                          {result.score}/{result.totalPoints} puan • 
-                          {formatTime(result.timeSpent)} süre • 
-                          {formatDate(new Date(result.completedAt).toISOString())}
-                        </p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-500 group-open:hidden font-medium">Detayları göster</span>
+                        <span className="text-sm text-gray-500 hidden group-open:inline font-medium">Gizle</span>
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleDeleteQuizResult(result.id, result.score);
+                          }}
+                          className="text-red-500 hover:text-red-600 text-sm font-medium px-3 py-1 rounded-lg hover:bg-red-50 transition-all duration-200"
+                        >
+                          🗑️ Sil
+                        </button>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-sm text-text-muted group-open:hidden">Detayları göster</span>
-                      <span className="text-sm text-text-muted hidden group-open:inline">Gizle</span>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleDeleteQuizResult(result.id, result.score);
-                        }}
-                        className="text-red-400 hover:text-red-300 text-sm font-medium ml-4 transition-colors"
-                      >
-                        🗑️ Sil
-                      </button>
-                    </div>
-                  </summary>
-                  
-                  <div className="mt-4 p-4 bg-primary-900/10 rounded-lg border border-primary-700/30">
-                    {result.answers && result.answers.length > 0 ? (
-                      result.answers.map((answer, index) => {
-                        const question = result.questions?.[index];
-                        return (
-                          <div key={answer.questionId} className="mb-4 p-3 bg-card-light rounded border border-primary-700/30">
-                            <div className="flex items-start justify-between mb-2">
-                              <span className="font-medium text-text-primary">
-                                Soru {index + 1}:
-                              </span>
-                              <span className={`px-2 py-1 text-xs font-semibold rounded border ${
-                                answer.isCorrect ? 'bg-green-900/30 text-green-300 border-green-700/30' : 'bg-red-900/30 text-red-300 border-red-700/30'
-                              }`}>
-                                {answer.isCorrect ? 'DOĞRU' : 'YANLIŞ'}
-                              </span>
-                            </div>
-                            
-                            <p className="text-text-secondary mb-2">{question?.question || question?.text || 'Soru metni bulunamadı'}</p>
-                            
-                            <div className="space-y-1">
-                              <div className="text-sm">
-                                <span className="font-medium text-text-secondary">Sizin cevabınız:</span>
-                                <span className={`ml-2 ${
-                                  answer.isCorrect ? 'text-green-400' : 'text-red-400'
-                                }`}>
-                                  {String(answer.userAnswer)}
-                                </span>
-                              </div>
-                              
-                              {!answer.isCorrect && question?.correctAnswer && (
-                                <div className="text-sm">
-                                  <span className="font-medium text-text-secondary">Doğru cevap:</span>
-                                  <span className="ml-2 text-green-400">
-                                    {(() => {
-                                      if (typeof question.correctAnswer === 'boolean') {
-                                        return question.correctAnswer ? 'Doğru' : 'Yanlış';
-                                      }
-                                      return String(question.correctAnswer);
-                                    })()}
+                    </summary>
+                    
+                    <div className="mt-6 p-6 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/60">
+                      {result.answers && result.answers.length > 0 ? (
+                        <div className="space-y-4">
+                          {result.answers.map((answer, index) => {
+                            const question = result.questions?.[index];
+                            return (
+                              <div key={answer.questionId} className="bg-gradient-to-br from-gray-50 to-white border border-gray-200/60 rounded-xl p-4 hover:shadow-sm hover:scale-[1.005] transition-all duration-200">
+                                <div className="flex items-start justify-between mb-3">
+                                  <span className="font-semibold text-gray-800">
+                                    Soru {index + 1}
+                                  </span>
+                                  <span className={`px-3 py-1 text-xs font-bold rounded-full border ${
+                                    answer.isCorrect 
+                                      ? 'bg-green-100 text-green-700 border-green-200' 
+                                      : 'bg-red-100 text-red-700 border-red-200'
+                                  }`}>
+                                    {answer.isCorrect ? '✅ DOĞRU' : '❌ YANLIŞ'}
                                   </span>
                                 </div>
-                              )}
-                            </div>
-                            
-                            {/* Açıklama */}
-                            {question?.explanation && (
-                              <div className="mt-3 p-3 bg-primary-900/20 rounded-lg border border-primary-700/30">
-                                <span className="font-medium text-primary-300">Açıklama:</span>
-                                <p className="text-primary-200 mt-1 italic">{question.explanation}</p>
+                                
+                                <p className="text-gray-700 mb-3 leading-relaxed">
+                                  {question?.question || question?.text || 'Soru metni bulunamadı'}
+                                </p>
+                                
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-sm font-medium text-gray-600">Sizin cevabınız:</span>
+                                    <span className={`px-2 py-1 text-sm font-medium rounded-lg ${
+                                      answer.isCorrect 
+                                        ? 'bg-green-100 text-green-700' 
+                                        : 'bg-red-100 text-red-700'
+                                    }`}>
+                                      {String(answer.userAnswer)}
+                                    </span>
+                                  </div>
+                                  
+                                  {!answer.isCorrect && question?.correctAnswer && (
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-sm font-medium text-gray-600">Doğru cevap:</span>
+                                      <span className="px-2 py-1 text-sm font-medium bg-green-100 text-green-700 rounded-lg">
+                                        {(() => {
+                                          if (typeof question.correctAnswer === 'boolean') {
+                                            return question.correctAnswer ? 'Doğru' : 'Yanlış';
+                                          }
+                                          return String(question.correctAnswer);
+                                        })()}
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Açıklama */}
+                                {question?.explanation && (
+                                  <div className="mt-4 p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200/60">
+                                    <div className="flex items-center gap-2 mb-2">
+                                      <span className="text-blue-600">💡</span>
+                                      <span className="font-semibold text-blue-800">Açıklama:</span>
+                                    </div>
+                                    <p className="text-blue-700 leading-relaxed">{question.explanation}</p>
+                                  </div>
+                                )}
                               </div>
-                            )}
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <div className="text-center py-8">
+                          <div className="w-16 h-16 bg-gradient-to-br from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <span className="text-2xl">📝</span>
                           </div>
-                        );
-                      })
-                    ) : (
-                      <div className="text-center py-8">
-                        <div className="text-4xl mb-4">📝</div>
-                        <p className="text-text-secondary mb-2">Bu quiz eski formatta kaydedilmiş.</p>
-                        <p className="text-text-muted text-sm">Yeni quiz çözerek detaylı raporları görebilirsiniz.</p>
-                      </div>
-                    )}
-                  </div>
-                </details>
-              </div>
-            ))}
-          </div>
-        )}
-      </Card>
+                          <h3 className="text-lg font-semibold text-gray-800 mb-2">Bu quiz eski formatta kaydedilmiş</h3>
+                          <p className="text-gray-600">Yeni quiz çözerek detaylı raporları görebilirsiniz.</p>
+                        </div>
+                      )}
+                    </div>
+                  </details>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   );
 };

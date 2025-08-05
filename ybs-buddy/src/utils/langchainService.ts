@@ -6,19 +6,19 @@ import { Document } from "langchain/document";
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
 
 if (!GEMINI_API_KEY) {
-  throw new Error("Gemini API key is not set in environment variables.");
+  console.warn('GEMINI_API_KEY environment variable is not set');
 }
 
-// Gemini LLM (2.5 Flash)
-export const geminiLLM = new ChatGoogleGenerativeAI({
+// Gemini LLM (2.5 Flash) - Only create if API key exists
+export const geminiLLM = GEMINI_API_KEY ? new ChatGoogleGenerativeAI({
   apiKey: GEMINI_API_KEY,
   model: "gemini-2.5-flash"
-});
+}) : null;
 
-// Gemini Embeddings
-export const geminiEmbeddings = new GoogleGenerativeAIEmbeddings({
+// Gemini Embeddings - Only create if API key exists
+export const geminiEmbeddings = GEMINI_API_KEY ? new GoogleGenerativeAIEmbeddings({
   apiKey: GEMINI_API_KEY
-});
+}) : null;
 
 // Global cache
 let vectorStoreCache: MemoryVectorStore | null = null;
@@ -31,6 +31,10 @@ function hashNotes(notes: Array<{ id: string; title: string; content: string; co
 
 // Notları vektör store'a ekle ve cache'le
 export async function getCachedVectorStore(notes: Array<{ id: string; title: string; content: string; course?: string }>) {
+  if (!geminiEmbeddings) {
+    throw new Error('Gemini API key is not configured for embeddings');
+  }
+  
   // Filtreleme: title ve content string ve dolu olmalı, content çok kısa ise alma, çok uzunsa truncate et
   const filteredNotes = notes.filter(note =>
     typeof note.title === 'string' &&
@@ -64,6 +68,10 @@ export async function getCachedVectorStore(notes: Array<{ id: string; title: str
 
 // Retriever + QA zinciri ile cevap üret
 export async function answerWithRetriever({ question, notes }:{ question: string, notes: Array<{ id: string; title: string; content: string; course?: string }> }) {
+  if (!geminiLLM) {
+    throw new Error('Gemini API key is not configured for LLM');
+  }
+  
   const vectorStore = await getCachedVectorStore(notes);
   const retriever = vectorStore.asRetriever();
   const chain = RetrievalQAChain.fromLLM(geminiLLM, retriever, {

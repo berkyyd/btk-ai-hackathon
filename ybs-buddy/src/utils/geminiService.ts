@@ -28,7 +28,7 @@ export interface AcademicGuidanceRequest {
 export class GeminiService {
   private apiKey: string;
   private summaryApiKey: string;
-  private genAI: GoogleGenerativeAI;
+  private genAI: GoogleGenerativeAI | null = null;
 
   constructor() {
     this.apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
@@ -40,8 +40,12 @@ export class GeminiService {
     if (!this.summaryApiKey) {
       console.warn('GEMINI_SUMMARY_API_KEY environment variable is not set');
     }
-    // Always use summaryApiKey if available for genAI
-    this.genAI = new GoogleGenerativeAI(this.summaryApiKey || this.apiKey);
+    
+    // Only create genAI if we have a valid API key
+    const keyToUse = this.summaryApiKey || this.apiKey;
+    if (keyToUse) {
+      this.genAI = new GoogleGenerativeAI(keyToUse);
+    }
   }
 
   async makeRequest(prompt: string): Promise<string> {

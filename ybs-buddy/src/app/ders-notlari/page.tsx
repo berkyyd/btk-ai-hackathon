@@ -431,7 +431,12 @@ export default function DersNotlariPage() {
   }
 
   const handleFileError = (error: string) => {
-    setError(error)
+    // API key yapılandırma hatası için özel mesaj
+    if (error.includes('API anahtarı yapılandırılmamış') || error.includes('Gemini API key')) {
+      setError('PDF işleme için Gemini API anahtarı yapılandırılmamış. Lütfen .env dosyasında NEXT_PUBLIC_GEMINI_SUMMARY_API_KEY değişkenini ayarlayın.')
+    } else {
+      setError(error)
+    }
     setUploadedFile(null)
     setExtractedText('')
   }
@@ -562,7 +567,7 @@ export default function DersNotlariPage() {
   // Giriş kontrolü
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ marginTop: '72px' }}>
         <div className="text-center">
           <div className="loading-spinner mb-4"></div>
           <p className="text-text-secondary">Yükleniyor...</p>
@@ -573,22 +578,24 @@ export default function DersNotlariPage() {
 
   if (!user) {
     return (
-      <LoginPrompt
-        title="Ders Notları Sayfasına Erişim"
-        description="Paylaşılan ders notlarını görüntülemek ve kendi notlarınızı eklemek için giriş yapmanız gerekiyor."
-        features={[
-          "Akademisyen ve öğrenci notları",
-          "PDF dosya desteği",
-          "Not arama ve filtreleme",
-          "Kişisel not oluşturma",
-          "Not düzenleme ve özetleme"
-        ]}
-      />
+      <div style={{ marginTop: '72px' }}>
+        <LoginPrompt
+          title="Ders Notları Sayfasına Erişim"
+          description="Paylaşılan ders notlarını görüntülemek ve kendi notlarınızı eklemek için giriş yapmanız gerekiyor."
+          features={[
+            "Akademisyen ve öğrenci notları",
+            "PDF dosya desteği",
+            "Not arama ve filtreleme",
+            "Kişisel not oluşturma",
+            "Not düzenleme ve özetleme"
+          ]}
+        />
+      </div>
     );
   }
 
   return (
-    <div className='py-8 min-h-screen'>
+    <div className='py-8 min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50' style={{ marginTop: '72px' }}>
       <section className='text-center mb-16 animate-fadeIn'>
         <h1 className='text-5xl font-extrabold text-text-primary leading-tight mb-4'>
           Ders Notları
@@ -600,16 +607,16 @@ export default function DersNotlariPage() {
         {/* Notlar-Özetler-Favoriler Toggle Butonu */}
         {user && (
           <div className='flex justify-center mt-6'>
-            <div className='flex bg-primary-900/30 rounded-lg p-1 border border-primary-700/30'>
+            <div className='flex bg-gray-50/80 backdrop-blur-sm rounded-xl p-1 border border-gray-200 shadow-sm'>
               <button
                 onClick={() => {
                   setShowMySummaries(false)
                   setShowFavorites(false)
                 }}
-                className={`px-6 py-2 rounded-md transition-all duration-300 font-medium ${
+                className={`px-6 py-3 rounded-lg transition-all duration-300 font-semibold text-sm ${
                   !showMySummaries && !showFavorites
-                    ? 'bg-primary-600 text-white shadow-sm' 
-                    : 'text-text-secondary hover:text-text-primary'
+                    ? 'bg-primary-500 text-white shadow-md' 
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
                 📚 Notlar
@@ -619,10 +626,10 @@ export default function DersNotlariPage() {
                   setShowMySummaries(true)
                   setShowFavorites(false)
                 }}
-                className={`px-6 py-2 rounded-md transition-all duration-300 font-medium ${
+                className={`px-6 py-3 rounded-lg transition-all duration-300 font-semibold text-sm ${
                   showMySummaries
-                    ? 'bg-secondary-600 text-white shadow-sm' 
-                    : 'text-text-secondary hover:text-text-primary'
+                    ? 'bg-green-500 text-white shadow-md' 
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
                 📝 Özetler
@@ -632,10 +639,10 @@ export default function DersNotlariPage() {
                   setShowMySummaries(false)
                   setShowFavorites(true)
                 }}
-                className={`px-6 py-2 rounded-md transition-all duration-300 font-medium ${
+                className={`px-6 py-3 rounded-lg transition-all duration-300 font-semibold text-sm ${
                   showFavorites
-                    ? 'bg-amber-600 text-white shadow-sm' 
-                    : 'text-text-secondary hover:text-text-primary'
+                    ? 'bg-amber-500 text-white shadow-md' 
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-gray-50'
                 }`}
               >
                 ⭐ Favoriler
@@ -646,14 +653,14 @@ export default function DersNotlariPage() {
       </section>
 
       {/* Filtreler */}
-      <Card className='mb-8 card-glass'>
-        <div className='grid grid-cols-1 md:grid-cols-6 gap-4'>
+              <Card className='mb-8 bg-gray-50/90 backdrop-blur-sm border border-gray-200 rounded-xl shadow-sm max-w-5xl mx-auto'>
+        <div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4'>
           <div>
-            <label className='block text-sm font-medium text-text-secondary mb-2'>Sınıf</label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Sınıf</label>
             <select
               value={curriculumFilters.selectedClass}
               onChange={(e) => handleCurriculumFilterChange('selectedClass', parseInt(e.target.value))}
-              className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
+              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-800 transition-colors'
             >
               <option value={1}>1. Sınıf</option>
               <option value={2}>2. Sınıf</option>
@@ -663,11 +670,11 @@ export default function DersNotlariPage() {
           </div>
           
           <div>
-            <label className='block text-sm font-medium text-text-secondary mb-2'>Dönem</label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Dönem</label>
             <select
               value={curriculumFilters.selectedSemester}
               onChange={(e) => handleCurriculumFilterChange('selectedSemester', e.target.value)}
-              className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
+              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-800 transition-colors'
             >
               {getClassAndSemesterOptions()
                 .filter(option => option.class === curriculumFilters.selectedClass)
@@ -680,11 +687,11 @@ export default function DersNotlariPage() {
           </div>
           
           <div>
-            <label className='block text-sm font-medium text-text-secondary mb-2'>Ders</label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Ders</label>
             <select
               value={curriculumFilters.selectedCourse}
               onChange={(e) => handleCurriculumFilterChange('selectedCourse', e.target.value)}
-              className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
+              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-800 transition-colors'
             >
               <option value=''>Tüm Dersler</option>
               {getCoursesByClassAndSemester(curriculumFilters.selectedClass, curriculumFilters.selectedSemester).map(course => (
@@ -696,27 +703,27 @@ export default function DersNotlariPage() {
           </div>
           
           <div>
-            <label className='block text-sm font-medium text-text-secondary mb-2'>Arama</label>
-            <input
-              type='text'
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              placeholder='Not başlığı, içeriği veya yazar adı...'
-              className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
-            />
-          </div>
-          
-          <div>
-            <label className='block text-sm font-medium text-text-secondary mb-2'>Rol Filtresi</label>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Rol Filtresi</label>
             <select
               value={filters.role}
               onChange={(e) => handleFilterChange('role', e.target.value)}
-              className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
+              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-800 transition-colors'
             >
               <option value=''>Tüm Roller</option>
               <option value='academician'>🎓 Akademisyen</option>
               <option value='student'>👨‍🎓 Öğrenci</option>
             </select>
+          </div>
+          
+          <div>
+            <label className='block text-sm font-medium text-gray-700 mb-2'>Arama</label>
+            <input
+              type='text'
+              value={filters.search}
+              onChange={(e) => handleFilterChange('search', e.target.value)}
+              placeholder='Not başlığı, içeriği veya yazar adı...'
+              className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-800 transition-colors'
+            />
           </div>
           
           {user && (
@@ -734,7 +741,7 @@ export default function DersNotlariPage() {
                   }
                   setShowAddForm(!showAddForm)
                 }}
-                className='w-full px-4 py-2 bg-secondary-600 text-white rounded-md hover:bg-secondary-700 transition-colors border border-secondary-500/30'
+                className='w-full px-4 py-2 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors border border-primary-500/30 font-medium'
               >
                 {showAddForm ? 'İptal' : 'Yeni Not Ekle'}
               </button>
@@ -745,34 +752,34 @@ export default function DersNotlariPage() {
 
       {/* Yeni Not Ekleme Formu */}
       {showAddForm && (
-        <Card className='mb-8 card-glass'>
-          <div className='flex items-center justify-between mb-4'>
-            <h3 className='text-xl font-bold text-text-primary'>Yeni Not Ekle</h3>
+        <Card className='mb-8 bg-gray-50/90 backdrop-blur-sm border border-gray-200 rounded-xl shadow-sm max-w-4xl mx-auto'>
+          <div className='flex items-center justify-between mb-6'>
+            <h3 className='text-xl font-bold text-gray-800'>Yeni Not Ekle</h3>
             {role === 'academician' && (
-              <span className='text-primary-400 font-semibold text-sm bg-primary-900/20 px-3 py-1 rounded-full border border-primary-700/30'>
+              <span className='text-primary-600 font-semibold text-sm bg-primary-100 px-3 py-1 rounded-full border border-primary-200'>
                 🎓 Akademisyen olarak not ekliyorsunuz
               </span>
             )}
           </div>
-          <form onSubmit={handleAddNote} className='space-y-4'>
-            <div className='grid grid-cols-1 md:grid-cols-2 gap-4'>
+          <form onSubmit={handleAddNote} className='space-y-6'>
+            <div className='grid grid-cols-1 md:grid-cols-2 gap-6'>
               <div>
-                <label className='block text-sm font-medium text-text-secondary mb-2'>Not Başlığı</label>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>Not Başlığı</label>
                 <input
                   type='text'
                   value={newNote.title}
                   onChange={(e) => setNewNote(prev => ({ ...prev, title: e.target.value }))}
-                  className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-800 transition-colors'
                   required
                 />
               </div>
               
               <div>
-                <label className='block text-sm font-medium text-text-secondary mb-2'>Ders Seçimi</label>
+                <label className='block text-sm font-medium text-gray-700 mb-2'>Ders Seçimi</label>
                 <select
                   value={newNote.courseId}
                   onChange={(e) => setNewNote(prev => ({ ...prev, courseId: e.target.value }))}
-                  className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
+                  className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-800 transition-colors'
                   required
                 >
                   <option value=''>Ders Seçin</option>
@@ -790,7 +797,7 @@ export default function DersNotlariPage() {
                   ))}
                 </select>
                 {courses.length === 0 && curriculumCourses.length === 0 && (
-                  <div className='text-amber-400 text-xs mt-1 p-2 bg-amber-900/20 rounded border border-amber-700/30'>
+                  <div className='text-amber-600 text-xs mt-2 p-3 bg-amber-50 rounded-lg border border-amber-200'>
                     <p className='font-medium mb-1'>⚠️ Henüz ders bulunmuyor</p>
                     <p>Müfredat dersleri yükleniyor veya profil sayfasından ders eklemeniz gerekiyor.</p>
                   </div>
@@ -799,11 +806,11 @@ export default function DersNotlariPage() {
             </div>
             
             <div>
-              <label className='block text-sm font-medium text-text-secondary mb-2'>Not İçeriği</label>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>Not İçeriği</label>
               <textarea
                 value={newNote.content}
                 onChange={(e) => setNewNote(prev => ({ ...prev, content: e.target.value }))}
-                className='w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary'
+                className='w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 bg-white text-gray-800 transition-colors'
                 rows={6}
                 placeholder='Notunuzu buraya yazın...'
                 required
@@ -811,7 +818,7 @@ export default function DersNotlariPage() {
             </div>
             
             <div>
-              <label className='block text-sm font-medium text-text-secondary mb-2'>PDF Dosyası (Opsiyonel)</label>
+              <label className='block text-sm font-medium text-gray-700 mb-2'>PDF Dosyası (Opsiyonel)</label>
               <FileUpload
                 onFileProcessed={handleFileProcessed}
                 onError={handleFileError}
@@ -820,12 +827,12 @@ export default function DersNotlariPage() {
 
             {/* PDF İçeriği Görüntüleme */}
             {uploadedFile && (
-              <div className='border border-primary-700/30 rounded-lg p-4 bg-primary-900/10'>
+              <div className='border border-gray-200 rounded-lg p-4 bg-gray-50'>
                 <div className='mb-3'>
-                  <h4 className='font-medium text-text-primary'>PDF Metni: {uploadedFile.name}</h4>
+                  <h4 className='font-medium text-gray-800'>PDF Metni: {uploadedFile.name}</h4>
                 </div>
                 <div className='max-h-60 overflow-y-auto'>
-                  <pre className='text-sm text-text-secondary whitespace-pre-wrap'>{extractedText}</pre>
+                  <pre className='text-sm text-gray-600 whitespace-pre-wrap'>{extractedText}</pre>
                 </div>
               </div>
             )}
@@ -838,12 +845,12 @@ export default function DersNotlariPage() {
                 id='isPublic'
                 checked={newNote.isPublic}
                 onChange={(e) => setNewNote(prev => ({ ...prev, isPublic: e.target.checked }))}
-                className='w-4 h-4 text-primary-600 bg-card-light border-primary-700/30 rounded focus:ring-primary-500'
+                className='w-4 h-4 text-primary-600 bg-white border-gray-300 rounded focus:ring-primary-500'
               />
-              <label htmlFor='isPublic' className='text-sm font-medium text-text-secondary'>
+              <label htmlFor='isPublic' className='text-sm font-medium text-gray-700'>
                 Herkese Açık
               </label>
-              <span className='text-xs text-text-muted ml-2'>
+              <span className='text-xs text-gray-500 ml-2'>
                 {newNote.isPublic ? 'Bu not tüm kullanıcılar tarafından görülebilir' : 'Bu not sadece siz tarafından görülebilir'}
               </span>
             </div>
@@ -898,58 +905,58 @@ export default function DersNotlariPage() {
             </p>
           </div>
         ) : (
-          <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+          <div className='grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4 max-w-7xl mx-auto'>
             {notes.map((note) => (
               <div 
                 key={note.id} 
-                className={`card-glass border rounded-lg p-4 hover:shadow-glow-blue transition-all duration-400 cursor-pointer ${
+                className={`bg-white/90 backdrop-blur-sm border border-gray-200 rounded-xl p-5 hover:shadow-lg hover:scale-[1.02] transition-all duration-300 cursor-pointer ${
                   note.role === 'academician' 
-                    ? 'border-primary-400 bg-primary-900/20 shadow-lg' 
-                    : 'border-primary-700/30'
+                    ? 'ring-2 ring-primary-200 shadow-md' 
+                    : 'shadow-sm'
                 }`}
                 onClick={() => handleNoteClick(note)}
               >
                 {/* Akademisyen/Öğrenci/Özet notu etiketi */}
-                <div className='flex items-center justify-between mb-2'>
-                  <span className={`font-semibold text-sm ${
+                <div className='flex items-center justify-between mb-3'>
+                  <span className={`font-semibold text-xs px-3 py-1 rounded-full ${
                     note.title.startsWith('Özet:')
-                      ? 'text-secondary-400'
+                      ? 'bg-secondary-100 text-secondary-700'
                       : (note.role || 'student') === 'academician' 
-                        ? 'text-primary-400' 
-                        : 'text-secondary-400'
+                        ? 'bg-primary-100 text-primary-700' 
+                        : 'bg-gray-100 text-gray-700'
                   }`}>
                     {note.title.startsWith('Özet:') 
                       ? '📝 ÖZET' 
                       : (note.role || 'student') === 'academician' 
-                        ? '🎓 Akademisyen Notu' 
-                        : '👨‍🎓 Öğrenci Notu'
+                        ? '🎓 Akademisyen' 
+                        : '👨‍🎓 Öğrenci'
                     }
                   </span>
                   
                   {/* Favori göstergesi */}
                   {user && favorites.includes(note.id) && (
-                    <span className='text-amber-400 text-sm' title='Favori Not'>⭐</span>
+                    <span className='text-amber-500 text-lg' title='Favori Not'>⭐</span>
                   )}
                 </div>
                
                 {/* Not başlığı */}
                 <div className='flex justify-between items-start mb-3'>
-                  <h3 className={`font-bold text-lg line-clamp-2 ${
-                    note.role === 'academician' ? 'text-primary-300' : 'text-text-primary'
+                  <h3 className={`font-bold text-lg line-clamp-2 leading-tight ${
+                    note.role === 'academician' ? 'text-primary-700' : 'text-gray-800'
                   }`}>
                     {note.title}
                   </h3>
                   
                   {/* Kilit simgesi - özel notlar için */}
                   {!note.isPublic && (
-                    <span className='text-text-muted text-lg' title='Özel Not'>🔒</span>
+                    <span className='text-gray-400 text-lg ml-2' title='Özel Not'>🔒</span>
                   )}
                 </div>
                 
                 {/* Kullanıcı adı */}
                 <div className='flex items-center gap-2 mb-3'>
-                  <span className='text-xs text-text-muted'>👤</span>
-                  <span className='text-sm text-text-secondary'>
+                  <span className='text-xs text-gray-500'>👤</span>
+                  <span className='text-sm text-gray-600 font-medium'>
                     {(() => {
                       const userId = note.userId || 'anonymous';
                       const userData = users[userId];
@@ -970,7 +977,7 @@ export default function DersNotlariPage() {
                 
                 {/* Ders adı - belirgin */}
                 <div className='mb-3'>
-                  <p className='text-base font-semibold text-text-primary'>
+                  <p className='text-sm font-semibold text-gray-700'>
                     📚 {(() => {
                       // Önce müfredat derslerinde ara
                       const curriculumCourse = curriculumCourses.find(c => c.code === note.courseId);
@@ -992,16 +999,15 @@ export default function DersNotlariPage() {
                 </div>
                
                 {/* Sınıf, Dönem, Tarih bilgileri */}
-                <div className='flex justify-between text-sm text-text-muted mb-3'>
+                <div className='flex justify-between text-xs text-gray-500 mb-3'>
                   <span>📅 {note.class}. Sınıf</span>
                   <span>📖 {note.semester}</span>
                   <span>📝 {formatDate((note.createdAt instanceof Date ? note.createdAt.toISOString() : note.createdAt))}</span>
-                  <span className='text-xs'>🎭 {note.role || 'student'}</span>
                 </div>
                 
                 {/* PDF bilgisi */}
                 {note.isPDF && (
-                  <div className='flex items-center gap-2 text-primary-400 text-xs mb-2'>
+                  <div className='flex items-center gap-2 text-blue-600 text-xs mb-2 bg-blue-50 px-2 py-1 rounded-md'>
                     <span>📄</span>
                     <span>PDF: {note.originalFileName}</span>
                   </div>
@@ -1011,7 +1017,7 @@ export default function DersNotlariPage() {
                 {note.tags && note.tags.length > 0 && (
                   <div className='flex flex-wrap gap-1 mb-3'>
                     {note.tags.map(tag => (
-                      <span key={tag} className='px-2 py-1 bg-primary-900/30 text-primary-300 text-xs rounded border border-primary-700/30'>
+                      <span key={tag} className='px-2 py-1 bg-gray-100 text-gray-700 text-xs rounded-md border border-gray-200'>
                         {tag}
                       </span>
                     ))}
@@ -1019,7 +1025,7 @@ export default function DersNotlariPage() {
                 )}
                 
                 {/* Alt bilgiler */}
-                <div className='flex justify-between items-center text-sm text-text-muted'>
+                <div className='flex justify-between items-center text-xs text-gray-500 mt-4 pt-3 border-t border-gray-100'>
                   <div className='flex items-center gap-2'>
                     {/* Favori Butonu - Sol alt köşe */}
                     {user && (
@@ -1030,8 +1036,8 @@ export default function DersNotlariPage() {
                         }}
                         className={`text-lg transition-colors ${
                           favorites.includes(note.id)
-                            ? 'text-amber-400 hover:text-amber-300'
-                            : 'text-text-muted hover:text-amber-400'
+                            ? 'text-amber-500 hover:text-amber-600'
+                            : 'text-gray-400 hover:text-amber-500'
                         }`}
                         title={favorites.includes(note.id) ? 'Favorilerden Çıkar' : 'Favorilere Ekle'}
                       >
@@ -1041,7 +1047,7 @@ export default function DersNotlariPage() {
                   </div>
                   
                   <div className='flex items-center gap-2'>
-                    <span className='text-primary-400 text-xs'>Detaylar için tıklayın</span>
+                    <span className='text-gray-400 text-xs'>Detaylar için tıklayın</span>
                     
                     {/* PDF İndirme Butonu */}
                     <button
@@ -1059,7 +1065,7 @@ export default function DersNotlariPage() {
                         
                         downloadNoteAsPDF(note, courseName, userName);
                       }}
-                      className='text-secondary-400 hover:text-secondary-300 text-xs px-2 py-1 rounded hover:bg-secondary-900/20 transition-colors'
+                      className='text-blue-600 hover:text-blue-700 text-xs px-2 py-1 rounded-md hover:bg-blue-50 transition-colors'
                       title='PDF İndir'
                     >
                       📄 PDF
@@ -1071,7 +1077,7 @@ export default function DersNotlariPage() {
                           e.stopPropagation();
                           handleDeleteNote(note.id, note.title);
                         }}
-                        className='text-red-400 hover:text-red-300 text-xs px-2 py-1 rounded hover:bg-red-900/20 transition-colors'
+                        className='text-red-500 hover:text-red-600 text-xs px-2 py-1 rounded-md hover:bg-red-50 transition-colors'
                         title='Notu Sil'
                       >
                         🗑️ Sil
@@ -1087,58 +1093,93 @@ export default function DersNotlariPage() {
 
       {/* Not detayları modalı */}
       {showNoteModal && selectedNote && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="card-glass rounded-lg shadow-2xl max-w-2xl w-full relative flex flex-col max-h-[90vh]">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+          <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl max-w-4xl w-full mx-4 relative flex flex-col max-h-[90vh] border border-white/20">
             {/* Header */}
-            <div className="flex items-center justify-between border-b border-primary-800/30 px-6 py-4 sticky top-0 bg-card-light z-10 rounded-t-lg">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center justify-between px-8 py-6 border-b border-gray-200/60 sticky top-0 bg-white/80 backdrop-blur-sm z-10 rounded-t-3xl">
+              <div className="flex items-center gap-4">
                 {selectedNote.title.startsWith('Özet:') ? (
-                  <span className="text-secondary-400 font-semibold text-sm bg-secondary-900/20 px-3 py-1 rounded-full border border-secondary-700/30">
-                    📝 ÖZET
-                  </span>
-                ) : selectedNote.role === 'academician' && (
-                  <span className="text-primary-400 font-semibold text-sm bg-primary-900/20 px-3 py-1 rounded-full border border-primary-700/30">
-                    🎓 Akademisyen Notu
-                  </span>
+                  <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xl">📝</span>
+                  </div>
+                ) : selectedNote.role === 'academician' ? (
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xl">🎓</span>
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-600 rounded-2xl flex items-center justify-center shadow-lg">
+                    <span className="text-white text-xl">👨‍🎓</span>
+                  </div>
                 )}
-                <h2 className={`text-2xl font-bold truncate mr-4 ${
-                  selectedNote.role === 'academician' ? 'text-primary-300' : 'text-text-primary'
-                }`}>
-                  {selectedNote.title}
-                </h2>
+                
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    {selectedNote.title.startsWith('Özet:') ? (
+                      <span className="text-green-600 font-semibold text-sm bg-green-100 px-3 py-1 rounded-full border border-green-200">
+                        📝 ÖZET
+                      </span>
+                    ) : selectedNote.role === 'academician' ? (
+                      <span className="text-blue-600 font-semibold text-sm bg-blue-100 px-3 py-1 rounded-full border border-blue-200">
+                        🎓 Akademisyen Notu
+                      </span>
+                    ) : (
+                      <span className="text-gray-600 font-semibold text-sm bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+                        👨‍🎓 Öğrenci Notu
+                      </span>
+                    )}
+                    
+                    {!selectedNote.isPublic && (
+                      <span className="text-amber-600 font-semibold text-sm bg-amber-100 px-3 py-1 rounded-full border border-amber-200">
+                        🔒 Özel
+                      </span>
+                    )}
+                  </div>
+                  
+                  <h2 className="text-2xl font-bold text-gray-900 line-clamp-2">
+                    {selectedNote.title}
+                  </h2>
+                </div>
               </div>
-              <button className="text-text-muted hover:text-text-primary text-2xl transition-colors" onClick={() => setShowNoteModal(false)}>&times;</button>
+              
+              <button 
+                className="w-10 h-10 bg-gray-100 hover:bg-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-800 transition-all duration-300" 
+                onClick={() => setShowNoteModal(false)}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
             
             {/* Scrollable Content */}
-            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+            <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
               {isEditing && editingNote ? (
                 // Düzenleme modu
-                <div className="space-y-4">
+                <div className="space-y-6">
                   <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-2">Not Başlığı</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Not Başlığı</label>
                     <input
                       type="text"
                       value={editingNote.title}
                       onChange={(e) => setEditingNote(prev => prev ? { ...prev, title: e.target.value } : null)}
-                      className="w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary"
+                      className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 transition-all duration-300"
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-2">Not İçeriği</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Not İçeriği</label>
                     <textarea
                       value={editingNote.content}
                       onChange={(e) => setEditingNote(prev => prev ? { ...prev, content: e.target.value } : null)}
-                      className="w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary"
-                      rows={8}
+                      className="w-full px-4 py-3 bg-white/70 backdrop-blur-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 transition-all duration-300"
+                      rows={12}
                     />
                   </div>
                   
                   <div>
-                    <label className="block text-sm font-medium text-text-secondary mb-2">Etiketler</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-3">Etiketler</label>
                     <div className="flex flex-wrap gap-2">
-                      {['SQL', 'Veritabanı', 'Yapay Zeka', 'Programlama', 'Web', 'Mobil'].map(tag => (
+                      {['SQL', 'Veritabanı', 'Yapay Zeka', 'Programlama', 'Web', 'Mobil', 'Algoritma', 'Veri Yapıları'].map(tag => (
                         <button
                           key={tag}
                           type="button"
@@ -1150,10 +1191,10 @@ export default function DersNotlariPage() {
                               setEditingNote({ ...editingNote, tags: newTags });
                             }
                           }}
-                          className={`px-3 py-1 rounded-full text-sm border ${
+                          className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 ${
                             editingNote.tags?.includes(tag)
-                              ? 'bg-primary-600 text-white border-primary-500'
-                              : 'bg-primary-900/20 text-text-secondary hover:bg-primary-800/30 border-primary-700/30'
+                              ? 'bg-blue-600 text-white shadow-md hover:bg-blue-700'
+                              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border border-gray-200'
                           }`}
                         >
                           {tag}
@@ -1162,102 +1203,172 @@ export default function DersNotlariPage() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <input
                       type="checkbox"
                       id="editIsPublic"
                       checked={editingNote.isPublic}
                       onChange={(e) => setEditingNote(prev => prev ? { ...prev, isPublic: e.target.checked } : null)}
-                      className="w-4 h-4 text-primary-600 bg-card-light border-primary-700/30 rounded focus:ring-primary-500"
+                      className="w-5 h-5 text-blue-600 bg-white border-gray-300 rounded focus:ring-blue-500"
                     />
-                    <label htmlFor="editIsPublic" className="text-sm font-medium text-text-secondary">
+                    <label htmlFor="editIsPublic" className="text-sm font-medium text-gray-700">
                       Herkese Açık
                     </label>
+                    <span className="text-xs text-gray-500">
+                      {editingNote.isPublic ? 'Bu not tüm kullanıcılar tarafından görülebilir' : 'Bu not sadece siz tarafından görülebilir'}
+                    </span>
                   </div>
                 </div>
               ) : (
                 // Görüntüleme modu
                 <>
-                  <div className="flex flex-wrap gap-2 text-sm text-text-secondary">
-                    <span>📚 {(() => {
-                      // Önce API'den gelen derslerde ara
-                      const apiCourse = courses.find(c => c.id === selectedNote.courseId);
-                      if (apiCourse) return apiCourse.name;
-                      
-                      // Müfredat derslerinde ara
-                      const curriculumCourse = curriculumCourses.find(c => c.code === selectedNote.courseId);
-                      if (curriculumCourse) return curriculumCourse.name;
-                      
-                      // Eğer courseId boşsa ve müfredat filtresinde seçili ders varsa onu göster
-                      if (!selectedNote.courseId && curriculumFilters.selectedCourse) {
-                        const selectedCourse = curriculumCourses.find(c => c.code === curriculumFilters.selectedCourse);
-                        if (selectedCourse) return selectedCourse.name;
-                      }
-                      
-                      return 'Bilinmeyen Ders';
-                    })()}</span>
-                    <span>📅 {selectedNote.class}. Sınıf</span>
-                    <span>📖 {selectedNote.semester}</span>
-                    <span>📝 {formatDate(typeof selectedNote.createdAt === 'string' ? selectedNote.createdAt : selectedNote.createdAt?.toString?.() || '')} </span>
-                    <span className={`px-2 py-1 rounded border ${
-                      selectedNote.isPublic 
-                        ? 'bg-green-900/30 text-green-300 border-green-700/30' 
-                        : 'bg-yellow-900/30 text-yellow-300 border-yellow-700/30'
-                    }`}>
-                      {selectedNote.isPublic ? 'Herkese Açık' : 'Özel'}
-                    </span>
+                  {/* Not Bilgileri */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-gradient-to-br from-gray-50 to-blue-50 rounded-2xl border border-gray-200/60">
+                    <div className="flex items-center gap-2">
+                      <span className="text-blue-600">📚</span>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Ders</p>
+                        <p className="text-sm font-semibold text-gray-800">
+                          {(() => {
+                            const apiCourse = courses.find(c => c.id === selectedNote.courseId);
+                            if (apiCourse) return apiCourse.name;
+                            const curriculumCourse = curriculumCourses.find(c => c.code === selectedNote.courseId);
+                            if (curriculumCourse) return curriculumCourse.name;
+                            if (!selectedNote.courseId && curriculumFilters.selectedCourse) {
+                              const selectedCourse = curriculumCourses.find(c => c.code === curriculumFilters.selectedCourse);
+                              if (selectedCourse) return selectedCourse.name;
+                            }
+                            return 'Bilinmeyen Ders';
+                          })()}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="text-green-600">📅</span>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Sınıf</p>
+                        <p className="text-sm font-semibold text-gray-800">{selectedNote.class}. Sınıf</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="text-purple-600">📖</span>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Dönem</p>
+                        <p className="text-sm font-semibold text-gray-800">{selectedNote.semester}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <span className="text-amber-600">📝</span>
+                      <div>
+                        <p className="text-xs text-gray-500 font-medium">Tarih</p>
+                        <p className="text-sm font-semibold text-gray-800">
+                          {formatDate(typeof selectedNote.createdAt === 'string' ? selectedNote.createdAt : selectedNote.createdAt?.toString?.() || '')}
+                        </p>
+                      </div>
+                    </div>
                   </div>
                   
+                  {/* Kullanıcı Bilgisi */}
+                  <div className="flex items-center gap-3 p-4 bg-white/80 backdrop-blur-sm rounded-2xl border border-gray-200/60">
+                    <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-full flex items-center justify-center shadow-md">
+                      <span className="text-white text-sm font-semibold">
+                        {(() => {
+                          const userId = selectedNote.userId || 'anonymous';
+                          const userData = users[userId];
+                          return userData?.displayName?.charAt(0) || 'A';
+                        })()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500 font-medium">Yazar</p>
+                      <p className="text-base font-semibold text-gray-800">
+                        {(() => {
+                          const userId = selectedNote.userId || 'anonymous';
+                          const userData = users[userId];
+                          return userData?.displayName || 'Bilinmeyen Kullanıcı';
+                        })()}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Etiketler */}
                   {selectedNote.tags && selectedNote.tags.length > 0 && (
                     <div className="flex flex-wrap gap-2">
                       {selectedNote.tags.map(tag => (
-                        <span key={tag} className="px-3 py-1 bg-primary-900/30 text-primary-300 text-sm rounded-full border border-primary-700/30">{tag}</span>
+                        <span key={tag} className="px-3 py-2 bg-blue-100 text-blue-700 text-sm font-medium rounded-xl border border-blue-200">
+                          {tag}
+                        </span>
                       ))}
                     </div>
                   )}
                   
+                  {/* PDF Bilgisi */}
                   {selectedNote.isPDF && (
-                    <div className="bg-primary-900/20 border border-primary-700/30 rounded-lg p-3">
-                      <div className="flex items-center gap-2 text-primary-300 mb-2">
-                        <span>📄</span>
-                        <span className="font-medium">PDF Dosyası: {selectedNote.originalFileName}</span>
-                        {selectedNote.fileSize && (
-                          <span className="text-sm">({(selectedNote.fileSize / 1024 / 1024).toFixed(2)} MB)</span>
-                        )}
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/60 rounded-2xl p-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-lg">
+                          <span className="text-white text-xl">📄</span>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-gray-800">PDF Dosyası</h4>
+                          <p className="text-sm text-gray-600">{selectedNote.originalFileName}</p>
+                          {selectedNote.fileSize && (
+                            <p className="text-xs text-gray-500">({(selectedNote.fileSize / 1024 / 1024).toFixed(2)} MB)</p>
+                          )}
+                        </div>
                       </div>
+                      
                       {selectedNote.extractedText && (
-                        <div className="mt-3">
-                          <h4 className="font-medium text-primary-300 mb-2">PDF İçeriği:</h4>
-                          <div className="bg-card-light rounded p-3 max-h-40 overflow-y-auto">
-                            <pre className="whitespace-pre-wrap text-sm text-text-secondary">{selectedNote.extractedText}</pre>
+                        <div className="mb-4">
+                          <h5 className="font-medium text-gray-700 mb-2">PDF İçeriği:</h5>
+                          <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 max-h-40 overflow-y-auto border border-gray-200/60">
+                            <pre className="whitespace-pre-wrap text-sm text-gray-700 leading-relaxed">{selectedNote.extractedText}</pre>
                           </div>
                         </div>
                       )}
+                      
                       {selectedNote.fileUrl && (
-                        <div className="mt-3">
-                          <a href={selectedNote.fileUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-primary-400 hover:text-primary-300 text-sm transition-colors">
-                            <span>🔗</span>
-                            <span>PDF'i İndir</span>
-                          </a>
-                        </div>
+                        <a 
+                          href={selectedNote.fileUrl} 
+                          target="_blank" 
+                          rel="noopener noreferrer" 
+                          className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                        >
+                          <span>🔗</span>
+                          <span>PDF'i İndir</span>
+                        </a>
                       )}
                     </div>
                   )}
                   
-                  <div className="border-t border-primary-800/30 pt-4">
-                    <h3 className="font-semibold text-lg mb-2 text-text-primary">Not İçeriği</h3>
-                    <div className="bg-primary-900/10 rounded-lg p-4 max-h-60 overflow-y-auto border border-primary-700/30">
+                  {/* Not İçeriği */}
+                  <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/60">
+                    <h3 className="font-bold text-xl mb-4 text-gray-800 flex items-center gap-2">
+                      <span className="text-blue-600">📝</span>
+                      Not İçeriği
+                    </h3>
+                    <div className="bg-gray-50/80 backdrop-blur-sm rounded-xl p-6 max-h-80 overflow-y-auto border border-gray-200/60">
                       <div 
-                        className="text-sm leading-relaxed text-text-secondary"
+                        className="text-base leading-relaxed text-gray-700 prose prose-gray max-w-none"
                         dangerouslySetInnerHTML={{ __html: selectedNote.content }}
                       />
                     </div>
                   </div>
                   
-                  <div className="flex justify-between items-center text-sm text-text-muted">
-                    <div className="flex space-x-4">
-                      <span>❤️ {selectedNote.likes} beğeni</span>
-                      <span>⭐ {selectedNote.favorites} favori</span>
+                  {/* İstatistikler */}
+                  <div className="flex justify-between items-center text-sm text-gray-500 bg-gray-50/80 backdrop-blur-sm rounded-xl p-4 border border-gray-200/60">
+                    <div className="flex space-x-6">
+                      <span className="flex items-center gap-1">
+                        <span className="text-red-500">❤️</span>
+                        <span>{selectedNote.likes || 0} beğeni</span>
+                      </span>
+                      <span className="flex items-center gap-1">
+                        <span className="text-amber-500">⭐</span>
+                        <span>{selectedNote.favorites || 0} favori</span>
+                      </span>
                     </div>
                   </div>
                 </>
@@ -1265,21 +1376,39 @@ export default function DersNotlariPage() {
             </div>
             
             {/* Actions */}
-            <div className="flex gap-2 border-t border-primary-800/30 px-6 py-4 bg-card-light sticky bottom-0 rounded-b-lg z-10">
+            <div className="flex gap-3 border-t border-gray-200/60 px-8 py-6 bg-white/80 backdrop-blur-sm sticky bottom-0 rounded-b-3xl">
               {isEditing ? (
                 // Düzenleme modunda butonlar
                 <>
-                  <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex-1 border border-green-500/30 transition-colors" onClick={handleSaveEdit}>Kaydet</button>
-                  <button className="bg-primary-900/30 text-text-secondary px-4 py-2 rounded hover:bg-primary-800/40 flex-1 border border-primary-700/30 transition-colors" onClick={handleCancelEdit}>İptal</button>
+                  <button 
+                    className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl" 
+                    onClick={handleSaveEdit}
+                  >
+                    💾 Kaydet
+                  </button>
+                  <button 
+                    className="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition-all duration-300 border border-gray-200" 
+                    onClick={handleCancelEdit}
+                  >
+                    ❌ İptal
+                  </button>
                 </>
               ) : (
                 // Görüntüleme modunda butonlar
                 <>
-                  <button className="bg-secondary-600 text-white px-4 py-2 rounded hover:bg-secondary-700 flex-1 border border-secondary-500/30 transition-colors" onClick={() => setShowSummaryModal(true)}>ÖZETLE</button>
+                  {/* Özetleme butonu - sadece normal notlar için göster */}
+                  {!selectedNote.title.startsWith('Özet:') && (
+                    <button 
+                      className="flex-1 bg-gradient-to-r from-purple-600 to-purple-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-purple-700 hover:to-purple-800 transition-all duration-300 shadow-lg hover:shadow-xl" 
+                      onClick={() => setShowSummaryModal(true)}
+                    >
+                      📝 ÖZETLE
+                    </button>
+                  )}
                   
                   {/* PDF İndirme Butonu */}
                   <button 
-                    className="bg-primary-600 text-white px-4 py-2 rounded hover:bg-primary-700 flex-1 border border-primary-500/30 transition-colors" 
+                    className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-blue-700 hover:to-blue-800 transition-all duration-300 shadow-lg hover:shadow-xl" 
                     onClick={() => {
                       if (selectedNote) {
                         const courseName = (() => {
@@ -1300,10 +1429,22 @@ export default function DersNotlariPage() {
                     📄 PDF İNDİR
                   </button>
                   
+                  {/* Düzenleme butonu - sadece kullanıcının kendi notları için */}
                   {user && selectedNote?.userId === user.uid && (
-                    <button className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 flex-1 border border-green-500/30 transition-colors" onClick={() => handleEditNote(selectedNote)}>DÜZENLE</button>
+                    <button 
+                      className="flex-1 bg-gradient-to-r from-green-600 to-green-700 text-white font-semibold py-3 px-6 rounded-xl hover:from-green-700 hover:to-green-800 transition-all duration-300 shadow-lg hover:shadow-xl" 
+                      onClick={() => handleEditNote(selectedNote)}
+                    >
+                      ✏️ DÜZENLE
+                    </button>
                   )}
-                  <button className="bg-primary-900/30 text-text-secondary px-4 py-2 rounded hover:bg-primary-800/40 flex-1 border border-primary-700/30 transition-colors" onClick={() => setShowNoteModal(false)}>Kapat</button>
+                  
+                  <button 
+                    className="flex-1 bg-gray-100 text-gray-700 font-semibold py-3 px-6 rounded-xl hover:bg-gray-200 transition-all duration-300 border border-gray-200" 
+                    onClick={() => setShowNoteModal(false)}
+                  >
+                    ❌ Kapat
+                  </button>
                 </>
               )}
             </div>

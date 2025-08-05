@@ -11,7 +11,7 @@ import { auth, db } from '../config/firebase';
 import { doc, getDoc } from 'firebase/firestore';
 
 interface AuthContextType {
-  user: User | null;
+  user: (User & { role?: string }) | null;
   loading: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
@@ -23,7 +23,7 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<(User & { role?: string }) | null>(null);
   const [loading, setLoading] = useState(false); // Başlangıçta false
   const [role, setRole] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -35,7 +35,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const authData = JSON.parse(savedAuth);
         if (authData.user && authData.role) {
-          setUser(authData.user);
+          const userWithRole = { ...authData.user, role: authData.role };
+          setUser(userWithRole);
           setRole(authData.role);
           setIsAuthenticated(true);
         }
@@ -56,13 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       const userRole = userDoc.exists() ? userDoc.data().role || 'student' : 'student';
       
-      setUser(user);
+      const userWithRole = { ...user, role: userRole };
+      setUser(userWithRole);
       setRole(userRole);
       setIsAuthenticated(true);
       
       // LocalStorage'a kaydet
       localStorage.setItem('ybs-auth', JSON.stringify({
-        user: user,
+        user: userWithRole,
         role: userRole
       }));
     } catch (error) {
@@ -82,13 +84,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const userDoc = await getDoc(doc(db, 'users', user.uid));
       const userRole = userDoc.exists() ? userDoc.data().role || 'student' : 'student';
       
-      setUser(user);
+      const userWithRole = { ...user, role: userRole };
+      setUser(userWithRole);
       setRole(userRole);
       setIsAuthenticated(true);
       
       // LocalStorage'a kaydet
       localStorage.setItem('ybs-auth', JSON.stringify({
-        user: user,
+        user: userWithRole,
         role: userRole
       }));
     } catch (error) {

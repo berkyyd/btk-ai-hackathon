@@ -4,6 +4,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import { apiClient } from '../../utils/apiClient';
 import { createInvitationCode } from '../../utils/invitationCodeService';
 import { getCurriculumInfo } from '../../utils/curriculumUtils';
+import { useToast } from '../../components/ToastContainer';
 
 interface CurriculumCourse {
   code: string;
@@ -28,6 +29,7 @@ interface CurriculumData {
 
 const ProfilePage = () => {
   const { user, role, loading: authLoading } = useAuth();
+  const { showToast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [curriculumData, setCurriculumData] = useState<CurriculumData | null>(null);
@@ -112,13 +114,32 @@ const ProfilePage = () => {
     try {
       const result = await createInvitationCode(targetRole);
       if (result.success && result.code) {
-        alert(`Davet kodu: ${result.code}`);
+        showToast({
+          type: 'success',
+          title: 'Davet Kodu Oluşturuldu',
+          message: '',
+          duration: 10000,
+          // Custom content for copy button
+          customContent: (
+            <div className="flex items-center gap-2">
+              <span className="font-mono text-base bg-gray-100 px-2 py-1 rounded">{result.code}</span>
+              <button
+                className="px-3 py-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded hover:from-blue-600 hover:to-indigo-700 text-xs font-semibold shadow"
+                onClick={() => {
+                  navigator.clipboard.writeText(result.code);
+                  showToast({ type: 'info', title: 'Kopyalandı', message: 'Davet kodu panoya kopyalandı!', duration: 2000 });
+                }}
+              >
+                Kopyala
+              </button>
+            </div>
+          )
+        });
       } else {
-        alert('Davet kodu oluşturulamadı!');
+        showToast({ type: 'error', title: 'Davet kodu oluşturulamadı!', message: '', duration: 4000 });
       }
     } catch (error) {
-      console.error('Davet kodu oluşturma hatası:', error);
-      alert('Davet kodu oluşturulamadı!');
+      showToast({ type: 'error', title: 'Davet kodu oluşturulamadı!', message: '', duration: 4000 });
     }
   };
 
@@ -134,10 +155,10 @@ const ProfilePage = () => {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50" style={{ marginTop: '72px' }}>
         <div className="text-center">
-          <div className="loading-spinner mx-auto"></div>
-          <p className="mt-4 text-text-secondary">Yükleniyor...</p>
+          <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 font-medium">Yükleniyor...</p>
         </div>
       </div>
     );
@@ -145,59 +166,85 @@ const ProfilePage = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50" style={{ marginTop: '72px' }}>
         <div className="text-center">
-          <h2 className="text-2xl font-bold text-text-primary mb-4">Giriş Yapın</h2>
-          <p className="text-text-secondary">Bu sayfayı görüntülemek için giriş yapmanız gerekiyor.</p>
+          <div className="w-16 h-16 bg-gradient-to-br from-red-500 to-pink-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <span className="text-white text-2xl">🔒</span>
+          </div>
+          <h2 className="text-2xl font-bold text-gray-900 mb-4">Giriş Yapın</h2>
+          <p className="text-gray-600">Bu sayfayı görüntülemek için giriş yapmanız gerekiyor.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen py-8">
+    <div className="min-h-screen py-8 bg-gradient-to-br from-gray-50 via-blue-50 to-indigo-50" style={{ marginTop: '72px' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Header */}
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-text-primary">Profilim</h1>
-          <p className="mt-2 text-text-secondary">Hesap bilgileriniz ve yönetim paneli</p>
+          <div className="flex items-center gap-4 mb-4">
+            <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+              <span className="text-white text-lg">👤</span>
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">Profilim</h1>
+              <p className="text-gray-600">Hesap bilgileriniz ve yönetim paneli</p>
+            </div>
+          </div>
         </div>
 
         {/* Kullanıcı Bilgileri */}
-        <div className="card-glass p-6 mb-8">
-          <h2 className="text-xl font-semibold text-text-primary mb-4">Kullanıcı Bilgileri</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-text-secondary">Ad Soyad</label>
-              <p className="mt-1 text-sm text-text-primary">{user.displayName || 'Belirtilmemiş'}</p>
+        <div className="bg-white/80 backdrop-blur-sm border border-gray-200/60 rounded-2xl p-8 mb-8 shadow-lg">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+              <span className="text-white text-sm">ℹ️</span>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-text-secondary">E-posta</label>
-              <p className="mt-1 text-sm text-text-primary">{user.email}</p>
+            <h2 className="text-xl font-bold text-gray-900">Kullanıcı Bilgileri</h2>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200/60 rounded-xl p-4">
+              <label className="block text-sm font-medium text-blue-700 mb-2">Ad Soyad</label>
+              <p className="text-lg font-semibold text-gray-900">{user.displayName || 'Belirtilmemiş'}</p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-text-secondary">Rol</label>
-              <p className="mt-1 text-sm text-text-primary">
+            <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200/60 rounded-xl p-4">
+              <label className="block text-sm font-medium text-green-700 mb-2">E-posta</label>
+              <p className="text-lg font-semibold text-gray-900">{user.email}</p>
+            </div>
+            <div className="bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200/60 rounded-xl p-4">
+              <label className="block text-sm font-medium text-purple-700 mb-2">Rol</label>
+              <p className="text-lg font-semibold text-gray-900">
                 {role === 'academician' ? '🎓 Akademisyen' : 
                  role === 'admin' ? '👑 Yönetici' : '👨‍🎓 Öğrenci'}
               </p>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-text-secondary">Kullanıcı ID</label>
-              <p className="mt-1 text-sm text-text-primary font-mono">{user.uid}</p>
+            <div className="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 rounded-xl p-4">
+              <label className="block text-sm font-medium text-amber-700 mb-2">Kullanıcı ID</label>
+              <p className="text-sm font-mono text-gray-900 break-all">{user.uid}</p>
             </div>
           </div>
         </div>
 
         {/* Admin Paneli */}
         {role === 'admin' && (
-          <div className="card-glass p-6 mb-8">
-            <h2 className="text-xl font-semibold text-text-primary mb-4">Yönetici Paneli</h2>
+          <div className="bg-white/80 backdrop-blur-sm border border-gray-200/60 rounded-2xl p-8 mb-8 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-xl flex items-center justify-center">
+                <span className="text-white text-sm">⚙️</span>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Yönetici Paneli</h2>
+            </div>
             
             {/* Kullanıcı Yönetimi */}
-            <div className="mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-medium text-text-primary">Kullanıcı Yönetimi</h3>
-                <div className="flex gap-3">
+            <div className="mb-8">
+              <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-xs">👥</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">Kullanıcı Yönetimi</h3>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
                   {/* Arama Kutusu */}
                   <div className="relative">
                     <input
@@ -205,10 +252,10 @@ const ProfilePage = () => {
                       placeholder="İsim veya e-posta ara..."
                       value={searchQuery}
                       onChange={(e) => handleSearch(e.target.value)}
-                      className="text-sm border border-primary-700/30 rounded-md px-3 py-2 pl-8 w-64 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-card-light text-text-primary"
+                      className="w-full sm:w-64 text-sm border border-gray-300 rounded-xl px-4 py-3 pl-10 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white/70 backdrop-blur-sm text-gray-900 placeholder-gray-500"
                     />
                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-4 w-4 text-text-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                       </svg>
                     </div>
@@ -218,7 +265,7 @@ const ProfilePage = () => {
                   <select
                     value={roleFilter}
                     onChange={(e) => handleFilterChange(e.target.value)}
-                    className="text-sm border border-primary-700/30 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-card-light text-text-primary"
+                    className="text-sm border border-gray-300 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/70 backdrop-blur-sm text-gray-900"
                   >
                     <option value="">Tüm Roller</option>
                     <option value="admin">Yönetici</option>
@@ -229,83 +276,98 @@ const ProfilePage = () => {
               </div>
               
               {loading ? (
-                <div className="text-center py-4">
-                  <div className="loading-spinner mx-auto"></div>
-                  <p className="mt-2 text-sm text-text-secondary">Kullanıcılar yükleniyor...</p>
+                <div className="text-center py-12">
+                  <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                  <p className="text-gray-600 font-medium">Kullanıcılar yükleniyor...</p>
                 </div>
               ) : (
                 <>
-                  <div className="overflow-x-auto border border-primary-700/30 rounded-lg">
-                    <table className="min-w-full divide-y divide-primary-700/30">
-                      <thead className="bg-primary-900/20">
-                        <tr>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                            Kullanıcı
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                            E-posta
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                            Rol
-                          </th>
-                          <th className="px-6 py-3 text-left text-xs font-medium text-text-secondary uppercase tracking-wider">
-                            İşlemler
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody className="bg-card-light divide-y divide-primary-700/30">
-                        {users.length === 0 ? (
+                  <div className="bg-white/50 backdrop-blur-sm border border-gray-200/60 rounded-xl overflow-hidden shadow-sm">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full">
+                        <thead className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200/60">
                           <tr>
-                            <td colSpan={4} className="px-6 py-8 text-center text-text-muted">
-                              <div className="text-lg mb-2">🔍</div>
-                              <p>Kullanıcı bulunamadı</p>
-                              <p className="text-sm mt-1">Arama kriterlerinizi değiştirmeyi deneyin</p>
-                            </td>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                              Kullanıcı
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                              E-posta
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                              Rol
+                            </th>
+                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">
+                              İşlemler
+                            </th>
                           </tr>
-                        ) : (
-                          users.map((user) => (
-                            <tr key={user.id} className="hover:bg-primary-900/10 transition-colors">
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm font-medium text-text-primary">{user.displayName || 'İsimsiz'}</div>
-                                <div className="text-xs text-text-muted">ID: {user.id}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="text-sm text-text-primary">{user.email}</div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full border ${
-                                  user.role === 'academician' ? 'bg-primary-900/30 text-primary-300 border-primary-700/30' :
-                                  user.role === 'admin' ? 'bg-secondary-900/30 text-secondary-300 border-secondary-700/30' :
-                                  'bg-green-900/30 text-green-300 border-green-700/30'
-                                }`}>
-                                  {user.role === 'academician' ? 'Akademisyen' :
-                                   user.role === 'admin' ? 'Yönetici' : 'Öğrenci'}
-                                </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                                <select
-                                  value={user.role || 'student'}
-                                  onChange={(e) => handleRoleChange(user.id, e.target.value)}
-                                  className="text-sm border border-primary-700/30 rounded-md px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-card-light text-text-primary"
-                                >
-                                  <option value="student">Öğrenci</option>
-                                  <option value="academician">Akademisyen</option>
-                                  <option value="admin">Yönetici</option>
-                                </select>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200/60">
+                          {users.length === 0 ? (
+                            <tr>
+                              <td colSpan={4} className="px-6 py-12 text-center">
+                                <div className="text-4xl mb-4">🔍</div>
+                                <p className="text-gray-600 font-medium">Kullanıcı bulunamadı</p>
+                                <p className="text-sm text-gray-500 mt-1">Arama kriterlerinizi değiştirmeyi deneyin</p>
                               </td>
                             </tr>
-                          ))
-                        )}
-                      </tbody>
-                    </table>
+                          ) : (
+                            users.map((rowUser) => (
+                              <tr key={rowUser.id} className="hover:bg-gray-50/50 transition-colors">
+                                <td className="px-6 py-4">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-full flex items-center justify-center">
+                                      <span className="text-white text-sm font-bold">
+                                        {(rowUser.displayName || rowUser.email || 'U').charAt(0).toUpperCase()}
+                                      </span>
+                                    </div>
+                                    <div>
+                                      <div className="text-sm font-semibold text-gray-900">{rowUser.displayName || 'İsimsiz'}</div>
+                                      <div className="text-xs text-gray-500">ID: {rowUser.id}</div>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <div className="text-sm text-gray-900">{rowUser.email}</div>
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className={`inline-flex px-3 py-1 text-xs font-bold rounded-full border ${
+                                    rowUser.role === 'academician' ? 'bg-purple-100 text-purple-800 border-purple-200' :
+                                    rowUser.role === 'admin' ? 'bg-red-100 text-red-800 border-red-200' :
+                                    'bg-green-100 text-green-800 border-green-200'
+                                  }`}>
+                                    {rowUser.role === 'academician' ? '🎓 Akademisyen' :
+                                     rowUser.role === 'admin' ? '👑 Yönetici' : '👨‍🎓 Öğrenci'}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4">
+                                  {rowUser.id === user.uid ? (
+                                    <span className="text-gray-500 text-sm font-medium">Kendi hesabınız</span>
+                                  ) : (
+                                    <select
+                                      value={rowUser.role || 'student'}
+                                      onChange={(e) => handleRoleChange(rowUser.id, e.target.value)}
+                                      className="text-sm border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 hover:bg-gray-50 transition-colors"
+                                    >
+                                      <option value="student">👨‍🎓 Öğrenci</option>
+                                      <option value="academician">🎓 Akademisyen</option>
+                                      <option value="admin">👑 Yönetici</option>
+                                    </select>
+                                  )}
+                                </td>
+                              </tr>
+                            ))
+                          )}
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                   
                   {/* Sayfalama ve Bilgi */}
-                  <div className="mt-4 flex justify-between items-center">
-                    <div className="text-sm text-text-secondary">
+                  <div className="mt-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="text-sm text-gray-600">
                       {totalUsers > 0 ? (
                         <>
-                          Toplam {totalUsers} kullanıcı
+                          <span className="font-semibold">Toplam {totalUsers} kullanıcı</span>
                           {searchQuery && ` (${searchQuery} için arama sonucu)`}
                           {roleFilter && ` (${roleFilter} rolü)`}
                           , Sayfa {currentPage} / {totalPages}
@@ -319,14 +381,14 @@ const ProfilePage = () => {
                         <button
                           onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                           disabled={currentPage === 1}
-                          className="px-3 py-1 text-sm border border-primary-700/30 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-900/20 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary transition-colors"
+                          className="px-4 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700 transition-colors font-medium"
                         >
                           ← Önceki
                         </button>
                         <button
                           onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                           disabled={currentPage === totalPages}
-                          className="px-3 py-1 text-sm border border-primary-700/30 rounded-md disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary-900/20 focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary transition-colors"
+                          className="px-4 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-700 transition-colors font-medium"
                         >
                           Sonraki →
                         </button>
@@ -338,20 +400,27 @@ const ProfilePage = () => {
             </div>
 
             {/* Davet Kodu Oluşturma */}
-            <div className="mb-6">
-              <h3 className="text-lg font-medium text-text-primary mb-3">Davet Kodu Oluşturma</h3>
-              <div className="flex gap-2">
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                  <span className="text-white text-xs">🎫</span>
+                </div>
+                <h3 className="text-lg font-bold text-gray-900">Davet Kodu Oluşturma</h3>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={() => generateInvitationCode('student')}
-                  className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors border border-green-500/30"
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                 >
-                  🎓 Öğrenci Davet Kodu
+                  <span className="text-lg">🎓</span>
+                  Öğrenci Davet Kodu
                 </button>
                 <button
                   onClick={() => generateInvitationCode('academician')}
-                  className="bg-primary-600 hover:bg-primary-700 text-white font-bold py-2 px-4 rounded-lg transition-colors border border-primary-500/30"
+                  className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                 >
-                  👨‍🏫 Akademisyen Davet Kodu
+                  <span className="text-lg">👨‍🏫</span>
+                  Akademisyen Davet Kodu
                 </button>
               </div>
             </div>
@@ -360,18 +429,23 @@ const ProfilePage = () => {
 
         {/* Müfredat Yönetimi - Sadece Admin için */}
         {role === 'admin' && curriculumData && (
-          <div className="card-glass p-6">
-            <h2 className="text-xl font-semibold text-text-primary mb-4">Müfredat Yönetimi</h2>
+          <div className="bg-white/80 backdrop-blur-sm border border-gray-200/60 rounded-2xl p-8 shadow-lg">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+                <span className="text-white text-sm">📚</span>
+              </div>
+              <h2 className="text-xl font-bold text-gray-900">Müfredat Yönetimi</h2>
+            </div>
             
             {/* Dönem Seçimi */}
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-text-secondary mb-2">
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-3">
                 Dönem Seçin
               </label>
               <select
                 value={selectedSemester}
                 onChange={(e) => setSelectedSemester(e.target.value)}
-                className="w-full px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary"
+                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white/70 backdrop-blur-sm text-gray-900"
               >
                 <option value="">Dönem seçin</option>
                 {curriculumData?.curriculum?.map((semester, index) => (
@@ -384,27 +458,32 @@ const ProfilePage = () => {
 
             {/* Yeni Ders Ekleme Formu */}
             {selectedSemester !== '' && (
-              <div className="mb-6 p-4 bg-primary-900/10 rounded-lg border border-primary-700/30">
-                <h4 className="text-lg font-semibold mb-3 text-text-primary">Yeni Ders Ekle</h4>
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <div className="mb-8 p-6 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-200/60">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-xs">➕</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-gray-900">Yeni Ders Ekle</h4>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <input
                     type="text"
                     placeholder="Ders Kodu"
                     value={newCourse.code}
                     onChange={(e) => setNewCourse({...newCourse, code: e.target.value})}
-                    className="px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary"
+                    className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500"
                   />
                   <input
                     type="text"
                     placeholder="Ders Adı"
                     value={newCourse.name}
                     onChange={(e) => setNewCourse({...newCourse, name: e.target.value})}
-                    className="px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary"
+                    className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500"
                   />
                   <select
                     value={newCourse.type}
                     onChange={(e) => setNewCourse({...newCourse, type: e.target.value})}
-                    className="px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary"
+                    className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900"
                   >
                     <option value="Zorunlu">Zorunlu</option>
                     <option value="Seçmeli">Seçmeli</option>
@@ -414,7 +493,7 @@ const ProfilePage = () => {
                     placeholder="AKTS"
                     value={newCourse.ects}
                     onChange={(e) => setNewCourse({...newCourse, ects: parseInt(e.target.value)})}
-                    className="px-3 py-2 border border-primary-700/30 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 bg-card-light text-text-primary"
+                    className="px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-900 placeholder-gray-500"
                   />
                 </div>
                 <button
@@ -426,55 +505,63 @@ const ProfilePage = () => {
                     
                     alert('Müfredat yönetimi özelliği kaldırıldı. Curriculum artık static JSON dosyasından geliyor.');
                   }}
-                  className="mt-4 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors border border-green-500/30"
+                  className="mt-4 flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-[1.02]"
                 >
-                  ➕ Ders Ekle
+                  <span className="text-lg">➕</span>
+                  Ders Ekle
                 </button>
               </div>
             )}
 
             {/* Mevcut Dersler Listesi */}
             {selectedSemester !== '' && (
-              <div className="mt-6">
-                <h4 className="text-lg font-semibold mb-3 text-text-primary">Mevcut Dersler</h4>
-                <div className="bg-card-light rounded-lg border border-primary-700/30 overflow-hidden">
-                  <table className="w-full text-sm">
-                    <thead className="bg-primary-900/20">
-                      <tr>
-                        <th className="p-2 text-left text-text-secondary">Kod</th>
-                        <th className="p-2 text-left text-text-secondary">Ders Adı</th>
-                        <th className="p-2 text-left text-text-secondary">Tür</th>
-                        <th className="p-2 text-left text-text-secondary">AKTS</th>
-                        <th className="p-2 text-left text-text-secondary">İşlem</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {curriculumData?.curriculum?.[parseInt(selectedSemester)]?.courses?.map((course, index) => (
-                        <tr key={index} className="border-t border-primary-700/30 hover:bg-primary-900/10 transition-colors">
-                          <td className="p-2 text-text-primary">{course.code}</td>
-                          <td className="p-2 text-text-primary">{course.name}</td>
-                          <td className="p-2">
-                            <span className={`px-2 py-1 rounded text-xs border ${
-                              course.type === 'Zorunlu' ? 'bg-primary-900/30 text-primary-300 border-primary-700/30' : 'bg-green-900/30 text-green-300 border-green-700/30'
-                            }`}>
-                              {course.type}
-                            </span>
-                          </td>
-                          <td className="p-2 text-text-primary">{course.ects}</td>
-                          <td className="p-2">
-                            <button
-                              onClick={() => {
-                                alert('Müfredat yönetimi özelliği kaldırıldı. Curriculum artık static JSON dosyasından geliyor.');
-                              }}
-                              className="text-red-400 hover:text-red-300 text-sm transition-colors"
-                            >
-                              🗑️ Sil
-                            </button>
-                          </td>
+              <div className="mt-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-gradient-to-br from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+                    <span className="text-white text-xs">📋</span>
+                  </div>
+                  <h4 className="text-lg font-bold text-gray-900">Mevcut Dersler</h4>
+                </div>
+                <div className="bg-white/50 backdrop-blur-sm rounded-xl border border-gray-200/60 overflow-hidden shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
+                      <thead className="bg-gradient-to-r from-gray-50 to-blue-50 border-b border-gray-200/60">
+                        <tr>
+                          <th className="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Kod</th>
+                          <th className="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Ders Adı</th>
+                          <th className="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">Tür</th>
+                          <th className="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">AKTS</th>
+                          <th className="p-4 text-left text-xs font-bold text-gray-700 uppercase tracking-wider">İşlem</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200/60">
+                        {curriculumData?.curriculum?.[parseInt(selectedSemester)]?.courses?.map((course, index) => (
+                          <tr key={index} className="hover:bg-gray-50/50 transition-colors">
+                            <td className="p-4 text-gray-900 font-medium">{course.code}</td>
+                            <td className="p-4 text-gray-900">{course.name}</td>
+                            <td className="p-4">
+                              <span className={`px-3 py-1 rounded-full text-xs font-bold border ${
+                                course.type === 'Zorunlu' ? 'bg-blue-100 text-blue-800 border-blue-200' : 'bg-green-100 text-green-800 border-green-200'
+                              }`}>
+                                {course.type}
+                              </span>
+                            </td>
+                            <td className="p-4 text-gray-900 font-medium">{course.ects}</td>
+                            <td className="p-4">
+                              <button
+                                onClick={() => {
+                                  alert('Müfredat yönetimi özelliği kaldırıldı. Curriculum artık static JSON dosyasından geliyor.');
+                                }}
+                                className="text-red-500 hover:text-red-700 text-sm font-medium transition-colors"
+                              >
+                                🗑️ Sil
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               </div>
             )}

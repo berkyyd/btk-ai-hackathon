@@ -9,6 +9,7 @@ export interface ApiResponse<T = any> {
 export interface ChatbotRequest {
   question: string;
   userId: string;
+  userName?: string;
   context?: string;
   previousMessages?: ChatMessage[];
 }
