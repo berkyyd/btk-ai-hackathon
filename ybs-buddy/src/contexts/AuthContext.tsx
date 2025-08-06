@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  setUserManually: (user: User, role: string) => void;
   role: string | null;
   isAuthenticated: boolean;
 }
@@ -94,8 +95,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user: userWithRole,
         role: userRole
       }));
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      console.error('Register error in AuthContext:', error);
+      
+      // Hata mesajlarını daha açıklayıcı hale getir
+      if (error.code === 'auth/email-already-in-use') {
+        throw new Error('Bu email adresi zaten kullanımda. Lütfen farklı bir email adresi kullanın veya giriş yapın.');
+      } else if (error.code === 'auth/weak-password') {
+        throw new Error('Şifre en az 6 karakter olmalıdır.');
+      } else if (error.code === 'auth/invalid-email') {
+        throw new Error('Geçerli bir email adresi giriniz.');
+      } else if (error.code === 'auth/network-request-failed') {
+        throw new Error('İnternet bağlantınızı kontrol ediniz.');
+      } else {
+        throw new Error('Kayıt olurken bir hata oluştu. Lütfen tekrar deneyiniz.');
+      }
     } finally {
       setLoading(false);
     }
@@ -119,12 +133,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setUserManually = (user: User, role: string) => {
+    const userWithRole = { ...user, role };
+    setUser(userWithRole);
+    setRole(role);
+    setIsAuthenticated(true);
+    
+    // LocalStorage'a kaydet
+    localStorage.setItem('ybs-auth', JSON.stringify({
+      user: userWithRole,
+      role
+    }));
+  };
+
   const value = {
     user,
     loading,
     login,
     register,
     logout,
+    setUserManually,
     role,
     isAuthenticated
   };

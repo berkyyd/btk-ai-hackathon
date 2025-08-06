@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
-import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { createUserWithEmailAndPassword, updateProfile, deleteUser } from 'firebase/auth';
 import { auth, db } from '../../config/firebase';
 import { doc, setDoc, getDoc, updateDoc, DocumentReference } from "firebase/firestore";
 import { validateInvitationCode, markInvitationCodeAsUsed } from '../../utils/invitationCodeService';
@@ -20,7 +20,7 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
-  const { register } = useAuth();
+  const { setUserManually } = useAuth();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
@@ -46,6 +46,8 @@ export default function RegisterPage() {
       return;
     }
 
+    let createdUser: any = null;
+
     try {
       // 1. Firebase Auth ile kullanıcı oluştur
       const userCredential = await createUserWithEmailAndPassword(
@@ -53,11 +55,11 @@ export default function RegisterPage() {
         formData.email,
         formData.password
       );
-      const user = userCredential.user;
+      createdUser = userCredential.user;
       
       // 2. Display name güncelle
       if (formData.displayName) {
-        await updateProfile(user, { displayName: formData.displayName });
+        await updateProfile(createdUser, { displayName: formData.displayName });
       }
 
       let userRole = 'student'; // Varsayılan rol
@@ -77,8 +79,8 @@ export default function RegisterPage() {
       }
 
       // 3. Firestore'a kullanıcı dökümanı oluştur
-      await setDoc(doc(db, "users", user.uid), {
-        uid: user.uid,
+      await setDoc(doc(db, "users", createdUser.uid), {
+        uid: createdUser.uid,
         displayName: formData.displayName,
         email: formData.email,
         role: userRole, 
@@ -88,24 +90,38 @@ export default function RegisterPage() {
       });
 
       // Davet kodu kullanıldı olarak işaretle (Firestore kaydı başarılı olduktan sonra)
-      if (invitationCodeDocRef && user.uid) {
-        await markInvitationCodeAsUsed(invitationCodeDocRef, user.uid);
+      if (invitationCodeDocRef && createdUser.uid) {
+        await markInvitationCodeAsUsed(invitationCodeDocRef, createdUser.uid);
       }
       
-      // 4. AuthContext'i güncelle
-      await register(formData.email, formData.password);
+      // 4. Kullanıcıyı direkt giriş yapmış duruma getir
+      setUserManually(createdUser, userRole);
       
       // 5. Başarılı kayıt - ana sayfaya yönlendir
       router.push('/');
 
     } catch (err: any) {
       console.error('Register error:', err);
+      
+      // Eğer Auth'da kullanıcı oluşturuldu ama Firestore kaydı başarısız olduysa
+      if (createdUser) {
+        try {
+          await deleteUser(createdUser);
+        } catch (deleteError) {
+          console.error('Failed to delete user after failed registration:', deleteError);
+        }
+      }
+      
       if (err.code === 'auth/email-already-in-use') {
-        setError('Bu email adresi zaten kullanımda');
+        setError('Bu email adresi zaten kullanımda. Lütfen farklı bir email adresi kullanın veya giriş yapın.');
       } else if (err.code === 'auth/weak-password') {
-        setError('Şifre çok zayıf');
+        setError('Şifre en az 6 karakter olmalıdır.');
+      } else if (err.code === 'auth/invalid-email') {
+        setError('Geçerli bir email adresi giriniz.');
+      } else if (err.code === 'auth/network-request-failed') {
+        setError('İnternet bağlantınızı kontrol ediniz.');
       } else {
-        setError('Kayıt olurken bir hata oluştu');
+        setError('Kayıt olurken bir hata oluştu. Lütfen tekrar deneyiniz.');
       }
     } finally {
       setLoading(false);
