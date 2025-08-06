@@ -1,7 +1,7 @@
 # YBS Buddy Projesi - Teknik Geliştirici Rehberi
 
 **Oluşturulma Tarihi:** 26 Temmuz 2025  
-**Güncelleme Tarihi:** 30 Temmuz 2025  
+**Güncelleme Tarihi:** 15 Ocak 2025  
 **Proje Türü:** Next.js + TypeScript + Firebase + Gemini API Web Uygulaması  
 **Hedef Geliştirici:** Full-stack Geliştiriciler ve Kod İnceleyiciler  
 
@@ -51,6 +51,8 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - `ders-notlari/` - Ders notları sayfası (`/ders-notlari`)
 - `mufredat/` - Müfredat sayfası (`/mufredat`)
 - `sinav-simulasyonu/` - Sınav simülasyonu sayfası (`/sinav-simulasyonu`)
+- `kisisel-takip/` - Kişisel takip sayfası (`/kisisel-takip`)
+- `profile/` - Profil sayfası (`/profile`)
 - `login/` - Giriş sayfası (`/login`)
 - `register/` - Kayıt sayfası (`/register`)
 - `api/` - Backend API endpoints
@@ -68,7 +70,9 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
   - `route.ts` - Not CRUD işlemleri
   - `summarize/route.ts` - Gemini API ile not özetleme
 - `quiz/generate/route.ts` - Gemini API ile quiz üretimi
-- `pdf-extract/route.ts` - PDF metin çıkarma
+- `quiz/submit/route.ts` - Quiz sonuçlarını kaydetme
+- `analytics/quiz-analysis/route.ts` - Quiz analizi
+- `analytics/weakness.ts` - Zayıf alan analizi
 - `upload/route.ts` - Dosya yükleme
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `api` klasörü, backend işlevlerini içerir. Her `route.ts` dosyası bir HTTP endpoint'ini temsil eder. Firebase ile entegre çalışır ve Gemini API'yi kullanarak akıllı içerik üretir.
@@ -81,6 +85,8 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - `Footer.tsx` - Alt bilgi komponenti
 - `FileUpload.tsx` - PDF dosya yükleme komponenti
 - `QuizForm.tsx` - Quiz oluşturma formu
+- `QuizAnalysis.tsx` - Quiz analizi komponenti
+- `LoginPrompt.tsx` - Giriş yapma uyarısı komponenti
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `components` klasörü, uygulama genelinde kullanılan UI parçalarını içerir. Bu komponentler yeniden kullanılabilir ve farklı sayfalarda aynı görünümü sağlar.
 
@@ -106,6 +112,7 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - `errorHandler.ts` - Hata yönetimi utilities
 - `pdfToTextService.ts` - PDF metin çıkarma servisi
 - `invitationCodeService.ts` - Davet kodu yönetimi
+- `curriculumUtils.ts` - Müfredat yardımcı fonksiyonları
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** `utils` klasörü, yardımcı fonksiyonları içerir. `apiClient`, backend API'lerine istek göndermek için kullanılır. `geminiService`, yapay zeka entegrasyonu için kullanılır.
 
@@ -275,8 +282,11 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 3. **Curriculum Viewer (`/mufredat`):** Firebase Firestore ile dinamik ders yönetimi
 4. **Course Notes (`/ders-notlari`):** Not paylaşım platformu ve Gemini API özetleme
 5. **Exam Simulation (`/sinav-simulasyonu`):** Gemini API ile dinamik quiz üretimi
-6. **PDF Processing:** PDF dosya yükleme ve metin çıkarma
-7. **File Upload:** Firebase Storage ile dosya yönetimi
+6. **Personal Tracking (`/kisisel-takip`):** Quiz analizi ve performans takibi
+7. **Profile Management (`/profile`):** Kullanıcı profil yönetimi ve admin paneli
+8. **PDF Processing:** PDF dosya yükleme ve metin çıkarma
+9. **File Upload:** Firebase Storage ile dosya yönetimi
+10. **Analytics System:** Quiz sonuçları analizi ve zayıf alan tespiti
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** Uygulama artık tam bir full-stack uygulamasıdır. Backend işlevleri Firebase ile sağlanır. Yapay zeka entegrasyonu Gemini API ile gerçekleştirilir.
 
@@ -284,9 +294,10 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 1. **Authentication:** `/api/auth/login`, `/api/auth/register`
 2. **Courses:** `/api/courses` (GET, POST)
 3. **Notes:** `/api/notes` (GET, POST), `/api/notes/summarize`
-4. **Quiz:** `/api/quiz/generate`
-5. **File Upload:** `/api/upload`
-6. **PDF Processing:** `/api/pdf-extract`
+4. **Quiz:** `/api/quiz/generate`, `/api/quiz/submit`
+5. **Analytics:** `/api/analytics/quiz-analysis`, `/api/analytics/weakness`
+6. **File Upload:** `/api/upload`
+7. **Users:** `/api/users` (Admin paneli için)
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** API endpoint'leri Next.js API Routes kullanılarak oluşturulmuştur. Her endpoint Firebase ile entegre çalışır ve gerekli yerlerde Gemini API kullanır.
 
@@ -299,6 +310,7 @@ YBS Buddy, modern web geliştirme standartlarına uygun olarak Next.js App Route
 - **State Management:** ✅ Complete (React Context API)
 - **Real-time Updates:** ✅ Complete (Firebase Firestore)
 - **File Processing:** ✅ Complete (PDF upload and text extraction)
+- **Analytics System:** ✅ Complete (Quiz analysis and performance tracking)
 - **Code Quality:** ✅ Complete (ESLint + Prettier + Clean Code)
 
 > **💡 Yeni Geliştiriciler İçin Açıklama:** Uygulama tamamen fonksiyonel durumdadır. Tüm temel özellikler implement edilmiştir. Backend, frontend ve yapay zeka entegrasyonu tamamlanmıştır.
@@ -442,7 +454,8 @@ npm run dev
 - `users` - Kullanıcı bilgileri
 - `courses` - Ders bilgileri
 - `notes` - Not bilgileri
-- `quizzes` - Quiz bilgileri (planned)
+- `quizResults` - Quiz sonuçları
+- `userAnalytics` - Kullanıcı analiz verileri
 - `invitationCodes` - Davet kodları
 
 ### Security Rules

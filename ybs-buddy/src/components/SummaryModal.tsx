@@ -120,6 +120,12 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ open, onClose, note, user, 
     setSummaryError('');
     setSummaryResult(null);
     
+    // Modal'ın en üstüne scroll yap
+    const modalContent = document.querySelector('.summary-modal-content');
+    if (modalContent) {
+      modalContent.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+    
     // Başlangıç toast'u
     showToast({
       type: 'info',
@@ -146,6 +152,14 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ open, onClose, note, user, 
           message: 'Notunuz başarıyla özetlendi!',
           duration: 4000
         });
+        
+        // Özet sonucuna scroll yap
+        setTimeout(() => {
+          const summaryElement = document.querySelector('[data-summary-result]');
+          if (summaryElement) {
+            summaryElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }
+        }, 100);
       } else {
         setSummaryError(data.error || 'Özetleme başarısız.');
         showToast({
@@ -238,8 +252,8 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ open, onClose, note, user, 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-      <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl max-w-2xl w-full mx-4 relative border border-white/20">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+      <div className="bg-white/95 backdrop-blur-md rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden border border-white/20">
         {/* Header */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-gray-200/60">
           <div className="flex items-center gap-4">
@@ -263,7 +277,7 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ open, onClose, note, user, 
         </div>
         
         {/* Content */}
-        <div className="px-8 py-6 space-y-6">
+        <div className="px-8 py-6 space-y-6 overflow-y-auto max-h-[calc(90vh-140px)] summary-modal-content">
           {/* Not Bilgisi */}
           <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-2xl p-4 border border-blue-200/60">
             <h3 className="font-semibold text-gray-800 mb-2">Özetlenecek Not:</h3>
@@ -317,13 +331,13 @@ const SummaryModal: React.FC<SummaryModalProps> = ({ open, onClose, note, user, 
           
           {/* Özet Sonucu */}
           {summaryResult && (
-            <div className="space-y-4">
+            <div className="space-y-4" data-summary-result>
               <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-2xl p-4 border border-green-200/60">
                 <h3 className="font-semibold text-gray-800 mb-3 flex items-center gap-2">
                   <span className="text-green-600">✅</span>
                   Özet Sonucu
                 </h3>
-                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 max-h-60 overflow-y-auto border border-gray-200/60">
+                <div className="bg-white/80 backdrop-blur-sm rounded-xl p-4 max-h-80 overflow-y-auto border border-gray-200/60">
                   <div 
                     className="prose prose-sm max-w-none text-gray-700 leading-relaxed"
                     dangerouslySetInnerHTML={{ __html: summaryResult }}

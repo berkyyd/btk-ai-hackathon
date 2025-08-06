@@ -20,11 +20,24 @@ Thank you for your interest in contributing to YBS Buddy! This document provides
    ```bash
    npm install
    ```
-4. Copy environment template:
+4. Create environment file:
    ```bash
    cp .env.example .env.local
    ```
-5. Configure your environment variables in `.env.local`
+5. Configure your environment variables in `.env.local`:
+   ```bash
+   # Firebase Configuration
+   NEXT_PUBLIC_FIREBASE_API_KEY=your_firebase_api_key
+   NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+   NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
+   NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+   NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+   NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+   
+   # Gemini API Keys
+   GEMINI_API_KEY=your_gemini_api_key
+   GEMINI_SUMMARY_API_KEY=your_gemini_summary_api_key
+   ```
 6. Start development server:
    ```bash
    npm run dev
@@ -52,10 +65,18 @@ Thank you for your interest in contributing to YBS Buddy! This document provides
 ```
 src/
 ├── app/           # Next.js App Router pages
+│   ├── api/       # Backend API endpoints
+│   ├── ders-notlari/     # Course notes page
+│   ├── kisisel-takip/    # Personal tracking page
+│   ├── mufredat/         # Curriculum page
+│   ├── profile/          # Profile page
+│   ├── sinav-simulasyonu/ # Quiz simulation page
+│   └── login|register/   # Authentication pages
 ├── components/    # Reusable React components
-├── contexts/      # React contexts
+├── contexts/      # React contexts (AuthContext)
 ├── types/         # TypeScript type definitions
 ├── utils/         # Utility functions
+├── config/        # Service configurations (Firebase)
 └── constants.ts   # Application constants
 ```
 
@@ -85,6 +106,7 @@ git checkout -b feature/your-feature-name
 npm run type-check  # TypeScript type checking
 npm run lint        # ESLint checking
 npm run format      # Prettier formatting
+npm run build       # Production build test
 npm run dev         # Development server
 ```
 
@@ -129,16 +151,23 @@ docs(readme): update setup instructions
 ## 🧪 Testing
 
 ### Manual Testing
-- Test all user flows
-- Test error scenarios
-- Test responsive design
-- Test with different browsers
+- Test all user flows (authentication, notes, quiz, analytics)
+- Test error scenarios (network errors, API failures)
+- Test responsive design (mobile, tablet, desktop)
+- Test with different browsers (Chrome, Firefox, Safari, Edge)
+- Test Firebase integration (auth, firestore, storage)
+- Test Gemini API integration (quiz generation, note summarization)
+- Test PDF upload and text extraction functionality
 
 ### Code Quality
 - Ensure TypeScript compilation passes
 - Fix all ESLint warnings
 - Follow Prettier formatting
 - Remove console.log statements (except for debugging)
+- Use constants from `src/constants.ts` instead of magic numbers
+- Implement proper error handling for API calls
+- Follow Firebase security best practices
+- Test Gemini API integration thoroughly
 
 ## 🐛 Bug Reports
 
@@ -162,8 +191,11 @@ When suggesting features:
 
 - Update README.md if needed
 - Add JSDoc comments for new functions
-- Update API documentation
+- Update API documentation in `docs/API_REFERENCE.md`
+- Update user guide in `docs/USER_GUIDE.md`
+- Update technical documentation in `docs/TECHNICAL_DOCUMENTATION.md`
 - Update environment variable documentation
+- Update TODO.md with completed features
 
 ## 🔒 Security
 
@@ -176,13 +208,17 @@ When suggesting features:
 
 ### Review Checklist
 - [ ] Code follows project guidelines
-- [ ] No magic numbers (use constants)
-- [ ] Proper error handling
+- [ ] No magic numbers (use constants from `src/constants.ts`)
+- [ ] Proper error handling for API calls
 - [ ] TypeScript types are correct
-- [ ] No console.log statements
+- [ ] No console.log statements (except for debugging)
 - [ ] Code is readable and well-documented
+- [ ] Firebase security rules are followed
+- [ ] Gemini API integration is properly tested
+- [ ] PDF processing functionality works correctly
 - [ ] Tests pass (if applicable)
 - [ ] No breaking changes (unless documented)
+- [ ] Documentation is updated
 
 ### Review Process
 1. Create pull request with clear description
@@ -192,10 +228,12 @@ When suggesting features:
 
 ## 📞 Getting Help
 
-- Check existing documentation
-- Search existing issues
+- Check existing documentation in `docs/` folder
+- Search existing issues on GitHub
 - Ask questions in discussions
-- Contact maintainers if needed
+- Contact maintainers:
+  - **Berkay Demircanlı:** bdemircanli15@gmail.com
+  - **Cenker Gültekin:** cenkergultekin0@gmail.com
 
 ## 🎉 Recognition
 
@@ -203,5 +241,7 @@ Contributors will be recognized in:
 - README.md contributors section
 - Release notes
 - Project documentation
+- `docs/CHANGELOG.md` file
+- `docs/CONTRIBUTING.md` maintainers section
 
 Thank you for contributing to YBS Buddy! 🚀 
