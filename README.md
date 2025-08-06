@@ -9,6 +9,8 @@
   <img src="https://img.shields.io/badge/Gemini-API-green?style=for-the-badge&logo=google" alt="Gemini API" />
 </div>
 
+[🔗 Canlı Uygulamayı Görüntüle](https://ybs-buddy.vercel.app)
+
 ## 📖 Proje Hakkında
 
 **YBS Buddy**, Bandırma Onyedi Eylül Üniversitesi Yönetim Bilişim Sistemleri (YBS) bölümü öğrencileri için tasarlanmış kapsamlı bir akademik destek ve kariyer gelişim platformudur. Modern web teknolojileri ve yapay zeka entegrasyonu ile öğrencilerin akademik başarılarını artırmayı hedefleyen yenilikçi bir eğitim ekosistemi.
