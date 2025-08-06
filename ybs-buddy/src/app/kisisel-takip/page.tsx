@@ -282,7 +282,7 @@ const KisiselTakipPage = () => {
                                 </div>
                                 
                                 <p className="text-gray-700 mb-3 leading-relaxed">
-                                  {question?.question || question?.text || 'Soru metni bulunamadı'}
+                                  {question?.question || 'Soru metni bulunamadı'}
                                 </p>
                                 
                                 <div className="space-y-2">

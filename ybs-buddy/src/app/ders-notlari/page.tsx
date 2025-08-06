@@ -95,9 +95,9 @@ export default function DersNotlariPage() {
           setAllNotes(notesWithClass)
           
           // Notlardaki kullanıcı ID'lerini topla ve kullanıcı bilgilerini yükle
-          const userIds = [...new Set(notesWithClass.map(note => note.userId).filter(id => id))];
+          const userIds = [...new Set(notesWithClass.map((note: any) => note.userId).filter((id: any) => id))];
           if (userIds.length > 0) {
-            await loadUsers(userIds);
+            await loadUsers(userIds as string[]);
           }
         } else {
           setAllNotes([])

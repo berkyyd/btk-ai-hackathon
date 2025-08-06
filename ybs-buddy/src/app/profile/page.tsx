@@ -126,7 +126,7 @@ const ProfilePage = () => {
               <button
                 className="px-3 py-1 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded hover:from-blue-600 hover:to-indigo-700 text-xs font-semibold shadow"
                 onClick={() => {
-                  navigator.clipboard.writeText(result.code);
+                  navigator.clipboard.writeText(result.code || '');
                   showToast({ type: 'info', title: 'Kopyalandı', message: 'Davet kodu panoya kopyalandı!', duration: 2000 });
                 }}
               >

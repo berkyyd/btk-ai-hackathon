@@ -27,7 +27,8 @@ async function getUserSpecificData(userId: string): Promise<UserData> {
     notes: [],
     quizResults: [],
     summarizedNotes: [],
-    userInfo: null
+    userInfo: null,
+    favoriteNotes: []
   };
 
   try {
@@ -130,7 +131,7 @@ async function getUserSpecificData(userId: string): Promise<UserData> {
         const notesRef = collection(db, 'notes');
         const notesSnapshot = await getDocs(notesRef);
         notesSnapshot.forEach(docSnap => {
-          if (data.userInfo.favorites.includes(docSnap.id)) {
+          if (data.userInfo?.favorites?.includes(docSnap.id)) {
             const note = docSnap.data();
             favoriteNotes.push({
               id: docSnap.id,
@@ -145,7 +146,7 @@ async function getUserSpecificData(userId: string): Promise<UserData> {
         const summarizedRef = collection(db, 'summarizedNotes');
         const summarizedSnapshot = await getDocs(summarizedRef);
         summarizedSnapshot.forEach(docSnap => {
-          if (data.userInfo.favorites.includes(docSnap.id)) {
+          if (data.userInfo?.favorites?.includes(docSnap.id)) {
             const note = docSnap.data();
             favoriteNotes.push({
               id: docSnap.id,
@@ -189,7 +190,7 @@ async function generateSmartAnswer(question: string, data: UserData, userId: str
       `Merhaba! 🌟 ${data.userInfo?.displayName || 'Kullanıcı'} bugün nasıl?`,
       `Selamlar! ✨ ${data.userInfo?.displayName || 'Kullanıcı'} nasılsın?`
     ];
-    return greetings[Math.floor(Math.random() * greetings.length)];
+    return greetings[Math.floor(Math.random() * greetings.length)] || 'Merhaba! 👋';
   }
   
   // Soru türünü belirle
@@ -478,8 +479,11 @@ export async function POST(request: Request) {
     // userName varsa userInfo'ya ekle
     if (userName && !userData.userInfo?.displayName) {
       userData.userInfo = {
-        ...userData.userInfo,
-        displayName: userName
+        id: userData.userInfo?.id || userId,
+        displayName: userName,
+        email: userData.userInfo?.email || '',
+        role: userData.userInfo?.role || 'student',
+        favorites: userData.userInfo?.favorites || []
       };
     }
     
@@ -535,7 +539,7 @@ export async function POST(request: Request) {
       id: Date.now().toString(),
       content: answer || '',
       role: 'assistant',
-      timestamp: istanbulNow(),
+      timestamp: new Date(),
       feedback: null
     };
 
@@ -546,7 +550,7 @@ export async function POST(request: Request) {
           id: (Date.now() - 1).toString(),
           content: question,
           role: 'user',
-          timestamp: istanbulNow()
+          timestamp: new Date()
         },
         chatMessage
       ]);

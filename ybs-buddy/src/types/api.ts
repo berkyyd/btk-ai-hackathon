@@ -73,6 +73,7 @@ export interface UserInfo {
   displayName: string;
   email: string;
   role?: 'student' | 'academician' | 'admin';
+  favorites?: string[];
 }
 
 // Note types

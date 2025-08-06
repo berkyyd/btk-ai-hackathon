@@ -22,8 +22,15 @@ export async function POST(request: NextRequest) {
     if (courseId.length <= 10 && courseId.match(/^[A-Z]{2,3}\d{4}$/)) {
       // Müfredat dosyasından ders adını bul
       try {
-        const curriculum = await import('../../../data/curriculum.json');
-        for (const semester of curriculum.default.curriculum) {
+        const fs = require('fs');
+        const path = require('path');
+        // Next.js API route'larında doğru yol - root'tan başla
+        const curriculumPath = path.join(process.cwd(), 'src', 'data', 'curriculum.json');
+        console.log('Curriculum path:', curriculumPath);
+        console.log('Current working directory:', process.cwd());
+        const curriculumData = JSON.parse(fs.readFileSync(curriculumPath, 'utf8'));
+        
+        for (const semester of curriculumData.curriculum) {
           for (const course of semester.courses) {
             if (course.code === courseId) {
               courseName = course.name;
