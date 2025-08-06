@@ -120,29 +120,50 @@ export class GeminiService {
         ${questionTypes.includes('true_false') ? (isEnglishCourse ? '- True/False questions' : '- Doğru/Yanlış soruları') : ''}
         ${questionTypes.includes('open_ended') ? (isEnglishCourse ? '- Open-ended questions' : '- Açık uçlu sorular') : ''}
         
-        SADECE JSON formatında yanıt ver, markdown kullanma. Her soru için:
-        {
-          "id": "question_id",
-          "question": "Question text",
-          "type": "multiple_choice|true_false|open_ended",
-          "options": ["A) Option1", "B) Option2", "C) Option3", "D) Option4"] (only for multiple_choice),
-          "correctAnswer": "Correct answer",
-          "explanation": "Explanation",
-          "difficulty": "${request.difficulty}"
-        }
+        ÖNEMLİ: SADECE JSON formatında yanıt ver. Markdown, açıklama veya başka hiçbir şey ekleme.
         
-        Tüm soruları bir array içinde döndür. Sadece JSON, başka hiçbir şey yazma.
+        Yanıt formatı:
+        [
+          {
+            "id": "q1",
+            "question": "Soru metni",
+            "type": "multiple_choice",
+            "options": ["A) Seçenek1", "B) Seçenek2", "C) Seçenek3", "D) Seçenek4"],
+            "correctAnswer": "Doğru cevap",
+            "explanation": "Açıklama",
+            "difficulty": "${request.difficulty}"
+          }
+        ]
+        
+        Sadece JSON array döndür, başka hiçbir şey yazma.
         ${isEnglishCourse ? '\nREMEMBER: ABSOLUTELY EVERYTHING MUST BE IN ENGLISH. DO NOT USE TURKISH.' : ''}
       `;
       
       const response = await this.makeGeminiRequest(prompt);
       
       // Markdown formatındaki JSON'u temizle
-      let cleanResponse = response;
-      if (response.includes('```json')) {
-        cleanResponse = response.replace(/```json\n?/g, '').replace(/```\n?/g, '');
-      } else if (response.includes('```')) {
-        cleanResponse = response.replace(/```\n?/g, '');
+      let cleanResponse = response.trim();
+      
+      // Markdown code blocks'ları temizle
+      if (cleanResponse.includes('```json')) {
+        cleanResponse = cleanResponse.replace(/```json\n?/g, '').replace(/```\n?/g, '');
+      } else if (cleanResponse.includes('```')) {
+        cleanResponse = cleanResponse.replace(/```\n?/g, '');
+      }
+      
+      // Başındaki ve sonundaki boşlukları temizle
+      cleanResponse = cleanResponse.trim();
+      
+      // JSON array başlangıcını kontrol et
+      if (!cleanResponse.startsWith('[')) {
+        // Array başlangıcı yoksa ekle
+        if (cleanResponse.includes('{')) {
+          const firstBrace = cleanResponse.indexOf('{');
+          const lastBrace = cleanResponse.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace !== -1) {
+            cleanResponse = '[' + cleanResponse.substring(firstBrace, lastBrace + 1) + ']';
+          }
+        }
       }
       
       try {
@@ -150,12 +171,43 @@ export class GeminiService {
       } catch (parseError) {
         console.error('JSON parse error:', parseError);
         console.error('Response that failed to parse:', cleanResponse);
-        throw new Error('Gemini API yanıtı JSON formatında değil');
+        
+        // Fallback: Basit bir quiz oluştur
+        console.log('Creating fallback quiz...');
+        return this.createFallbackQuiz(request);
       }
     } catch (error) {
       console.error('Quiz generation failed:', error);
       throw error;
     }
+  }
+
+  private createFallbackQuiz(request: QuizGenerationRequest): any[] {
+    const questions = [];
+    const isEnglishCourse = request.courseId.toLowerCase().includes('ingilizce') || 
+                           request.courseId.toLowerCase().includes('english') ||
+                           request.courseId.toLowerCase().includes('yabancı dil');
+    
+    for (let i = 1; i <= request.questionCount; i++) {
+      const question = {
+        id: `q${i}`,
+        question: isEnglishCourse 
+          ? `Sample question ${i} for ${request.courseId} course.`
+          : `${request.courseId} dersi için örnek soru ${i}.`,
+        type: 'multiple_choice',
+        options: isEnglishCourse 
+          ? ['A) Option A', 'B) Option B', 'C) Option C', 'D) Option D']
+          : ['A) Seçenek A', 'B) Seçenek B', 'C) Seçenek C', 'D) Seçenek D'],
+        correctAnswer: isEnglishCourse ? 'A) Option A' : 'A) Seçenek A',
+        explanation: isEnglishCourse 
+          ? 'This is a fallback question due to API issues.'
+          : 'Bu soru API sorunları nedeniyle oluşturulmuş bir yedek sorudur.',
+        difficulty: request.difficulty
+      };
+      questions.push(question);
+    }
+    
+    return questions;
   }
 
   async summarizeNote(content: string, summaryType: keyof typeof SUMMARY_PROMPTS = 'academic'): Promise<string> {
