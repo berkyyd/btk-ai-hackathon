@@ -351,6 +351,6 @@ Bu kılavuz YBS Buddy uygulamasını nasıl kullanacağınızı adım adım aç�
 
 ---
 
-**Son Güncelleme:** 2024-01-15  
+**Son Güncelleme:** 06.08.2025  
 **Versiyon:** 1.0.0  
 **Dokümantasyon:** YBS Buddy Geliştirme Ekibi 
